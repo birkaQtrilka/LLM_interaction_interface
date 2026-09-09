@@ -15,7 +15,7 @@ public class LLM : MonoBehaviour
     [Header("Chat Settings")]
     [TextArea(3, 5)]
     [Tooltip("The system prompt gives the AI its personality and rules.")]
-    public string systemPrompt = "You are a helpful AI assistant in a Unity game.";
+    //public string systemPrompt = "You are a helpful AI assistant in a Unity game.";
     [Range(0f, 2f)]
     public float temperature = 0.7f;
 
@@ -61,14 +61,13 @@ public class LLM : MonoBehaviour
 
     private IEnumerator SendRequestRoutine(string userMessage, Action<string> onSuccess, Action<string> onError)
     {
-        // 1. Prepare the Data
         OpenAIRequest requestData = new OpenAIRequest
         {
             model = GetModelString(),
             temperature = temperature,
             messages = new OpenAIMessage[]
             {
-                new OpenAIMessage { role = "system", content = systemPrompt },
+                //new OpenAIMessage { role = "system", content = systemPrompt },
                 new OpenAIMessage { role = "user", content = userMessage }
             }
         };

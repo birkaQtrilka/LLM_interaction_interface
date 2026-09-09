@@ -1,15 +1,19 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class ChatManager : MonoBehaviour
 {
-    [SerializeField] LLM llm;
     [SerializeField] ChatMessage messagePrefab;
     [SerializeField] Transform chatContent;
     [SerializeField] ScrollRect scrollRect;
 
+    public string[] preparedMessages;
+
     TMP_InputField input;
+
+    public UnityEvent<string> OnTextSent;
 
     private void Awake()
     {
@@ -21,10 +25,10 @@ public class ChatManager : MonoBehaviour
     {
         AddChat(txt);
         input.text = string.Empty;
-        llm.SendChatMessage(txt, onSuccess: (str) => AddChat(str), onError: (str) => AddChat(str));
+        OnTextSent?.Invoke(txt);
     }
 
-    private void AddChat(string txt)
+    public void AddChat(string txt)
     {
         Instantiate(messagePrefab, chatContent).SetText(txt);
 
