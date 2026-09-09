@@ -156,7 +156,7 @@ RectTransform:
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 20.749, y: 0}
+  m_SizeDelta: {x: 8.792, y: 0}
   m_Pivot: {x: 1, y: 1}
 --- !u!114 &29736882
 MonoBehaviour:
@@ -419,7 +419,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 259.5923, y: 181.427}
+  m_SizeDelta: {x: 259.5923, y: 284.691}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &390957927
 MonoBehaviour:
@@ -436,6 +436,7 @@ MonoBehaviour:
   llm: {fileID: 522124488}
   messagePrefab: {fileID: 4685640333352169464, guid: 45d220d1ddcbda9428322b797e55fc14, type: 3}
   chatContent: {fileID: 1875796642}
+  scrollRect: {fileID: 1424570045}
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -609,7 +610,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LLM
   apiKeyEnvPath: Env/GrokKey.env
   selectedModel: 1
-  systemPrompt: You are a helpful AI assistant in a Unity game.
+  systemPrompt: You are a helpful AI assistant in a Unity game. Don't use any markdown elements or other decoration elements like emojis.
   temperature: 0.7
 --- !u!1 &571908490
 GameObject:
