@@ -21,7 +21,7 @@
 /Unity Project/[Uu]ser[Ss]ettings/
 *.log
 *.env
-*./Backend/.venv
+Backend/.venv/
 
 # By default unity supports Blender asset imports, *.blend1 blender files do not need to be committed to version control.
 *.blend1
