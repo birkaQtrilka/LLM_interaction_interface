@@ -1,8 +1,18 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
 using UnityEngine;
+
+[System.Serializable]
+public class ActionData
+{
+    public string name;
+    public string[] parameters;
+}
+
+[System.Serializable]
+public class ActionResponse
+{
+    public ActionData[] actions;
+}
 
 public class AgentSystem : MonoBehaviour
 {
@@ -12,12 +22,26 @@ public class AgentSystem : MonoBehaviour
     [SerializeField] ContextLibrary contextLibrary;
     [SerializeField] AnimationLibrary animationLibrary;
 
-    private string actionText = @"Bellow are the actions you can perform along with their parameters in order to achieve the task / answer the question asked by the user. 
+    private string actionText = @"Below are the actions you can perform to achieve the task / answer the question asked by the user. 
 Action List:
 moveToSpot(spotName: string)
 talk(msg: string)
 
-You must respond in the following format: actionName: [param1, param2 ..], actionName: [param1 ..] ...";
+You MUST respond ONLY with a valid JSON object in the exact format shown below. Do not add any conversational text or markdown before or after the JSON.
+
+Format:
+{
+  ""actions"": [
+    {
+      ""name"": ""moveToSpot"",
+      ""parameters"": [""SpotA""]
+    },
+    {
+      ""name"": ""talk"",
+      ""parameters"": [""Hello, how are you?""]
+    }
+  ]
+}";
 
     private void Awake()
     {
@@ -26,65 +50,61 @@ You must respond in the following format: actionName: [param1, param2 ..], actio
 
     private void OnUserMessage(string txt)
     {
-        // currently there is no first stage and refined stage
         txt = $"{systemPrompt}\nContext:\n{contextLibrary.GetContext()}\n\nUser request: {txt}\n{actionText}";
         Debug.Log($"Sending to LLM: \n{txt}");
-        llm.SendChatMessage(txt, 
+
+        llm.SendChatMessage(txt,
             onSuccess: (str) =>
             {
-                chatManager.AddChat(str);
                 Debug.Log($"LLM Response: \n{str}");
-                List<string[]> actions = Parse(str);
-                foreach (var action in actions)
+
+                try
                 {
-                    string actionName = action[0];
-                    string[] parameters = action.Skip(1).ToArray();
-                    string error = animationLibrary.PlayAnimation(contextLibrary, actionName, parameters);
-                    if (!string.IsNullOrEmpty(error))
+                    string cleanJson = ExtractJson(str);
+
+                    ActionResponse response = JsonUtility.FromJson<ActionResponse>(cleanJson);
+
+                    if (response != null && response.actions != null)
                     {
-                        Debug.Log(error);
-                        chatManager.AddChat(error);
+                        foreach (var action in response.actions)
+                        {
+                            // If parameters is null, default to an empty array to avoid null reference exceptions
+                            string[] parameters = action.parameters ?? new string[0];
+
+                            string error = animationLibrary.PlayAnimation(contextLibrary, action.name, parameters);
+
+                            if (!string.IsNullOrEmpty(error))
+                            {
+                                Debug.Log(error);
+                                chatManager.AddChat(error);
+                            }
+                        }
                     }
+                    else
+                    {
+                        Debug.LogError("Parsed JSON was empty or missing the 'actions' array.");
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"Failed to parse JSON. Error: {e.Message}\nRaw Output: {str}");
                 }
             },
             onError: (str) => chatManager.AddChat(str)
         );
     }
 
-
-    public static List<string[]> Parse(string input)
+    // Helper method to extract only the JSON object, ignoring extra text or markdown code blocks
+    private string ExtractJson(string input)
     {
-        var result = new List<string[]>();
+        int startIndex = input.IndexOf('{');
+        int endIndex = input.LastIndexOf('}');
 
-        // REGEX EXPLANATION:
-        // ([^:,]+)  -> Group 1: Matches the action name (anything that isn't a colon or comma)
-        // \s*:\s*   -> Matches the colon, ignoring any spaces around it
-        // \[([^\]]*)\] -> Group 2: Matches everything inside the [ ] brackets
-        string pattern = @"([^:,]+)\s*:\s*\[([^\]]*)\]";
-
-        foreach (Match match in Regex.Matches(input, pattern))
+        if (startIndex != -1 && endIndex != -1 && endIndex > startIndex)
         {
-            // 1. Get the action name and clean up any extra spaces
-            string actionName = match.Groups[1].Value.Trim();
-
-            // 2. Get the raw string of parameters from inside the brackets
-            string paramsString = match.Groups[2].Value;
-
-            // 3. Create a list to easily combine the action name and parameters
-            var actionData = new List<string> { actionName };
-
-            // 4. If there are parameters, split them by comma and add them
-            if (!string.IsNullOrWhiteSpace(paramsString))
-            {
-                var parameters = paramsString.Split(',')
-                                             .Select(p => p.Trim()); // Trim spaces off each parameter
-                actionData.AddRange(parameters);
-            }
-
-            // 5. Convert the list to an array and add it to our final result
-            result.Add(actionData.ToArray());
+            return input.Substring(startIndex, endIndex - startIndex + 1);
         }
 
-        return result;
+        return input; // Fallback to the raw string if brackets aren't found
     }
 }
