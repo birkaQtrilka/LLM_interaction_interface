@@ -37,11 +37,33 @@ class GetMessage(BaseModel):
     actions: list[ActionItem] = Field(default_factory=list)
 
 
+def world_to_text(world: str | dict) -> str:
+    # As if it was shader with World to Text translation
+    # (ง'̀-'́)ง
+    if isinstance(world, str):
+        return world
+
+    spot_parts = []
+    for spot in world.get("spots") or []:
+        pos = spot.get("position") or {}
+        spot_parts.append(f"{spot.get('name')}: ({pos.get('x')}, {pos.get('y')}, {pos.get('z')})")
+
+    npc = world.get("npc") or {}
+    pos = npc.get("position") or {}
+    rot = npc.get("rotation") or {}
+
+    return (
+        "These are all the spot positions in the digital world: "
+        + ", ".join(spot_parts)
+        + f"\nThis is your NPC data: position: ({pos.get('x')}, {pos.get('y')}, {pos.get('z')}), "
+        + f"rotation: ({rot.get('x')}, {rot.get('y')}, {rot.get('z')}, {rot.get('w')})"
+    )
+
+
 def build_messages(user_text: str, world: str | dict) -> list[dict]:
     user = user_text
     if world:
-        world_text = world if isinstance(world, str) else json.dumps(world)
-        user = f"World:\n{world_text}\n\nUser request: {user_text}"
+        user = f"World:\n{world_to_text(world)}\n\nUser request: {user_text}"
     return [
         {"role": "system", "content": f"{PERSONA}\n{ACTION_INSTRUCTIONS}"},
         {"role": "user", "content": user},
