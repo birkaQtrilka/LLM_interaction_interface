@@ -63,7 +63,6 @@ public class ObjectContext
 
 public class AgentSystem : MonoBehaviour
 {
-    [TextArea(3, 10)] string systemPrompt = "You are an NPC in a digital world. You will be given context about the world and the user will ask you tasks/questions related to the context.";
     [SerializeField] LLM llm;
     [SerializeField] AnimationLibrary animationLibrary;
     public bool sendAllContext = false;
@@ -71,7 +70,9 @@ public class AgentSystem : MonoBehaviour
     [field: SerializeField] public ChatManager chatManager { get; private set; }
 
     // probably need to add a way to add more actions to this list in the future, but for now, we'll hardcode them here.
-    private string actionText = @"Below are the actions you can perform to achieve the task / answer the question asked by the user. 
+    private string systemPrompt = @"
+You are an NPC in a digital world. You will be given context about the world and the user will ask you tasks/questions related to the context.
+Below are the actions you can perform to achieve the task / answer the question asked by the user. 
 Action List:
 moveToSpot(spotName: string)
 talk(msg: string)
@@ -155,11 +156,9 @@ Full Schema:
 
     private void GetContextJson(string userPrompt)
     {
-        string txt = $"{contextString}\nUser prompt:\n {userPrompt}";
+        Debug.Log($"Sending to LLM Round 1: \n{contextString}\n{userPrompt}");
 
-        Debug.Log($"Sending to LLM Round 1: \n{txt}");
-
-        llm.SendChatMessage(txt,
+        llm.SendChatMessage(userPrompt, contextString,
             onSuccess: (str) =>
             {
                 Debug.Log($"LLM Response: \n{str}");
@@ -182,10 +181,12 @@ Full Schema:
 
     void GetActionsJson(string userPrompt, ContextResponse context)
     {
-        string txt = $"{systemPrompt}\nContext:\n{contextLibrary.GetContext(context)}\n\nUser request: {userPrompt}\n{actionText}";
-        Debug.Log($"Sending to LLM Round 2: \n{txt}");
+        //string txt = $"\n\nUser request: {userPrompt}\n{actionText}";
+        string system = $"{systemPrompt}\n\nContext:\n{contextLibrary.GetContext(context)}";
+        Debug.Log($"Sending to LLM Round 2: \nSystemText:\n{system}\nUserText:\n{userPrompt}");
 
-        llm.SendChatMessage(txt,
+        //llm.SendChatMessage($"User request: {userPrompt}", systemPrompt,
+        llm.SendChatMessage(userPrompt, system, 
             onSuccess: (str) =>
             {
                 Debug.Log($"LLM Response: \n{str}");
