@@ -1,0 +1,23 @@
+- Download Python 3.11+
+- cd Backend
+- py -m venv .venv (if not created)
+
+Udpate the dependencies inside .venv
+pip freeze > requirements.txt
+
+How to run the Backend on Windows:
+- .\.venv\Scripts\Activate.ps1
+- pip install -r requirements.txt
+
+How to run the Backend on Mac:
+- source .venv/bin/activate
+- pip install -r requirements.txt
+- python test.py
+
+Run the test:
+python test.py
+
+It should print a short answer from the model.
+
+Run a chat thread (keeps history, prints raw JSON):
+python chat.py

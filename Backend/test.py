@@ -11,8 +11,7 @@ response = httpx.post(
     headers={"Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}"},
     json={
         "model": "gpt-4o-mini",
-        "messages": [{"role": "user", "content": "Reply with exactly: smoke ok"}],
+        "messages": [{"role": "user", "content": "Reply with exactly: pass"}],
     },
-    timeout=30.0,
 )
 print(response.json()["choices"][0]["message"]["content"])
