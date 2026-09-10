@@ -30,14 +30,14 @@ public class ContextResponse
             {
                 position = true,
                 rotation = true,
-                neighboiurs = true
+                neighbours = true
             },
             getObjects = new ObjectContext
             {
                 position = true,
                 rotation = true,
                 description = true,
-                neighboiurs = true
+                neighbours = true
             }
         };
     }
@@ -48,7 +48,7 @@ public class UserContext
 {
     public bool position;
     public bool rotation;
-    public bool neighboiurs;
+    public bool neighbours;
 }
 
 [Serializable]
@@ -57,7 +57,7 @@ public class ObjectContext
     public bool position;
     public bool rotation;
     public bool description;
-    public bool neighboiurs;
+    public bool neighbours;
 }
 
 
@@ -110,7 +110,7 @@ Format:
     ""getUser"": {
         ""position"": true,
         ""rotation"": false,
-        ""neighboiurs"": false
+        ""neighbours"": false
     },
 ...
 }
@@ -120,13 +120,13 @@ Full Schema:
     getUser: {
         position: bool,
         rotation: bool,
-        neighboiurs: bool
+        neighbours: bool
     },
     getObjects: {
         position: bool,
         rotation: bool,
         description: bool
-        neighboiurs: bool
+        neighbours: bool
     }
 }
 ";
