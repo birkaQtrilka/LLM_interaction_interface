@@ -10,13 +10,12 @@ from pydantic import BaseModel, Field
 load_dotenv(Path(__file__).resolve().parent / ".env")
 
 PERSONA = "You are a scrub nurse in an operating room, reply in character, keep it short."
-ACTION_INSTRUCTIONS = """Reply with a single JSON object with fields say and actions.
-actions is an array of {name, parameters}. Parameters are strings.
-Action list:
-moveToSpot(spotName) — walk to a named spot
-moveToPoint(x, y, z) — walk to coordinates
-talk(msg) — say something in chat
-"""
+# Adding a verb later is one more row. build_messages turns this into prompt text.
+ACTIONS = [
+    {"name": "moveToSpot", "args": "spotName", "doc": "walk to a named spot"},
+    {"name": "moveToPoint", "args": "x, y, z", "doc": "walk to coordinates"},
+    {"name": "talk", "args": "msg", "doc": "say something in chat"},
+]
 
 app = FastAPI()
 
@@ -64,8 +63,18 @@ def build_messages(user_text: str, world: str | dict) -> list[dict]:
     user = user_text
     if world:
         user = f"World:\n{world_to_text(world)}\n\nUser request: {user_text}"
+    action_lines = []
+    for action in ACTIONS:
+        action_lines.append(f"{action['name']}({action['args']}) — {action['doc']}")
+    system = (
+        f"{PERSONA}\n"
+        "Reply with a single JSON object with fields say and actions.\n"
+        "actions is an array of {name, parameters}. Parameters are strings.\n"
+        "Action list:\n"
+        + "\n".join(action_lines)
+    )
     return [
-        {"role": "system", "content": f"{PERSONA}\n{ACTION_INSTRUCTIONS}"},
+        {"role": "system", "content": system},
         {"role": "user", "content": user},
     ]
 
