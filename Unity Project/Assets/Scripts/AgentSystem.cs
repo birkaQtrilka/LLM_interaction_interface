@@ -20,6 +20,27 @@ public class ContextResponse
     public bool getSpots;
     public UserContext getUser;
     public ObjectContext getObjects;
+
+    public static ContextResponse GetFullContext()
+    {
+         return new ContextResponse
+        {
+            getSpots = true,
+            getUser = new UserContext
+            {
+                position = true,
+                rotation = true,
+                neighboiurs = true
+            },
+            getObjects = new ObjectContext
+            {
+                position = true,
+                rotation = true,
+                description = true,
+                neighboiurs = true
+            }
+        };
+    }
 }
 
 [Serializable]
@@ -45,8 +66,10 @@ public class AgentSystem : MonoBehaviour
     [TextArea(3, 10)] string systemPrompt = "You are an NPC in a digital world. You will be given context about the world and the user will ask you tasks/questions related to the context.";
     [SerializeField] LLM llm;
     [SerializeField] AnimationLibrary animationLibrary;
+    public bool sendAllContext = false;
     [field: SerializeField] public ContextLibrary contextLibrary { get; private set; }
     [field: SerializeField] public ChatManager chatManager { get; private set; }
+
     // probably need to add a way to add more actions to this list in the future, but for now, we'll hardcode them here.
     private string actionText = @"Below are the actions you can perform to achieve the task / answer the question asked by the user. 
 Action List:
@@ -68,57 +91,6 @@ Format:
     }
   ]
 }";
-
-//    private string contextString = @"
-//You need to provide what context of the world is needed to perform the action asked by the user, so a processing algorithm can efficiently work with only the needed data. 
-//You MUST respond ONLY with a valid JSON object in the exact format shown below.
-//Format:
-//{
-//    ""getSpots:"" ""true"",
-//    ""getUser"": {
-//        ""position"": true,
-//        ""rotation"": true
-//    },
-//}
-//Full Schema:
-//{
-//    getSpots: bool,
-//    getUser: {
-//        position: bool,
-//        rotation: bool,
-//        neighboiurs: bool
-//    },
-//    getObjects: {
-//        position: bool,
-//        rotation: bool,
-//        description: bool
-//        neighboiurs: bool
-//    }
-//}
-//";
-
-    private void Awake()
-    {
-        chatManager.OnTextSent.AddListener(OnUserMessage);
-    }
-
-    private void OnUserMessage(string txt)
-    {
-        GetContextJson(txt);
-    }
-
-    private string ExtractJson(string input)
-    {
-        int startIndex = input.IndexOf('{');
-        int endIndex = input.LastIndexOf('}');
-
-        if (startIndex != -1 && endIndex != -1 && endIndex > startIndex)
-        {
-            return input.Substring(startIndex, endIndex - startIndex + 1);
-        }
-
-        return input;
-    }
 
     private string contextString = @"
 You need to provide what context of the world is needed to perform the action asked by the user, so a processing algorithm can efficiently work with only the needed data. 
@@ -149,6 +121,37 @@ Full Schema:
     }
 }
 ";
+
+    private void Awake()
+    {
+        chatManager.OnTextSent.AddListener(OnUserMessage);
+    }
+
+    private void OnUserMessage(string txt)
+    {
+        if (sendAllContext)
+        {
+            GetActionsJson(txt, ContextResponse.GetFullContext());
+        }
+        else
+        {
+            GetContextJson(txt);
+        }
+    }
+
+    private string ExtractJson(string input)
+    {
+        int startIndex = input.IndexOf('{');
+        int endIndex = input.LastIndexOf('}');
+
+        if (startIndex != -1 && endIndex != -1 && endIndex > startIndex)
+        {
+            return input.Substring(startIndex, endIndex - startIndex + 1);
+        }
+
+        return input;
+    }
+
     private void GetContextJson(string userPrompt)
     {
         string txt = $"{contextString}\nUser prompt:\n {userPrompt}";
