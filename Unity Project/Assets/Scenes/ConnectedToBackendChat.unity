@@ -813,7 +813,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LLMBackend
   baseUrl: http://127.0.0.1:8000
-  chatManager: {fileID: 390957927}
   logJson: 0
 --- !u!1 &571908490
 GameObject:
@@ -1821,7 +1820,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &967212466
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -19,25 +19,9 @@ public class LLMBackend : MonoBehaviour
     }
 
     [SerializeField] string baseUrl = "http://127.0.0.1:8000";
-    [SerializeField] ChatManager chatManager;
     [SerializeField] bool logJson;
 
-    void Awake()
-    {
-        if (chatManager == null)
-        {
-            return;
-        }
-
-        chatManager.OnTextSent.AddListener(OnUserMessage);
-    }
-
-    void OnUserMessage(string message)
-    {
-        SendTurn(message, onSuccess: chatManager.AddChat, onError: chatManager.AddChat);
-    }
-
-    public void SendTurn(string message, Action<string> onSuccess, Action<string> onError = null)
+    public void SendChatMessage(string message, Action<string> onSuccess, Action<string> onError = null)
     {
         StartCoroutine(SendTurnRoutine(message, onSuccess, onError));
     }

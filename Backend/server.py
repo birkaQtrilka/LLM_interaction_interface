@@ -13,16 +13,23 @@ PERSONA = "You are a scrub nurse in an operating room, reply in character, keep 
 app = FastAPI()
 
 
-class TurnRequest(BaseModel):
+class SendChatMessage(BaseModel):
     message: str
 
 
-class TurnResponse(BaseModel):
+class GetMessage(BaseModel):
     say: str
 
 
-@app.post("/v1/turn", response_model=TurnResponse)
-def turn(body: TurnRequest) -> TurnResponse:
+def build_messages(user_text: str) -> list[dict]:
+    return [
+        {"role": "system", "content": PERSONA},
+        {"role": "user", "content": user_text},
+    ]
+
+a
+@app.post("/v1/turn", response_model=GetMessage)
+def turn(body: SendChatMessage) -> GetMessage:
     api_key = os.environ.get("OPENAI_API_KEY")
     if not api_key:
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY is not set")
@@ -32,10 +39,7 @@ def turn(body: TurnRequest) -> TurnResponse:
         headers={"Authorization": f"Bearer {api_key}"},
         json={
             "model": "gpt-4o-mini",
-            "messages": [
-                {"role": "system", "content": PERSONA},
-                {"role": "user", "content": body.message},
-            ],
+            "messages": build_messages(body.message),
         },
         timeout=60,
     )
@@ -43,4 +47,4 @@ def turn(body: TurnRequest) -> TurnResponse:
         raise HTTPException(status_code=response.status_code, detail=response.text)
 
     say = response.json()["choices"][0]["message"]["content"]
-    return TurnResponse(say=say)
+    return GetMessage(say=say)
