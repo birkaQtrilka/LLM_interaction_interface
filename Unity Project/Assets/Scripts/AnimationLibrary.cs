@@ -24,6 +24,19 @@ public class AnimationLibrary : MonoBehaviour
                 }
                 Move(context.contextLibrary.agent, ToVec3(param[0], param[1], param[2]));
                 break;
+            case "lookAt":
+                if (param.Length < 1) {
+                    return "lookAt requires a target name";
+                }
+                ContextItem lookTarget = context.contextLibrary.spots.Find(x => x.name == param[0]);
+                if (lookTarget == null) {
+                    lookTarget = context.contextLibrary.environment.Find(x => x.name == param[0]);
+                }
+                if (lookTarget == null) {
+                    return $"Couldn't find look target {param[0]}";
+                }
+                context.contextLibrary.agent.transform.LookAt(lookTarget.transform);
+                break;
             default:
                 return $"Unknown action: {animationName}";
         }

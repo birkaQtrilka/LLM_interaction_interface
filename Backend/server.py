@@ -15,6 +15,7 @@ ACTIONS = [
     {"name": "moveToSpot", "args": "spotName", "doc": "walk to a named spot"},
     {"name": "moveToPoint", "args": "x, y, z", "doc": "walk to coordinates"},
     {"name": "talk", "args": "msg", "doc": "say something in chat"},
+    {"name": "lookAt", "args": "targetName", "doc": "face a named spot or object"},
 ]
 
 app = FastAPI()
