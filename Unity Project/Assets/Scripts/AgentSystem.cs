@@ -75,10 +75,9 @@ public class AgentSystem : MonoBehaviour
     void OnUserMessage(string txt)
     {
         contextLibrary.AddMessageToHistory(txt);
-        string world = contextLibrary.GetContext(ContextResponse.GetFullContext());
-        // Log only: snapshot is not sent yet.
-        Debug.Log(JsonUtility.ToJson(contextLibrary.GetSnapshot(), true));
-        llm.SendChatMessage(txt, world, onSuccess: ApplyReply, onError: chatManager.AddChat);
+        WorldSnapshot snapshot = contextLibrary.GetSnapshot();
+        Debug.Log(JsonUtility.ToJson(snapshot, true));
+        llm.SendChatMessage(txt, snapshot, onSuccess: ApplyReply, onError: chatManager.AddChat);
     }
 
     void ApplyReply(BackendReply reply)

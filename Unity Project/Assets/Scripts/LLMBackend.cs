@@ -17,18 +17,19 @@ public class LLMBackend : MonoBehaviour
     class TurnRequest
     {
         public string message;
-        public string world;
+        // JsonUtility only nests JSON if this is a class, not a string
+        public WorldSnapshot world;
     }
 
     [SerializeField] string baseUrl = "http://127.0.0.1:8000";
     [SerializeField] bool logJson;
 
-    public void SendChatMessage(string message, string world, Action<BackendReply> onSuccess, Action<string> onError = null)
+    public void SendChatMessage(string message, WorldSnapshot world, Action<BackendReply> onSuccess, Action<string> onError = null)
     {
         StartCoroutine(SendTurnRoutine(message, world, onSuccess, onError));
     }
 
-    IEnumerator SendTurnRoutine(string message, string world, Action<BackendReply> onSuccess, Action<string> onError)
+    IEnumerator SendTurnRoutine(string message, WorldSnapshot world, Action<BackendReply> onSuccess, Action<string> onError)
     {
         TurnRequest body = new TurnRequest { message = message, world = world };
         byte[] postData = Encoding.UTF8.GetBytes(JsonUtility.ToJson(body));

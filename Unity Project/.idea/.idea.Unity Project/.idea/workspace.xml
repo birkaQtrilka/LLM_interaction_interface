@@ -5,8 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1cbb11e3-f3c7-4855-9f44-cd4ad4bd82e7" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Unity Project/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Unity Project/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/ContextLibrary.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/ContextLibrary.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Backend/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/../Backend/server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/AgentSystem.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/AgentSystem.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/LLMBackend.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/LLMBackend.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

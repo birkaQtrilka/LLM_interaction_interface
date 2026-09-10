@@ -23,7 +23,8 @@ app = FastAPI()
 
 class SendChatMessage(BaseModel):
     message: str
-    world: str = ""
+    # Unity sends a snapshot object; curl can still send a string
+    world: str | dict = ""
 
 
 class ActionItem(BaseModel):
@@ -36,10 +37,11 @@ class GetMessage(BaseModel):
     actions: list[ActionItem] = Field(default_factory=list)
 
 
-def build_messages(user_text: str, world: str) -> list[dict]:
+def build_messages(user_text: str, world: str | dict) -> list[dict]:
     user = user_text
     if world:
-        user = f"World:\n{world}\n\nUser request: {user_text}"
+        world_text = world if isinstance(world, str) else json.dumps(world)
+        user = f"World:\n{world_text}\n\nUser request: {user_text}"
     return [
         {"role": "system", "content": f"{PERSONA}\n{ACTION_INSTRUCTIONS}"},
         {"role": "user", "content": user},
