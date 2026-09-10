@@ -35,6 +35,28 @@ public class ContextItem
     }
 }
 
+// Room as data for JsonUtility. Not sent on the wire yet.
+[System.Serializable]
+public class WorldSnapshotSpot
+{
+    public string name;
+    public Vector3 position;
+}
+
+[System.Serializable]
+public class WorldSnapshotNpc
+{
+    public Vector3 position;
+    public Quaternion rotation;
+}
+
+[System.Serializable]
+public class WorldSnapshot
+{
+    public WorldSnapshotSpot[] spots;
+    public WorldSnapshotNpc npc;
+}
+
 public class ContextLibrary : MonoBehaviour
 {
     [NoFoldout] public List<ContextItem> spots = new();
@@ -48,10 +70,7 @@ public class ContextLibrary : MonoBehaviour
     public void AddMessageToHistory(string message)
     {
         messageHistory.AddLast(message);
-        if (messageHistory.Count > maxMessageHistory)
-        {
-            messageHistory.RemoveFirst();
-        }
+        if (messageHistory.Count > maxMessageHistory) messageHistory.RemoveFirst();
     }
 
     public string GetContext(ContextResponse query)
