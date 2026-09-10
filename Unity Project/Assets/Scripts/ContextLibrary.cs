@@ -90,6 +90,30 @@ public class ContextLibrary : MonoBehaviour
         return context;
     }
 
+    // Same spots and agent as GetContext, as data instead of a paragraph
+    public WorldSnapshot GetSnapshot()
+    {
+        WorldSnapshotSpot[] snapshotSpots = new WorldSnapshotSpot[spots.Count];
+        for (int i = 0; i < spots.Count; i++)
+        {
+            snapshotSpots[i] = new WorldSnapshotSpot
+            {
+                name = spots[i].name,
+                position = spots[i].transform.position
+            };
+        }
+
+        return new WorldSnapshot
+        {
+            spots = snapshotSpots,
+            npc = new WorldSnapshotNpc
+            {
+                position = agent.transform.position,
+                rotation = agent.transform.rotation
+            }
+        };
+    }
+
     public string GetItemData(ContextItem item, bool includePosition, bool includeRotation, bool includeBounds)
     {
         List<string> dataParts = new();
