@@ -4,31 +4,33 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 
+[Serializable]
+public class BackendReply
+{
+    public string say;
+    public ActionData[] actions;
+}
+
 public class LLMBackend : MonoBehaviour
 {
     [Serializable]
     class TurnRequest
     {
         public string message;
-    }
-
-    [Serializable]
-    class TurnResponse
-    {
-        public string say;
+        public string world;
     }
 
     [SerializeField] string baseUrl = "http://127.0.0.1:8000";
     [SerializeField] bool logJson;
 
-    public void SendChatMessage(string message, Action<string> onSuccess, Action<string> onError = null)
+    public void SendChatMessage(string message, string world, Action<BackendReply> onSuccess, Action<string> onError = null)
     {
-        StartCoroutine(SendTurnRoutine(message, onSuccess, onError));
+        StartCoroutine(SendTurnRoutine(message, world, onSuccess, onError));
     }
 
-    IEnumerator SendTurnRoutine(string message, Action<string> onSuccess, Action<string> onError)
+    IEnumerator SendTurnRoutine(string message, string world, Action<BackendReply> onSuccess, Action<string> onError)
     {
-        TurnRequest body = new TurnRequest { message = message };
+        TurnRequest body = new TurnRequest { message = message, world = world };
         byte[] postData = Encoding.UTF8.GetBytes(JsonUtility.ToJson(body));
         string url = baseUrl.TrimEnd('/') + "/v1/turn";
 
@@ -58,13 +60,13 @@ public class LLMBackend : MonoBehaviour
             yield break;
         }
 
-        TurnResponse response = JsonUtility.FromJson<TurnResponse>(request.downloadHandler.text);
-        if (response == null || string.IsNullOrEmpty(response.say))
+        BackendReply response = JsonUtility.FromJson<BackendReply>(request.downloadHandler.text);
+        if (response == null)
         {
             onError?.Invoke("Received empty or invalid response from backend.");
             yield break;
         }
 
-        onSuccess?.Invoke(response.say);
+        onSuccess?.Invoke(response);
     }
 }

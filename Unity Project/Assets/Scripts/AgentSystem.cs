@@ -74,6 +74,32 @@ public class AgentSystem : MonoBehaviour
 
     void OnUserMessage(string txt)
     {
-        llm.SendChatMessage(txt, onSuccess: chatManager.AddChat, onError: chatManager.AddChat);
+        contextLibrary.AddMessageToHistory(txt);
+        string world = contextLibrary.GetContext(ContextResponse.GetFullContext());
+        llm.SendChatMessage(txt, world, onSuccess: ApplyReply, onError: chatManager.AddChat);
+    }
+
+    void ApplyReply(BackendReply reply)
+    {
+        if (!string.IsNullOrEmpty(reply.say))
+        {
+            chatManager.AddChat(reply.say);
+        }
+
+        if (reply.actions == null)
+        {
+            return;
+        }
+
+        foreach (ActionData action in reply.actions)
+        {
+            string[] parameters = action.parameters ?? Array.Empty<string>();
+            string error = animationLibrary.PlayAnimation(this, action.name, parameters);
+            if (!string.IsNullOrEmpty(error))
+            {
+                Debug.Log(error);
+                chatManager.AddChat(error);
+            }
+        }
     }
 }
