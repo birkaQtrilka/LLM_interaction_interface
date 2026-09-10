@@ -1,0 +1,86 @@
+{
+  "url": "http://127.0.0.1:8000/v1/turn",
+  "method": "POST",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "conversation_mode": ["stateless", "threaded"],
+  "reply_shape": ["chat_text", "npc_actions"],
+  "request_fields": {
+    "message": "Trainee text from the chat UI. Required.",
+    "conversation_mode": "stateless: one user turn, no stored history. threaded: server keeps messages keyed by session_id.",
+    "reply_shape": "chat_text: populate say. npc_actions: populate actions as ActionResponse. Both may be present.",
+    "session_id": "Required when conversation_mode is threaded. Unity generates one GUID per Play session.",
+    "world": "Structured snapshot from ContextLibrary (spots and NPC pose), not prompt text."
+  },
+  "response_fields": {
+    "say": "Text for the chat UI. Used for chat_text; optional extra for npc_actions.",
+    "actions": "Array of { name, parameters[] } matching Unity ActionResponse. Used for npc_actions.",
+    "session_id": "Echo of the session used for this turn.",
+    "prompt_tokens": "Provider prompt token count.",
+    "completion_tokens": "Provider completion token count.",
+    "latency_ms": "End-to-end backend latency in milliseconds."
+  },
+  "examples": {
+    "npc_actions_stateless": {
+      "request": {
+        "message": "Move towards the farthest spot to you and tell me 3 funny jokes",
+        "conversation_mode": "stateless",
+        "reply_shape": "npc_actions",
+        "session_id": "3f2a1c8e-9b4d-4e71-a1c2-8d9e0f1a2b3c",
+        "world": {
+          "spots": [
+            { "name": "SpotA", "position": { "x": -1.14, "y": -0.45, "z": -4.14 } },
+            { "name": "SpotB", "position": { "x": 3.96, "y": -0.45, "z": -4.7 } },
+            { "name": "SpotC", "position": { "x": 2.9, "y": -0.45, "z": -0.92 } }
+          ],
+          "npc": {
+            "position": { "x": 1.61, "y": 0.51, "z": -0.52 },
+            "rotation": { "x": 0.0, "y": 0.0, "z": 0.0, "w": 1.0 }
+          }
+        }
+      },
+      "response": {
+        "say": "",
+        "actions": [
+          { "name": "moveToSpot", "parameters": ["SpotA"] },
+          {
+            "name": "talk",
+            "parameters": [
+              "Why don't scientists trust atoms? Because they make up everything. I told my doctor I broke my arm in two places. He told me to stop going there. Parallel lines have so much in common. It's a shame they'll never meet."
+            ]
+          }
+        ],
+        "session_id": "3f2a1c8e-9b4d-4e71-a1c2-8d9e0f1a2b3c",
+        "prompt_tokens": 412,
+        "completion_tokens": 86,
+        "latency_ms": 1240
+      }
+    },
+    "chat_text_threaded": {
+      "request": {
+        "message": "Hand me the scalpel.",
+        "conversation_mode": "threaded",
+        "reply_shape": "chat_text",
+        "session_id": "3f2a1c8e-9b4d-4e71-a1c2-8d9e0f1a2b3c",
+        "world": {
+          "spots": [
+            { "name": "SpotA", "position": { "x": -1.14, "y": -0.45, "z": -4.14 } }
+          ],
+          "npc": {
+            "position": { "x": 1.61, "y": 0.51, "z": -0.52 },
+            "rotation": { "x": 0.0, "y": 0.0, "z": 0.0, "w": 1.0 }
+          }
+        }
+      },
+      "response": {
+        "say": "Here you go, doctor.",
+        "actions": [],
+        "session_id": "3f2a1c8e-9b4d-4e71-a1c2-8d9e0f1a2b3c",
+        "prompt_tokens": 128,
+        "completion_tokens": 24,
+        "latency_ms": 540
+      }
+    }
+  }
+}
