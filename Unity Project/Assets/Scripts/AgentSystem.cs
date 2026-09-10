@@ -137,6 +137,7 @@ Full Schema:
         {
             GetContextJson(txt);
         }
+        contextLibrary.AddMessageToHistory(txt);
     }
 
     private string ExtractJson(string input)
