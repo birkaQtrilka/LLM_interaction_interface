@@ -34,6 +34,8 @@ class ActionItem(BaseModel):
 class GetMessage(BaseModel):
     say: str = ""
     actions: list[ActionItem] = Field(default_factory=list)
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
 
 
 def world_to_text(world: str | dict) -> str:
@@ -98,8 +100,9 @@ def turn(body: SendChatMessage) -> GetMessage:
     if not response.is_success:
         raise HTTPException(status_code=response.status_code, detail=response.text)
 
+    payload = response.json()
     try:
-        parsed = json.loads(response.json()["choices"][0]["message"]["content"])
+        parsed = json.loads(payload["choices"][0]["message"]["content"])
     except (json.JSONDecodeError, KeyError, TypeError) as exc:
         raise HTTPException(status_code=502, detail=f"Model did not return JSON: {exc}") from exc
 
@@ -114,4 +117,11 @@ def turn(body: SendChatMessage) -> GetMessage:
             ActionItem(name=str(item.get("name") or ""), parameters=[str(p) for p in params])
         )
 
-    return GetMessage(say=str(parsed.get("say") or ""), actions=actions)
+    # Token counts live on the provider payload, not in the model's say/actions JSON.
+    usage = payload.get("usage") or {}
+    return GetMessage(
+        say=str(parsed.get("say") or ""),
+        actions=actions,
+        prompt_tokens=int(usage.get("prompt_tokens") or 0),
+        completion_tokens=int(usage.get("completion_tokens") or 0),
+    )

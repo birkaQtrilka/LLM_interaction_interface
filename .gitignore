@@ -41,6 +41,7 @@ Backend/.venv/
 /Unity Project/[Aa]ssets/Plugins/Editor/JetBrains*
 # Jetbrains Rider personal-layer settings
 *.DotSettings.user
+/Unity Project/.idea/
 
 # Visual Studio cache directory
 /Unity Project/.vs/
