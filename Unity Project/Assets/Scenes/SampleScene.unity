@@ -311,10 +311,16 @@ MonoBehaviour:
   spots:
   - name: SpotA
     transform: {fileID: 1515485808}
+    description: 
+    neighbors: []
   - name: SpotB
     transform: {fileID: 889834146}
+    description: 
+    neighbors: []
   - name: SpotC
     transform: {fileID: 2130469908}
+    description: 
+    neighbors: []
   agent: {fileID: 1860244333}
   maxMessageHistory: 10
 --- !u!4 &163989117
@@ -638,6 +644,7 @@ MonoBehaviour:
   preparedMessages:
   - Move towards the closest spot to you
   - Move towards the farthest spot to you
+  - Move to the middle point between SpotA and SpotB
   OnTextSent:
     m_PersistentCalls:
       m_Calls: []
@@ -1835,6 +1842,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AgentSystem
   llm: {fileID: 522124488}
   animationLibrary: {fileID: 2033616363}
+  sendAllContext: 1
   <contextLibrary>k__BackingField: {fileID: 163989116}
   <chatManager>k__BackingField: {fileID: 390957927}
 --- !u!4 &967212467

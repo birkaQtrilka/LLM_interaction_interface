@@ -38,9 +38,9 @@ public class LLM : MonoBehaviour
     /// Call this method to send a prompt to ChatGPT.
     /// Passes the result to the onSuccess or onError callbacks.
     /// </summary>
-    public void SendChatMessage(string userMessage, Action<string> onSuccess, Action<string> onError = null)
+    public void SendChatMessage(string userMessage, string systemMesssage, Action<string> onSuccess, Action<string> onError = null)
     {
-        StartCoroutine(SendRequestRoutine(userMessage, onSuccess, onError));
+        StartCoroutine(SendRequestRoutine(userMessage, systemMesssage, onSuccess, onError));
     }
     string LoadApiKey()
     {
@@ -59,7 +59,7 @@ public class LLM : MonoBehaviour
         }
     }
 
-    private IEnumerator SendRequestRoutine(string userMessage, Action<string> onSuccess, Action<string> onError)
+    private IEnumerator SendRequestRoutine(string userMessage, string systemMesssage, Action<string> onSuccess, Action<string> onError)
     {
         OpenAIRequest requestData = new OpenAIRequest
         {
@@ -67,8 +67,8 @@ public class LLM : MonoBehaviour
             temperature = temperature,
             messages = new OpenAIMessage[]
             {
-                //new OpenAIMessage { role = "system", content = systemPrompt },
-                new OpenAIMessage { role = "user", content = userMessage }
+                new() { role = "system", content = systemMesssage },
+                new() { role = "user", content = userMessage }
             }
         };
 
