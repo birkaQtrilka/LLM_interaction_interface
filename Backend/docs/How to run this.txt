@@ -2,17 +2,21 @@
 - cd Backend
 - py -m venv .venv (if not created)
 
-Udpate the dependencies inside .venv
-pip freeze > requirements.txt
+Put OPENAI_API_KEY in Backend/.env
 
 How to run the Backend on Windows:
 - .\.venv\Scripts\Activate.ps1
-- pip install -r requirements.txt
+- pip install -r docs/requirements.txt
 
 How to run the Backend on Mac:
 - source .venv/bin/activate
-- pip install -r requirements.txt
-- python test.py
+- pip install -r docs/requirements.txt
+
+Start the HTTP server (Unity posts here):
+python -m uvicorn server:app --host 127.0.0.1 --port 8000
+
+The turn endpoint is POST http://127.0.0.1:8000/v1/turn
+Keep it running while playing in Unity
 
 Run the test:
 python test.py
@@ -20,4 +24,4 @@ python test.py
 It should print a short answer from the model.
 
 Run a chat thread (keeps history, prints raw JSON):
-python chat.py
+python chatJSON.py
