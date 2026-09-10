@@ -20,6 +20,12 @@ public class AnimationLibrary : MonoBehaviour
             case "talk":
                 context.chatManager.AddChat(param[0]);
                 break;
+            case "moveToPoint":
+                if (param.Length < 3) {
+                    return "moveToPoint requires 3 parameters: x, y, z";
+                }
+                Move(context.contextLibrary.agent, ToVec3(param[0], param[1], param[2]));
+                break;
         }
 
         return null;
@@ -28,5 +34,13 @@ public class AnimationLibrary : MonoBehaviour
     void Move(NavMeshAgent agent, Vector3 pos)
     {
         agent.SetDestination(pos);
+    }
+
+    Vector3 ToVec3(string px, string py, string pz)
+    {
+        float.TryParse(px, out float x);
+        float.TryParse(py, out float y);
+        float.TryParse(pz, out float z);
+        return new Vector3(x, y, z);
     }
 }

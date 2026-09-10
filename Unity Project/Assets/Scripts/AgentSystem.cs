@@ -72,9 +72,13 @@ public class AgentSystem : MonoBehaviour
     // probably need to add a way to add more actions to this list in the future, but for now, we'll hardcode them here.
     private string systemPrompt = @"
 You are an NPC in a digital world. You will be given context about the world and the user will ask you tasks/questions related to the context.
-Below are the actions you can perform to achieve the task / answer the question asked by the user. 
+Below are the actions you can perform to achieve the task / answer the question asked by the user along with documentation about when to use it. 
 Action List:
+// when user asks you to move to a specific spot in the world, use this action. The parameter is the name of the spot.
 moveToSpot(spotName: string)
+// when the user asks you to go to an arbitrary point in the world, use this action. The parameters are the x, y, and z coordinates of the point.
+moveToPoint(x: float, y: float, z: float)
+// use this action when the user asks you something or where a comment to some other action is appropriate. The parameter is the text you want to say.
 talk(msg: string)
 
 You MUST respond ONLY with a valid JSON object in the exact format shown below. Do not add any conversational text or markdown before or after the JSON.
@@ -85,6 +89,10 @@ Format:
     {
       ""name"": ""moveToSpot"",
       ""parameters"": [""SpotA""]
+    },
+    {
+      ""name"": ""moveToPoint"",
+      ""parameters"": [1, 2, 3]
     },
     {
       ""name"": ""talk"",
