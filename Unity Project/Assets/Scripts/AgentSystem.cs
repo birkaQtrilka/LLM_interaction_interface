@@ -51,31 +51,31 @@ Format:
 {
   ""actions"": [
     {
-      ""id"": ""action1"",
+      ""id"": 0,
       ""name"": ""talk"",
       ""parameters"": [""I will wait 2 seconds, then go to SpotA.""],
       ""runAfter"": [],
       ""delayBefore"": 0
     },
     {
-      ""id"": ""action2"",
+      ""id"": 1,
       ""name"": ""moveToSpot"",
       ""parameters"": [""SpotA""],
       ""runAfter"": [],
       ""delayBefore"": 2.0
     },
     {
-      ""id"": ""action3"",
+      ""id"": 2,
       ""name"": ""talk"",
       ""parameters"": [""I am walking there now!""],
       ""runAfter"": [],
       ""delayBefore"": 2.0
     },
     {
-      ""id"": ""action4"",
+      ""id"": 3,
       ""name"": ""talk"",
       ""parameters"": [""I arrived 1 second ago!""],
-      ""runAfter"": [""action2""],
+      ""runAfter"": [1],
       ""delayBefore"": 1.0
     }
   ]

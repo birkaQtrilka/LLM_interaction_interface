@@ -26,6 +26,14 @@ public class Animation
     }
 
     private Animation() { }
+
+    public override string ToString()
+    {
+        string dependencies = data.runAfter != null ? string.Join(", ", data.runAfter) : "";
+
+        return $"Animation: {data?.name}, ID: {data?.id}, isPlaying: {isPlaying}, dependentOn: [{dependencies}], delayBefore: {data?.delayBefore}";
+    }
+
 }
 
 public class AnimationLibrary : MonoBehaviour
