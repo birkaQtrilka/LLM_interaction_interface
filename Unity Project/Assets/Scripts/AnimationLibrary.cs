@@ -51,8 +51,11 @@ public class AnimationLibrary : MonoBehaviour
     {
         agent.SetDestination(pos);
         Animation anim = null;
+        var animator = agent.GetComponentInChildren<Animator>();
+        animator.SetBool("Walking", true);
         Coroutine cr = StartCoroutine(Utils.MonitorMovement(agent, () => {
             PopAnimation(anim);
+            animator.SetBool("Walking", false);
         }));
         anim = PushAnimation("move", cr);
     }
