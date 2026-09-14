@@ -1,8 +1,10 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
 public class AnimationLibrary : MonoBehaviour
 {
+    const float GrabRange = 2f;
 
     public string PlayAnimation(AgentSystem context, string animationName, string[] param)
     {
@@ -38,22 +40,46 @@ public class AnimationLibrary : MonoBehaviour
                 context.contextLibrary.agent.transform.LookAt(lookTarget.transform);
                 break;
             case "grab":
-                if (param.Length < 1) {
-                    return "grab requires an object name";
-                }
+                if (param.Length < 1) return "grab requires an object name";
+            
                 ContextItem grabItem = context.contextLibrary.environment.Find(x => x.name == param[0]);
-                if (grabItem == null) {
-                    return $"Couldn't find object {param[0]}";
+                if (grabItem == null) return $"Couldn't find object {param[0]}";
+                NavMeshAgent agent = context.contextLibrary.agent;
+                float dist = Vector3.Distance(agent.transform.position, grabItem.transform.position);
+                if (dist > GrabRange)
+                {
+                    StartCoroutine(WalkThenGrab(agent, grabItem));
+                    break;
                 }
-                grabItem.transform.SetParent(context.contextLibrary.agent.transform);
-                // Hold beside the capsule until there is a hand bone.
-                grabItem.transform.localPosition = new Vector3(0.4f, 1f, 0.4f);
+                Hold(agent, grabItem);
                 break;
             default:
                 return $"Unknown action: {animationName}";
         }
 
         return null;
+    }
+
+    IEnumerator WalkThenGrab(NavMeshAgent agent, ContextItem grabItem)
+    {
+        Move(agent, grabItem.transform.position);
+        // SetDestination is async; wait until NavMesh says we are close enough.
+        while (agent.pathPending || agent.remainingDistance > GrabRange)
+        {
+            if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance + 0.1f)
+            {
+                break;
+            }
+            yield return null;
+        }
+        Hold(agent, grabItem);
+    }
+
+    void Hold(NavMeshAgent agent, ContextItem grabItem)
+    {
+        grabItem.transform.SetParent(agent.transform);
+        // Hold beside the capsule until there is a hand bone.
+        grabItem.transform.localPosition = new Vector3(0.4f, 1f, 0.4f);
     }
 
     void Move(NavMeshAgent agent, Vector3 pos)
