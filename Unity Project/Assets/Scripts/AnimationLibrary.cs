@@ -1,10 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
-using static UnityEditor.PlayerSettings;
+
 [Serializable]
 public class Animation
 {
@@ -12,12 +11,18 @@ public class Animation
     public IEnumerator behavior;
     public Action start;
     public Action end;
+
+    public bool isPlaying;
+    public bool isFinished;
+
     public Animation(ActionData data, IEnumerator behavior, Action start, Action end)
     {
         this.data = data;
         this.behavior = behavior;
         this.start = start;
         this.end = end;
+        this.isPlaying = false;
+        this.isFinished = false;
     }
 
     private Animation() { }
@@ -28,6 +33,11 @@ public class AnimationLibrary : MonoBehaviour
     public List<Animation> animations = new();
     public ulong id;
 
+    private void Start()
+    {
+        StartCoroutine(AnimationManagerCoroutine());
+    }
+
     public string PlayAnimation(AgentSystem context, ActionData action)
     {
         var param = action.parameters;
@@ -36,16 +46,18 @@ public class AnimationLibrary : MonoBehaviour
         {
             case "moveToSpot":
                 ContextItem obj = context.contextLibrary.spots.Find(x => x.name == param[0]);
-                if (obj == null) {
+                if (obj == null)
+                {
                     return $"Couldn't find spot with name {param[0]}";
                 }
                 Move(context.contextLibrary.agent, obj.transform.position, action);
-            break;
+                break;
             case "talk":
                 Talk(context.chatManager, param[0], action);
                 break;
             case "moveToPoint":
-                if (param.Length < 3) {
+                if (param.Length < 3)
+                {
                     return "moveToPoint requires 3 parameters: x, y, z";
                 }
                 Move(context.contextLibrary.agent, ToVec3(param[0], param[1], param[2]), action);
@@ -58,64 +70,78 @@ public class AnimationLibrary : MonoBehaviour
         return null;
     }
 
-    private void FixedUpdate()
+    private IEnumerator AnimationManagerCoroutine()
     {
-        for (int i = animations.Count - 1; i >= 0; i--)
+        while (true)
         {
-            var anim = animations[i];
-
-            if(anim.data.runAfter.Length > 0)
+            for (int i = animations.Count - 1; i >= 0; i--)
             {
-                bool canRun = true;
-                foreach (var id in anim.data.runAfter)
+                var anim = animations[i];
+
+                if (anim.isFinished)
                 {
-                    if (animations.Exists(a => a.data.id == id))
-                    {
-                        canRun = false;
-                        break;
-                    }
+                    animations.RemoveAt(i);
+                    continue;
                 }
-                if (!canRun) continue;
+
+                if (anim.isPlaying) continue;
+
+                if (anim.data.runAfter != null && anim.data.runAfter.Length > 0)
+                {
+                    bool canRun = true;
+                    foreach (var id in anim.data.runAfter)
+                    {
+                        if (animations.Exists(a => a.data.id == id))
+                        {
+                            canRun = false;
+                            break;
+                        }
+                    }
+                    if (!canRun) continue;
+                }
+
+                if (anim.data.delayBefore > 0)
+                {
+                    anim.data.delayBefore -= Time.deltaTime; // Changed to deltaTime for standard coroutine
+                    continue;
+                }
+
+                anim.isPlaying = true;
+                StartCoroutine(ExecuteAnimation(anim));
             }
 
-            if (anim.data.delayBefore > 0)
-            {
-                anim.data.delayBefore -= Time.fixedDeltaTime;
-                continue;
-            }
-
-            if (anim.start != null)
-            {
-                anim.start.Invoke();
-                anim.start = null;
-            }
-
-            if (anim.behavior == null || !anim.behavior.MoveNext())
-            {
-                anim.end?.Invoke();
-                animations.RemoveAt(i);
-            }
+            yield return null;
         }
+    }
+
+    private IEnumerator ExecuteAnimation(Animation anim)
+    {
+        if (anim.start != null)
+        {
+            anim.start.Invoke();
+            anim.start = null;
+        }
+
+        if (anim.behavior != null)
+        {
+            yield return anim.behavior;
+        }
+
+        anim.end?.Invoke();
+        anim.isFinished = true;
     }
 
     void Count(ChatManager chat, int total, ActionData action)
     {
         IEnumerator behavior()
         {
-            float time = 0;
             int count = 0;
 
             while (count <= total)
             {
-                time += Time.fixedDeltaTime;
+                chat.AddChat($"Count: {count++}");
 
-                if (time >= 1f)
-                {
-                    chat.AddChat($"Count: {count++}");
-                    time = 0;
-                }
-
-                yield return null;
+                yield return new WaitForSeconds(1f);
             }
         }
 
@@ -129,7 +155,6 @@ public class AnimationLibrary : MonoBehaviour
             chat.AddChat(msg);
         }
         PushAnimation(action, null, start);
-
     }
 
     void Move(NavMeshAgent agent, Vector3 pos, ActionData action)
@@ -153,7 +178,7 @@ public class AnimationLibrary : MonoBehaviour
     public Animation PushAnimation(ActionData data, IEnumerator behavior, Action start = null, Action end = null)
     {
         var anim = new Animation(data, behavior, start, end);
-        if(animations.Exists(a => a.data.id == data.id))
+        if (animations.Exists(a => a.data.id == data.id))
         {
             Debug.LogWarning($"Animation with id {data.id} already exists. LLM might have hallucinated.");
         }
