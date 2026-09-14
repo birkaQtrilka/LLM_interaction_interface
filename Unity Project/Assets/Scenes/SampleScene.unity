@@ -823,11 +823,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 522124486}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f96685944b99c14e872c3bba7c5c034, type: 3}
+  m_Script: {fileID: 11500000, guid: 013198288bce041308cb1d1516626ff4, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LLM
-  apiKeyEnvPath: Env/GrokKey.env
-  temperature: 0.7
+  m_EditorClassIdentifier: Assembly-CSharp::LLMBackend
+  baseUrl: http://127.0.0.1:8000
+  logJson: 0
 --- !u!1 &571908490
 GameObject:
   m_ObjectHideFlags: 0
@@ -3076,6 +3076,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e39329e201a485743aaff748691caf07, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AnimationLibrary
+  animations: []
   id: 0
 --- !u!1 &2130469907
 GameObject:
