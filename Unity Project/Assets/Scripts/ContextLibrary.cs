@@ -54,12 +54,23 @@ public class ContextLibrary : MonoBehaviour
         }
     }
 
-    public string GetContext(ContextResponse query)
+    public string GetContext(ContextResponse query, List<Animation> animations)
     {
         string context = "";
         if (query.getSpots) context = GetSpotsContext(context);
 
-        context += $"\nThis is your NPC data: {GetItemData(new ContextItem { name = "Agent", transform = agent.transform }, true, true, true)}";
+        context += $"\nThis is your NPC data: {GetItemData(new ContextItem { name = "Agent", transform = agent.transform }, true, true, true)}\n";
+
+        if(animations != null && animations.Count > 0)
+        {
+            context += "These are all currently playing animations:";
+            foreach (var anim in animations)
+            {
+                context += $"\n- {anim}";
+            }
+        }
+
+
         if (messageHistory.Count > 0)
         {
             context += "\nThese are past messages from user: ";

@@ -190,7 +190,7 @@ Full Schema:
     void GetActionsJson(string userPrompt, ContextResponse context)
     {
         //string txt = $"\n\nUser request: {userPrompt}\n{actionText}";
-        string system = $"{systemPrompt}\n\nContext:\n{contextLibrary.GetContext(context)}";
+        string system = $"{systemPrompt}\n\nContext:\n{contextLibrary.GetContext(context, animationLibrary.animations)}";
         Debug.Log($"Sending to LLM Round 2: \nSystemText:\n{system}\nUserText:\n{userPrompt}");
 
         //llm.SendChatMessage($"User request: {userPrompt}", systemPrompt,

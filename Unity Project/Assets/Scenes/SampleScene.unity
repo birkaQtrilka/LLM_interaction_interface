@@ -312,15 +312,22 @@ MonoBehaviour:
   - name: SpotA
     transform: {fileID: 1515485808}
     description: 
-    neighbors: []
+    boundingBox:
+      m_Center: {x: 0, y: 0, z: 0}
+      m_Extent: {x: 0, y: 0, z: 0}
   - name: SpotB
     transform: {fileID: 889834146}
     description: 
-    neighbors: []
+    boundingBox:
+      m_Center: {x: 0, y: 0, z: 0}
+      m_Extent: {x: 0, y: 0, z: 0}
   - name: SpotC
     transform: {fileID: 2130469908}
     description: 
-    neighbors: []
+    boundingBox:
+      m_Center: {x: 0, y: 0, z: 0}
+      m_Extent: {x: 0, y: 0, z: 0}
+  environment: []
   agent: {fileID: 1860244333}
   maxMessageHistory: 10
 --- !u!4 &163989117
@@ -3069,6 +3076,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e39329e201a485743aaff748691caf07, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AnimationLibrary
+  id: 0
 --- !u!1 &2130469907
 GameObject:
   m_ObjectHideFlags: 0
