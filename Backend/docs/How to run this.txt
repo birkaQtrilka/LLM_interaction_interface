@@ -16,6 +16,7 @@ Start the HTTP server (Unity posts here):
 python -m uvicorn server:app --host 127.0.0.1 --port 8000
 
 The turn endpoint is POST http://127.0.0.1:8000/v1/turn
+The context endpoint is POST http://127.0.0.1:8000/v1/context  (user message in, category flags out)
 Keep it running while playing in Unity
 
 Run the test:

@@ -4,53 +4,70 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 
+[Serializable]
+public class BackendReply
+{
+    public string say;
+    public ActionData[] actions;
+}
+
 public class LLMBackend : MonoBehaviour
 {
     [Serializable]
-    class TurnRequest
+    class MessageBody
     {
         public string message;
     }
 
     [Serializable]
-    class TurnResponse
+    class TurnRequest
     {
-        public string say;
+        public string message;
+        public string world;
     }
 
     [SerializeField] string baseUrl = "http://127.0.0.1:8000";
     [SerializeField] ChatManager chatManager;
     [SerializeField] bool logJson;
 
-    void Awake()
+    public void RequestContext(string message, Action<ContextResponse> onSuccess, Action<string> onError = null)
     {
-        if (chatManager == null)
+        string json = JsonUtility.ToJson(new MessageBody { message = message });
+        StartCoroutine(PostJson("/v1/context", json, text =>
         {
-            return;
-        }
-
-        chatManager.OnTextSent.AddListener(OnUserMessage);
+            ContextResponse response = JsonUtility.FromJson<ContextResponse>(text);
+            if (response == null)
+            {
+                onError?.Invoke("Received empty or invalid context from backend");
+                return;
+            }
+            onSuccess?.Invoke(response);
+        }, onError));
     }
 
-    void OnUserMessage(string message)
+    public void SendChatMessage(string message, string world, Action<BackendReply> onSuccess, Action<string> onError = null)
     {
-        SendTurn(message, onSuccess: chatManager.AddChat, onError: chatManager.AddChat);
+        string json = JsonUtility.ToJson(new TurnRequest { message = message, world = world });
+        StartCoroutine(PostJson("/v1/turn", json, text =>
+        {
+            BackendReply response = JsonUtility.FromJson<BackendReply>(text);
+            if (response == null)
+            {
+                onError?.Invoke("Received empty or invalid response from backend");
+                return;
+            }
+            onSuccess?.Invoke(response);
+        }, onError));
     }
 
-    public void SendTurn(string message, Action<string> onSuccess, Action<string> onError = null)
+    IEnumerator PostJson(string path, string json, Action<string> onBody, Action<string> onError)
     {
-        StartCoroutine(SendTurnRoutine(message, onSuccess, onError));
-    }
-
-    IEnumerator SendTurnRoutine(string message, Action<string> onSuccess, Action<string> onError)
-    {
-        TurnRequest body = new TurnRequest { message = message };
-        byte[] postData = Encoding.UTF8.GetBytes(JsonUtility.ToJson(body));
-        string url = baseUrl.TrimEnd('/') + "/v1/turn";
+        byte[] postData = Encoding.UTF8.GetBytes(json);
+        string url = baseUrl.TrimEnd('/') + path;
 
         if (logJson)
         {
-            Debug.Log("Unity - backend: " + Encoding.UTF8.GetString(postData));
+            Debug.Log("Unity - backend: " + json);
         }
 
         using UnityWebRequest request = new UnityWebRequest(url, "POST");
@@ -74,13 +91,6 @@ public class LLMBackend : MonoBehaviour
             yield break;
         }
 
-        TurnResponse response = JsonUtility.FromJson<TurnResponse>(request.downloadHandler.text);
-        if (response == null || string.IsNullOrEmpty(response.say))
-        {
-            onError?.Invoke("Received empty or invalid response from backend.");
-            yield break;
-        }
-
-        onSuccess?.Invoke(response.say);
+        onBody?.Invoke(request.downloadHandler.text);
     }
 }
