@@ -5,7 +5,7 @@ using UnityEngine.AI;
 
 public static class Utils
 {
-    public static IEnumerator MonitorMovement(NavMeshAgent agent, Action onDestinationReached)
+    public static IEnumerator MonitorMovement(NavMeshAgent agent, Action onDestinationReached = null)
     {
         yield return new WaitUntil(() => !agent.pathPending);
 

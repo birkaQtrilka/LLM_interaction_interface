@@ -543,8 +543,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -10}
+  m_LocalRotation: {x: -0.25663608, y: -0.61536163, z: 0.22200677, w: -0.71146405}
+  m_LocalPosition: {x: -17.634705, y: 10.36614, z: -6.782164}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1761,7 +1761,7 @@ GameObject:
   m_Component:
   - component: {fileID: 889834146}
   m_Layer: 0
-  m_Name: Spot (1)
+  m_Name: SpotB
   m_TagString: Untagged
   m_Icon: {fileID: 6519382022992737161, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
@@ -1776,7 +1776,7 @@ Transform:
   m_GameObject: {fileID: 889834145}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 4.19, y: 5.6, z: -6.51}
+  m_LocalPosition: {x: 12.88, y: 5.6, z: -15.35}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2249,6 +2249,52 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1424570043}
   m_CullTransparentMesh: 1
+--- !u!1 &1428820118
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1428820120}
+  - component: {fileID: 1428820119}
+  m_Layer: 0
+  m_Name: AnimationQueueTest
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1428820119
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1428820118}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e285b68e3f53884abf99cd6a430d842, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AnimationQueueTest
+  animationLibrary: {fileID: 2033616363}
+  AgentSystem: {fileID: 967212466}
+--- !u!4 &1428820120
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1428820118}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -12.23199, y: 5.07384, z: -7.28814}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1434994070
 GameObject:
   m_ObjectHideFlags: 0
@@ -2295,7 +2341,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1515485808}
   m_Layer: 0
-  m_Name: Spot
+  m_Name: SpotA
   m_TagString: Untagged
   m_Icon: {fileID: 6519382022992737161, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
@@ -2591,7 +2637,7 @@ NavMeshAgent:
   m_Speed: 3.5
   m_Acceleration: 8
   avoidancePriority: 50
-  m_AngularSpeed: 120
+  m_AngularSpeed: 300
   m_StoppingDistance: 0
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
@@ -3122,7 +3168,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2130469908}
   m_Layer: 0
-  m_Name: Spot (2)
+  m_Name: SpotC
   m_TagString: Untagged
   m_Icon: {fileID: 6519382022992737161, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
@@ -3137,7 +3183,7 @@ Transform:
   m_GameObject: {fileID: 2130469907}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 3.13, y: 5.6, z: -2.73}
+  m_LocalPosition: {x: 13.08, y: 5.6, z: 10.49}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3159,3 +3205,4 @@ SceneRoots:
   - {fileID: 946514465}
   - {fileID: 28044571}
   - {fileID: 1860244334}
+  - {fileID: 1428820120}
