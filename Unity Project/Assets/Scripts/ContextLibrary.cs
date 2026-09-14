@@ -35,7 +35,7 @@ public class ContextItem
     }
 }
 
-// Room as data for JsonUtility. Not sent on the wire yet.
+// Room as data for JsonUtility.
 [System.Serializable]
 public class WorldSnapshotSpot
 {
@@ -54,6 +54,7 @@ public class WorldSnapshotNpc
 public class WorldSnapshot
 {
     public WorldSnapshotSpot[] spots;
+    public WorldSnapshotSpot[] environment;
     public WorldSnapshotNpc npc;
 }
 
@@ -103,9 +104,20 @@ public class ContextLibrary : MonoBehaviour
             };
         }
 
+        WorldSnapshotSpot[] snapshotItems = new WorldSnapshotSpot[environment.Count];
+        for (int i = 0; i < environment.Count; i++)
+        {
+            snapshotItems[i] = new WorldSnapshotSpot
+            {
+                name = environment[i].name,
+                position = environment[i].transform.position
+            };
+        }
+
         return new WorldSnapshot
         {
             spots = snapshotSpots,
+            environment = snapshotItems,
             npc = new WorldSnapshotNpc
             {
                 position = agent.transform.position,

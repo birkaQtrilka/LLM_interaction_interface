@@ -16,6 +16,7 @@ ACTIONS = [
     {"name": "moveToPoint", "args": "x, y, z", "doc": "walk to coordinates"},
     {"name": "talk", "args": "msg", "doc": "say something in chat"},
     {"name": "lookAt", "args": "targetName", "doc": "face a named spot or object"},
+    {"name": "grab", "args": "objectName", "doc": "pick up a named object from the environment"},
 ]
 
 app = FastAPI()
@@ -54,11 +55,20 @@ def world_to_text(world: str | dict) -> str:
     pos = npc.get("position") or {}
     rot = npc.get("rotation") or {}
 
+    item_parts = []
+    for item in world.get("environment") or []:
+        item_pos = item.get("position") or {}
+        item_parts.append(
+            f"{item.get('name')}: ({item_pos.get('x')}, {item_pos.get('y')}, {item_pos.get('z')})"
+        )
+
     return (
         "These are all the spot positions in the digital world: "
         + ", ".join(spot_parts)
         + f"\nThis is your NPC data: position: ({pos.get('x')}, {pos.get('y')}, {pos.get('z')}), "
         + f"rotation: ({rot.get('x')}, {rot.get('y')}, {rot.get('z')}, {rot.get('w')})"
+        + "\nThese are objects you can grab: "
+        + ", ".join(item_parts)
     )
 
 

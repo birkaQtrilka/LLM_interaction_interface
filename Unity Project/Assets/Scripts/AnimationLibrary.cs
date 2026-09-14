@@ -37,6 +37,18 @@ public class AnimationLibrary : MonoBehaviour
                 }
                 context.contextLibrary.agent.transform.LookAt(lookTarget.transform);
                 break;
+            case "grab":
+                if (param.Length < 1) {
+                    return "grab requires an object name";
+                }
+                ContextItem grabItem = context.contextLibrary.environment.Find(x => x.name == param[0]);
+                if (grabItem == null) {
+                    return $"Couldn't find object {param[0]}";
+                }
+                grabItem.transform.SetParent(context.contextLibrary.agent.transform);
+                // Hold beside the capsule until there is a hand bone.
+                grabItem.transform.localPosition = new Vector3(0.4f, 1f, 0.4f);
+                break;
             default:
                 return $"Unknown action: {animationName}";
         }
