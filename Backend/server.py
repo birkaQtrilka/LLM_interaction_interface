@@ -63,6 +63,7 @@ def world_to_text(world: str | dict) -> str:
         )
 
     return (
+        # TODO: Make it dynamic to not send empty lines if there are no spots or items
         "These are all the spot positions in the digital world: "
         + ", ".join(spot_parts)
         + f"\nThis is your NPC data: position: ({pos.get('x')}, {pos.get('y')}, {pos.get('z')}), "
