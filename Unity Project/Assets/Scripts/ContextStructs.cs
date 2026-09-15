@@ -1,24 +1,24 @@
 using System;
 
 [Serializable]
-public class ContextResponse
+public class ContextQuery
 {
     public bool getSpots;
-    public UserContext getUser;
-    public ObjectContext getObjects;
+    public UserFlags getUser;
+    public ObjectFlags getObjects;
 
-    public static ContextResponse GetFullContext()
+    public static ContextQuery GetFullContext()
     {
-        return new ContextResponse
+        return new ContextQuery
         {
             getSpots = true,
-            getUser = new UserContext
+            getUser = new UserFlags
             {
                 position = true,
                 rotation = true,
                 neighbours = true
             },
-            getObjects = new ObjectContext
+            getObjects = new ObjectFlags
             {
                 position = true,
                 rotation = true,
@@ -30,7 +30,7 @@ public class ContextResponse
 }
 
 [Serializable]
-public class UserContext
+public class UserFlags
 {
     public bool position;
     public bool rotation;
@@ -38,7 +38,7 @@ public class UserContext
 }
 
 [Serializable]
-public class ObjectContext
+public class ObjectFlags
 {
     public bool position;
     public bool rotation;

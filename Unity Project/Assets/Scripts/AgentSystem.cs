@@ -11,12 +11,6 @@ public class ActionData
     public float delayBefore;
 }
 
-[Serializable]
-public class ActionResponse
-{
-    public ActionData[] actions;
-}
-
 public class AgentSystem : MonoBehaviour
 {
     [SerializeField] LLMBackend llm;
@@ -34,7 +28,7 @@ public class AgentSystem : MonoBehaviour
     {
         if (sendAllContext)
         {
-            GetActionsJson(txt, ContextResponse.GetFullContext());
+            GetActionsJson(txt, ContextQuery.GetFullContext());
         }
         else
         {
@@ -47,7 +41,7 @@ public class AgentSystem : MonoBehaviour
     {
         Debug.Log($"Sending to backend Round 1: {userPrompt}");
 
-        llm.RequestContext(userPrompt,
+        llm.GetContext(userPrompt,
             onSuccess: (response) =>
             {
                 Debug.Log($"Backend context: {JsonUtility.ToJson(response, true)}");
@@ -57,18 +51,18 @@ public class AgentSystem : MonoBehaviour
         );
     }
 
-    void GetActionsJson(string userPrompt, ContextResponse context)
+    void GetActionsJson(string userPrompt, ContextQuery context)
     {
         string world = contextLibrary.GetContext(context, animationLibrary.animations);
         Debug.Log($"Sending to backend Round 2:\n{world}\n{userPrompt}");
 
-        llm.SendChatMessage(userPrompt, world,
+        llm.GetActions(userPrompt, world,
             onSuccess: ApplyReply,
             onError: chatManager.AddChat
         );
     }
 
-    void ApplyReply(BackendReply reply)
+    void ApplyReply(ActionsResponse reply)
     {
         if (!string.IsNullOrEmpty(reply.say))
         {
@@ -82,7 +76,6 @@ public class AgentSystem : MonoBehaviour
 
         foreach (var action in reply.actions)
         {
-            string[] parameters = action.parameters ?? Array.Empty<string>();
             string error = animationLibrary.PlayAnimation(this, action);
             if (!string.IsNullOrEmpty(error))
             {

@@ -54,7 +54,7 @@ public class ContextLibrary : MonoBehaviour
         }
     }
 
-    public string GetContext(ContextResponse query, List<Animation> animations)
+    public string GetContext(ContextQuery query, List<Animation> animations)
     {
         string context = "";
         if (query.getSpots) context = GetSpotsContext(context);

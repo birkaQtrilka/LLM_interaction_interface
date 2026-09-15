@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 [Serializable]
-public class BackendReply
+public class ActionsResponse
 {
     public string say;
     public ActionData[] actions;
@@ -14,13 +14,13 @@ public class BackendReply
 public class LLMBackend : MonoBehaviour
 {
     [Serializable]
-    class MessageBody
+    class ContextRequestBody
     {
         public string message;
     }
 
     [Serializable]
-    class TurnRequest
+    class ActionsRequestBody
     {
         public string message;
         public string world;
@@ -30,12 +30,12 @@ public class LLMBackend : MonoBehaviour
     [SerializeField] ChatManager chatManager;
     [SerializeField] bool logJson;
 
-    public void RequestContext(string message, Action<ContextResponse> onSuccess, Action<string> onError = null)
+    public void GetContext(string message, Action<ContextQuery> onSuccess, Action<string> onError = null)
     {
-        string json = JsonUtility.ToJson(new MessageBody { message = message });
+        string json = JsonUtility.ToJson(new ContextRequestBody { message = message });
         StartCoroutine(PostJson("/v1/context", json, text =>
         {
-            ContextResponse response = JsonUtility.FromJson<ContextResponse>(text);
+            ContextQuery response = JsonUtility.FromJson<ContextQuery>(text);
             if (response == null)
             {
                 onError?.Invoke("Received empty or invalid context from backend");
@@ -45,12 +45,12 @@ public class LLMBackend : MonoBehaviour
         }, onError));
     }
 
-    public void SendChatMessage(string message, string world, Action<BackendReply> onSuccess, Action<string> onError = null)
+    public void GetActions(string message, string world, Action<ActionsResponse> onSuccess, Action<string> onError = null)
     {
-        string json = JsonUtility.ToJson(new TurnRequest { message = message, world = world });
+        string json = JsonUtility.ToJson(new ActionsRequestBody { message = message, world = world });
         StartCoroutine(PostJson("/v1/turn", json, text =>
         {
-            BackendReply response = JsonUtility.FromJson<BackendReply>(text);
+            ActionsResponse response = JsonUtility.FromJson<ActionsResponse>(text);
             if (response == null)
             {
                 onError?.Invoke("Received empty or invalid response from backend");
