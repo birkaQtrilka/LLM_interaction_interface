@@ -174,6 +174,7 @@ You can sequence these actions using the 'id', 'runAfter', and 'delayBefore' pro
 - To play an action after another action finishes + n seconds, use 'runAfter' with the previous action's 'id' and set 'delayBefore' to n.
 - To play an action after n seconds from the start, leave 'runAfter' empty and set 'delayBefore' to n.
 
+You will get pending animations from the user, do not repeat IDs.
 You MUST respond ONLY with a valid JSON object in the exact format shown below. Do not add any conversational text or markdown before or after the JSON.
 
 Format:

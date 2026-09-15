@@ -328,6 +328,8 @@ MonoBehaviour:
       m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0, y: 0, z: 0}
   environment: []
+  includeChatHistory: 0
+  includePlayingAnimations: 0
   agent: {fileID: 1860244333}
   maxMessageHistory: 10
 --- !u!4 &163989117
@@ -1006,7 +1008,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 220.11, y: 30}
+  m_SizeDelta: {x: 259.59, y: 30}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &620770196
 MonoBehaviour:
@@ -1165,7 +1167,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &669004385
 RectTransform:
   m_ObjectHideFlags: 0

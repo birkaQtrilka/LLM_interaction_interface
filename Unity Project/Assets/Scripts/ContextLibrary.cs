@@ -2,44 +2,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-[System.Serializable]
-public class ContextItem
-{
-    public string name;
-    public Transform transform;
-    public string description;
-
-    [HideInInspector]
-    public Bounds boundingBox;
-
-    public void RecalculateBounds()
-    {
-        if (transform == null) return;
-
-        // Note: Change 'Renderer' to 'Collider' if you want physics bounds instead.
-        Renderer[] renderers = transform.GetComponentsInChildren<Renderer>();
-
-        if (renderers.Length == 0)
-        {
-            boundingBox = new Bounds(transform.position, Vector3.zero);
-            return;
-        }
-
-        Bounds bounds = renderers[0].bounds;
-        for (int i = 1; i < renderers.Length; i++)
-        {
-            bounds.Encapsulate(renderers[i].bounds);
-        }
-
-        boundingBox = bounds;
-    }
-}
-
 public class ContextLibrary : MonoBehaviour
 {
     [NoFoldout] public List<ContextItem> spots = new();
     [NoFoldout] public List<ContextItem> environment = new();
-
+    [SerializeField] bool includeChatHistory = true;
+    [SerializeField] bool includePlayingAnimations = true;
+                                                    
     public NavMeshAgent agent;
 
     public uint maxMessageHistory = 10;
@@ -61,7 +30,7 @@ public class ContextLibrary : MonoBehaviour
 
         context += $"\nThis is your NPC data: {GetItemData(new ContextItem { name = "Agent", transform = agent.transform }, true, true, true)}\n";
 
-        if(animations != null && animations.Count > 0)
+        if(animations != null && animations.Count > 0 && includePlayingAnimations)
         {
             context += "These are all currently playing animations:";
             foreach (var anim in animations)
@@ -71,7 +40,7 @@ public class ContextLibrary : MonoBehaviour
         }
 
 
-        if (messageHistory.Count > 0)
+        if (messageHistory.Count > 0 && includeChatHistory)
         {
             context += "\nThese are past messages from user: ";
             foreach (var msg in messageHistory)
