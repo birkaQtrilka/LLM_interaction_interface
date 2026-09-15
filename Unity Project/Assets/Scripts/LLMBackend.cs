@@ -50,6 +50,8 @@ public class LLMBackend : MonoBehaviour
         string json = JsonUtility.ToJson(new ActionsRequestBody { message = message, world = world });
         StartCoroutine(PostJson("/v1/turn", json, text =>
         {
+            Debug.Log($"Backend say:\n{text}");
+
             ActionsResponse response = JsonUtility.FromJson<ActionsResponse>(text);
             if (response == null)
             {

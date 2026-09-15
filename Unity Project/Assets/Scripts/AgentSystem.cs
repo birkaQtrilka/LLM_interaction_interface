@@ -57,12 +57,12 @@ public class AgentSystem : MonoBehaviour
         Debug.Log($"Sending to backend Round 2:\n{world}\n{userPrompt}");
 
         llm.GetActions(userPrompt, world,
-            onSuccess: ApplyReply,
+            onSuccess: ActionsSuccess,
             onError: chatManager.AddChat
         );
     }
 
-    void ApplyReply(ActionsResponse reply)
+    void ActionsSuccess(ActionsResponse reply)
     {
         if (!string.IsNullOrEmpty(reply.say))
         {
