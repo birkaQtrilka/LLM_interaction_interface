@@ -56,7 +56,7 @@ public class AnimationLibrary : MonoBehaviour
                 ContextItem obj = context.contextLibrary.spots.Find(x => x.name == param[0]);
                 if (obj == null) return $"Couldn't find spot with name {param[0]}";
 
-                Move(context.contextLibrary.agent, obj.transform.position, action);
+                Move(context.contextLibrary.agent.Nav, obj.transform.position, action);
                 break;
             case "talk":
                 Talk(context.chatManager, param[0], action);
@@ -66,7 +66,7 @@ public class AnimationLibrary : MonoBehaviour
                 {
                     return "moveToPoint requires 3 parameters: x, y, z";
                 }
-                Move(context.contextLibrary.agent, ToVec3(param[0], param[1], param[2]), action);
+                Move(context.contextLibrary.agent.Nav, ToVec3(param[0], param[1], param[2]), action);
                 break;
             case "count": //for testing purposes
                 Count(context.chatManager, int.Parse(param[0]), action);
@@ -206,15 +206,26 @@ public class AnimationLibrary : MonoBehaviour
         PushAnimation(action, behavior, start, end);
     }
 
-    void Grab(NavMeshAgent agent, ContextItem item, ActionData action)
+    // now this is primitive, but it will do for now. We can improve this later with IK and other techniques.
+    void Grab(NPC agent, ContextItem item, ActionData action)
     {
-        var animator = agent.GetComponentInChildren<Animator>();
         void start()
         {
-            animator.SetTrigger("Grab");
-            // Implement logic to move the item to the agent's hand or inventory
+            agent.Anim.SetTrigger("Grab");
+            agent.GrabReceiver.OnGrabPoint += snapObjectToHand;
         }
-        IEnumerator behavior = Utils.MonitorMovement(agent);
-        PushAnimation(action, behavior, start);
+
+        void snapObjectToHand()
+        {
+            agent.GrabItem(item.transform, true);
+        }
+
+        void end()
+        {
+            agent.GrabReceiver.OnGrabPoint -= snapObjectToHand;
+        }
+
+        PushAnimation(action, Utils.MonitorAnimatorState(agent.Anim, "Blend Tree", layer: 1), start, end);
     }
+
 }

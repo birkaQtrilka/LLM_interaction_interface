@@ -9,7 +9,7 @@ public class ContextLibrary : MonoBehaviour
     [SerializeField] bool includeChatHistory = true;
     [SerializeField] bool includePlayingAnimations = true;
                                                     
-    public NavMeshAgent agent;
+    public NPC agent;
 
     public uint maxMessageHistory = 10;
     private readonly LinkedList<string> messageHistory = new();
