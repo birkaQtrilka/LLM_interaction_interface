@@ -4,21 +4,24 @@ using System;
 public class ContextQuery
 {
     public bool getSpots;
-    public UserFlags getUser;
-    public ObjectFlags getObjects;
+    public bool getObjects;
+    public ObjectFlags objectFlags;
+    public UserFlags userFlags;
 
+    // TODO: getAnimations, getChatHistory, getAgent
     public static ContextQuery GetFullContext()
     {
         return new ContextQuery
         {
             getSpots = true,
-            getUser = new UserFlags
+            getObjects = true,
+            userFlags = new UserFlags
             {
                 position = true,
                 rotation = true,
                 neighbours = true
             },
-            getObjects = new ObjectFlags
+            objectFlags = new ObjectFlags
             {
                 position = true,
                 rotation = true,

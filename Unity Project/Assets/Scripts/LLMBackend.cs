@@ -26,8 +26,7 @@ public class LLMBackend : MonoBehaviour
     }
 
     public string baseUrl = "http://127.0.0.1:8000";
-    [SerializeField] bool logJson;
-
+    
     public void GetContext(string message, Action<ContextQuery> onSuccess, Action<string> onError = null)
     {
         string json = JsonUtility.ToJson(new ContextRequestBody { message = message });
@@ -84,8 +83,6 @@ public class LLMBackend : MonoBehaviour
         string json = JsonUtility.ToJson(new ActionsRequestBody { message = message, world = world });
         StartCoroutine(PostJson("/v1/turn", json, text =>
         {
-            Debug.Log($"Backend say:\n{text}");
-
             ActionsResponse response = JsonUtility.FromJson<ActionsResponse>(text);
             if (response == null)
             {
@@ -101,11 +98,6 @@ public class LLMBackend : MonoBehaviour
         byte[] postData = Encoding.UTF8.GetBytes(json);
         string url = baseUrl.TrimEnd('/') + path;
 
-        if (logJson)
-        {
-            Debug.Log("Unity - backend: " + json);
-        }
-
         using UnityWebRequest request = new UnityWebRequest(url, "POST");
         request.uploadHandler = new UploadHandlerRaw(postData);
         request.downloadHandler = new DownloadHandlerBuffer();
@@ -113,11 +105,6 @@ public class LLMBackend : MonoBehaviour
         request.timeout = 60;
 
         yield return request.SendWebRequest();
-
-        if (logJson)
-        {
-            Debug.Log("backend - Unity: " + request.downloadHandler.text);
-        }
 
         if (request.result != UnityWebRequest.Result.Success)
         {

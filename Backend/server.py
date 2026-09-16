@@ -42,8 +42,9 @@ class ObjectFlags(BaseModel):
 
 class ContextQuery(BaseModel):
     getSpots: bool = False
-    getUser: UserFlags = Field(default_factory=UserFlags)
-    getObjects: ObjectFlags = Field(default_factory=ObjectFlags)
+    getObjects: bool = False
+    objectFlags: ObjectFlags = Field(default_factory=ObjectFlags)
+    userFlags: UserFlags = Field(default_factory=UserFlags)
     prompt_tokens: int = 0
     completion_tokens: int = 0
 
@@ -224,20 +225,21 @@ def context(body: ContextRequestBody) -> ContextQuery:
             {"role": "user", "content": body.message},
         ]
     )
-    user = flags_from(parsed.get("getUser"))
-    objects = flags_from(parsed.get("getObjects"))
+    user = flags_from(parsed.get("userFlags"))
+    objects = flags_from(parsed.get("objectFlags"))
     return ContextQuery(
         getSpots=bool(parsed.get("getSpots")),
-        getUser=UserFlags(
-            position=bool(user.get("position")),
-            rotation=bool(user.get("rotation")),
-            neighbours=bool(user.get("neighbours")),
-        ),
-        getObjects=ObjectFlags(
+        getObjects=bool(parsed.get("getObjects")),
+        objectFlags=ObjectFlags(
             position=bool(objects.get("position")),
             rotation=bool(objects.get("rotation")),
             description=bool(objects.get("description")),
             neighbours=bool(objects.get("neighbours")),
+        ),
+        userFlags=UserFlags(
+            position=bool(user.get("position")),
+            rotation=bool(user.get("rotation")),
+            neighbours=bool(user.get("neighbours")),
         ),
         prompt_tokens=int(usage.get("prompt_tokens") or 0),
         completion_tokens=int(usage.get("completion_tokens") or 0),

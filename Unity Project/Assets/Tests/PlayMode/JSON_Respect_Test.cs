@@ -12,7 +12,7 @@ public class JSON_Respect_Test
     public void Setup()
     {
         _testObject = new GameObject("TestLLMBackend");
-        _backend = _testObject.AddComponent<LLMBackend>();// unnecesary
+        _backend = _testObject.AddComponent<LLMBackend>();
     }
 
     [TearDown]

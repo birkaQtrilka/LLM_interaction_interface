@@ -39,12 +39,12 @@ public class ContextLibrary : MonoBehaviour
             }
         }
 
-        if (environment.Count > 0)
+        if (environment.Count > 0 && query.getObjects)
         {
             context += "\nThese are the environment objects: ";
             foreach (var obj in environment)
             {
-                context += $"\n  {GetItemData(obj, true, true, true)}";
+                context += $"\n  {GetItemData(obj, query.objectFlags.position, query.objectFlags.rotation, false)}";
             }
         }
 
