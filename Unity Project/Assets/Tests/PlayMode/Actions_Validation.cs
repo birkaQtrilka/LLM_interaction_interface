@@ -26,6 +26,8 @@ public class Actions_Validation
         {
             yield return null;
         }
+        LogAssert.ignoreFailingMessages = false;
+
     }
 
     [UnityTest]
@@ -36,7 +38,7 @@ public class Actions_Validation
         Assert.IsNotNull(system, "AgentSystem was not found in the test scene.");
         Assert.IsNotNull(system.contextLibrary.spots.Find(x => x.name == spotName), "There is no object named SpotA in ContextLibrary");
 
-        CoroutineResult<ActionsResponse> result = null;
+        CoroutineResult<ActionsResponse> result = new();
         yield return system.StartCoroutine(system.GetActionsJson("Go to spot a", ContextQuery.GetFullContext(), result));
 
         Assert.AreEqual(result.Status, ContextStatus.Success);

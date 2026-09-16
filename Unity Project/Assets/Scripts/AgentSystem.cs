@@ -59,14 +59,14 @@ public class AgentSystem : MonoBehaviour
 
     public IEnumerator RunSystem(string userPrompt)
     {
-        CoroutineResult<ActionsResponse> actionRes = null;
+        CoroutineResult<ActionsResponse> actionRes = new();
         if (sendAllContext)
         {
-            yield return StartCoroutine(GetActionsJson(userPrompt, ContextQuery.GetFullContext()));
+            yield return StartCoroutine(GetActionsJson(userPrompt, ContextQuery.GetFullContext(), actionRes));
         }
         else
         {
-            CoroutineResult<ContextQuery> queryRes = null;
+            CoroutineResult<ContextQuery> queryRes = new();
             yield return StartCoroutine(GetContextJson(userPrompt, queryRes));
             if(queryRes.Status == ContextStatus.Failure) yield break;
 
@@ -79,8 +79,9 @@ public class AgentSystem : MonoBehaviour
 
     public IEnumerator GetContextJson(string userPrompt, CoroutineResult<ContextQuery> res = null)
     {
+        res ??= new();
         Debug.Log($"Sending to backend Round 1: {userPrompt}");
-        
+
         yield return StartCoroutine(llm.GetContext(userPrompt, res));
 
         if (res.Status == ContextStatus.Success)
@@ -96,6 +97,7 @@ public class AgentSystem : MonoBehaviour
 
     public IEnumerator GetActionsJson(string userPrompt, ContextQuery context, CoroutineResult<ActionsResponse> res = null)
     {
+        res ??= new();
         string world = contextLibrary.GetContext(context, animationLibrary.animations);
         Debug.Log($"Sending to backend Round 2:\n{world}\n{userPrompt}");
 
@@ -103,6 +105,7 @@ public class AgentSystem : MonoBehaviour
 
         if (res.Status == ContextStatus.Success)
         {
+            Debug.Log($"Backend actions: {JsonUtility.ToJson(res.Response, true)}");
             ActionsSuccess(res.Response);
         }
         else

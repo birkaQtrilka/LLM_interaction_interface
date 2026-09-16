@@ -144,7 +144,7 @@ Transform:
   m_GameObject: {fileID: 28044570}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.22647, y: -6.04567, z: 1.80917}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -330,6 +330,12 @@ MonoBehaviour:
   environment:
   - name: phone
     transform: {fileID: 1074326910}
+    description: 
+    boundingBox:
+      m_Center: {x: 0, y: 0, z: 0}
+      m_Extent: {x: 0, y: 0, z: 0}
+  - name: ground
+    transform: {fileID: 1820304972}
     description: 
     boundingBox:
       m_Center: {x: 0, y: 0, z: 0}
@@ -1910,7 +1916,7 @@ Transform:
   m_GameObject: {fileID: 889834145}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 12.88, y: 5.6, z: -15.35}
+  m_LocalPosition: {x: 12.88, y: -0.19, z: -15.35}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1983,7 +1989,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AgentSystem
   llm: {fileID: 522124488}
   animationLibrary: {fileID: 2033616363}
-  sendAllContext: 1
+  sendAllContext: 0
   <contextLibrary>k__BackingField: {fileID: 163989116}
   <chatManager>k__BackingField: {fileID: 390957927}
 --- !u!4 &967212467
@@ -2165,7 +2171,7 @@ Transform:
   m_GameObject: {fileID: 1068851084}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.17, y: -0.85, z: 4.49}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.14, y: 0.05, z: 0.31}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2253,7 +2259,7 @@ Transform:
   m_GameObject: {fileID: 1074326909}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.50913, y: 0.92948, z: -0.03028}
+  m_LocalPosition: {x: 0.46, y: 0.24, z: 2.22}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2446,6 +2452,7 @@ MonoBehaviour:
   animationLibrary: {fileID: 2033616363}
   agentSystem: {fileID: 967212466}
   testGrab: 0
+  testMove: 0
 --- !u!1 &1424570043
 GameObject:
   m_ObjectHideFlags: 0
@@ -2661,7 +2668,7 @@ Transform:
   m_GameObject: {fileID: 1515485807}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -12.94, y: 5.6, z: -15.92}
+  m_LocalPosition: {x: 1.50913, y: 0.92948, z: -0.03028}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3328,7 +3335,7 @@ Transform:
   m_GameObject: {fileID: 2130469907}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 13.08, y: 5.6, z: 10.49}
+  m_LocalPosition: {x: 13.08, y: -0.19, z: 10.49}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

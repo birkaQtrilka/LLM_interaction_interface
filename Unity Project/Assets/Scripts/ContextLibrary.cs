@@ -23,6 +23,7 @@ public class ContextLibrary : MonoBehaviour
         }
     }
 
+    // TODO use the query to filter the context data returned
     public string GetContext(ContextQuery query, List<Animation> animations)
     {
         string context = "";
@@ -39,6 +40,14 @@ public class ContextLibrary : MonoBehaviour
             }
         }
 
+        if (environment.Count > 0)
+        {
+            context += "\nThese are the environment objects: ";
+            foreach (var obj in environment)
+            {
+                context += $"\n  {GetItemData(obj, true, true, true)}";
+            }
+        }
 
         if (messageHistory.Count > 0 && includeChatHistory)
         {
