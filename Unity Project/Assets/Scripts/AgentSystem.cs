@@ -117,11 +117,6 @@ public class AgentSystem : MonoBehaviour
 
     void ActionsSuccess(ActionsResponse reply)
     {
-        if (!string.IsNullOrEmpty(reply.say))
-        {
-            chatManager.AddChat(reply.say);
-        }
-
         if (reply.actions == null)
         {
             return;

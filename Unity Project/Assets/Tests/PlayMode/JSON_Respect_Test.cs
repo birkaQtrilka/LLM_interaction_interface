@@ -12,17 +12,13 @@ public class JSON_Respect_Test
     public void Setup()
     {
         _testObject = new GameObject("TestLLMBackend");
-        _backend = _testObject.AddComponent<LLMBackend>();
-
-        LogAssert.ignoreFailingMessages = true;
+        _backend = _testObject.AddComponent<LLMBackend>();// unnecesary
     }
 
-    // This runs after every test to clean up
     [TearDown]
     public void Teardown()
     {
         Object.Destroy(_testObject);
-        LogAssert.ignoreFailingMessages = false;
     }
 
     [UnityTest]
@@ -58,7 +54,6 @@ public class JSON_Respect_Test
         Assert.IsTrue(timeout > 0f, "Test timed out waiting for backend response.");
         Assert.IsTrue(isSuccess, $"Backend request failed with error: {errorMessage}");
         Assert.IsNotNull(responseData, "Response data was null. JSON parsing failed.");
-
     }
 
     [UnityTest]
@@ -69,7 +64,6 @@ public class JSON_Respect_Test
         ActionsResponse responseData = null;
         string errorMessage = "";
 
-        // 1. Call the backend
         _backend.GetActions(
             message: "What should I do?",
             world: "TestWorld",
@@ -100,7 +94,6 @@ public class JSON_Respect_Test
 
         // Unity's JsonUtility won't throw exceptions on missing fields, it just leaves them null.
         // Therefore, we assert that the expected properties aren't null to verify the JSON structure.
-        Assert.IsNotNull(responseData.say, "The 'say' field was missing from the JSON response.");
         Assert.IsNotNull(responseData.actions, "The 'actions' array was missing from the JSON response.");
     }
 }

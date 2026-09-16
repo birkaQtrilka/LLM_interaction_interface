@@ -7,7 +7,6 @@ using UnityEngine.Networking;
 [Serializable]
 public class ActionsResponse
 {
-    public string say;
     public ActionData[] actions;
 }
 
