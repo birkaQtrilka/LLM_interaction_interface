@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using UnityEngine;
+using static UnityEngine.Audio.ProcessorInstance;
 
 [Serializable]
 public class ActionData
@@ -10,6 +12,32 @@ public class ActionData
     public int[] runAfter;
     public float delayBefore;
 }
+
+public enum ContextStatus { Success, Failure }
+
+public class CoroutineResult<Res, Err>
+{
+    public ContextStatus Status;
+    public Res Response;
+    public Err Error;
+    public bool IsDone;
+
+    public void SetResult(Res r)
+    {
+        Status = ContextStatus.Success;
+        Response = r;
+        IsDone = true;
+    } 
+
+    public void SetError(Err e)
+    {
+        Status = ContextStatus.Failure;
+        Error = e;
+        IsDone = true;
+    }
+}
+
+public class CoroutineResult<Res> : CoroutineResult<Res, string> { }
 
 public class AgentSystem : MonoBehaviour
 {
@@ -26,40 +54,62 @@ public class AgentSystem : MonoBehaviour
 
     private void OnUserMessage(string txt)
     {
+        StartCoroutine(RunSystem(txt));
+    }
+
+    public IEnumerator RunSystem(string userPrompt)
+    {
+        CoroutineResult<ActionsResponse> actionRes = null;
         if (sendAllContext)
         {
-            GetActionsJson(txt, ContextQuery.GetFullContext());
+            yield return StartCoroutine(GetActionsJson(userPrompt, ContextQuery.GetFullContext()));
         }
         else
         {
-            GetContextJson(txt);
+            CoroutineResult<ContextQuery> queryRes = null;
+            yield return StartCoroutine(GetContextJson(userPrompt, queryRes));
+            if(queryRes.Status == ContextStatus.Failure) yield break;
+
+            yield return StartCoroutine(GetActionsJson(userPrompt, queryRes.Response, actionRes));
+            if (actionRes.Status == ContextStatus.Failure) yield break;
+
         }
-        contextLibrary.AddMessageToHistory(txt);
+        contextLibrary.AddMessageToHistory(userPrompt);
     }
 
-    private void GetContextJson(string userPrompt)
+    public IEnumerator GetContextJson(string userPrompt, CoroutineResult<ContextQuery> res = null)
     {
         Debug.Log($"Sending to backend Round 1: {userPrompt}");
+        
+        yield return StartCoroutine(llm.GetContext(userPrompt, res));
 
-        llm.GetContext(userPrompt,
-            onSuccess: (response) =>
-            {
-                Debug.Log($"Backend context: {JsonUtility.ToJson(response, true)}");
-                GetActionsJson(userPrompt, response);
-            },
-            onError: chatManager.AddChat
-        );
+        if (res.Status == ContextStatus.Success)
+        {
+            Debug.Log($"Backend context: {JsonUtility.ToJson(res.Response, true)}");
+        }
+        else
+        {
+            Debug.LogError($"Error getting context: {res.Error}");
+            chatManager.AddChat($"Error getting context: {res.Error}");
+        }
     }
 
-    void GetActionsJson(string userPrompt, ContextQuery context)
+    public IEnumerator GetActionsJson(string userPrompt, ContextQuery context, CoroutineResult<ActionsResponse> res = null)
     {
         string world = contextLibrary.GetContext(context, animationLibrary.animations);
         Debug.Log($"Sending to backend Round 2:\n{world}\n{userPrompt}");
 
-        llm.GetActions(userPrompt, world,
-            onSuccess: ActionsSuccess,
-            onError: chatManager.AddChat
-        );
+        yield return StartCoroutine(llm.GetActions(userPrompt, world, res));
+
+        if (res.Status == ContextStatus.Success)
+        {
+            ActionsSuccess(res.Response);
+        }
+        else
+        {
+            Debug.LogError($"Error getting context: {res.Error}");
+            chatManager.AddChat(res.Error);
+        }
     }
 
     void ActionsSuccess(ActionsResponse reply)

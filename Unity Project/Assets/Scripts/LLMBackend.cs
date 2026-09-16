@@ -26,8 +26,7 @@ public class LLMBackend : MonoBehaviour
         public string world;
     }
 
-    [SerializeField] string baseUrl = "http://127.0.0.1:8000";
-    [SerializeField] ChatManager chatManager;
+    public string baseUrl = "http://127.0.0.1:8000";
     [SerializeField] bool logJson;
 
     public void GetContext(string message, Action<ContextQuery> onSuccess, Action<string> onError = null)
@@ -43,6 +42,42 @@ public class LLMBackend : MonoBehaviour
             }
             onSuccess?.Invoke(response);
         }, onError));
+    }
+
+    public IEnumerator GetContext(string message, CoroutineResult<ContextQuery> res)
+    {
+        string json = JsonUtility.ToJson(new ContextRequestBody { message = message });
+        yield return StartCoroutine(PostJson("/v1/context", json, text =>
+        {
+            ContextQuery response = JsonUtility.FromJson<ContextQuery>(text);
+            if (response == null)
+            {
+                res.SetError("Received empty or invalid context from backend");
+                return;
+            }
+            res.SetResult(response);
+        }, err =>
+        {
+            res.SetError(err);
+        }));
+    }
+
+    public IEnumerator GetActions(string message, string world, CoroutineResult<ActionsResponse> res)
+    {
+        string json = JsonUtility.ToJson(new ActionsRequestBody { message = message, world = world });
+        yield return StartCoroutine(PostJson("/v1/turn", json, text =>
+        {
+            ActionsResponse response = JsonUtility.FromJson<ActionsResponse>(text);
+            if (response == null)
+            {
+                res.SetError("Received empty or invalid response from backend");
+                return;
+            }
+            res.SetResult(response);
+        }, err =>
+        {
+            res.SetError(err);
+        }));
     }
 
     public void GetActions(string message, string world, Action<ActionsResponse> onSuccess, Action<string> onError = null)
