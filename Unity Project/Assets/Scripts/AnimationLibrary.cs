@@ -53,7 +53,7 @@ public class AnimationLibrary : MonoBehaviour
         switch (action.name)
         {
             case "moveToSpot":
-                ContextItem obj = context.contextLibrary.spots.Find(x => x.name == param[0]);
+                ContextItem obj = context.contextLibrary.spots.Find(x => x.GetName() == param[0]);
                 if (obj == null) return $"Couldn't find spot with name {param[0]}";
 
                 Move(context.contextLibrary.agent.Nav, obj.transform.position, action);
@@ -72,7 +72,7 @@ public class AnimationLibrary : MonoBehaviour
                 Count(context.chatManager, int.Parse(param[0]), action);
                 break;
             case "grab":
-                obj = context.contextLibrary.environment.Find(x => x.name == param[0]);
+                obj = context.contextLibrary.environment.Find(x => x.GetName() == param[0]);
                 if (obj == null) return $"Couldn't find spot with name {param[0]}";
                 
                 Grab(context.contextLibrary.agent, obj, action);

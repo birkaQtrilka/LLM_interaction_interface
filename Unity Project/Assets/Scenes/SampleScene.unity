@@ -309,33 +309,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ContextLibrary
   spots:
-  - name: SpotA
-    transform: {fileID: 1515485808}
+  - transform: {fileID: 1515485808}
     description: 
     boundingBox:
       m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0, y: 0, z: 0}
-  - name: SpotB
-    transform: {fileID: 889834146}
+  - transform: {fileID: 889834146}
     description: 
     boundingBox:
       m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0, y: 0, z: 0}
-  - name: SpotC
-    transform: {fileID: 2130469908}
+  - transform: {fileID: 2130469908}
     description: 
     boundingBox:
       m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0, y: 0, z: 0}
   environment:
-  - name: phone
-    transform: {fileID: 1074326910}
+  - transform: {fileID: 1074326910}
     description: 
     boundingBox:
       m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0, y: 0, z: 0}
-  - name: ground
-    transform: {fileID: 1820304972}
+  - transform: {fileID: 1820304972}
     description: 
     boundingBox:
       m_Center: {x: 0, y: 0, z: 0}
@@ -2244,7 +2239,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1074326910}
   m_Layer: 0
-  m_Name: Grabbable
+  m_Name: Phone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

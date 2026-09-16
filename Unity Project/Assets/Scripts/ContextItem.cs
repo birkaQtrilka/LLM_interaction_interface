@@ -3,13 +3,13 @@ using UnityEngine;
 [System.Serializable]
 public class ContextItem
 {
-    public string name;
     public Transform transform;
     public string description;
 
     [HideInInspector]
     public Bounds boundingBox;
 
+    public string GetName() => transform.name;
     public void RecalculateBounds()
     {
         if (transform == null) return;

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AI;
 
 public class ContextLibrary : MonoBehaviour
 {
@@ -29,7 +28,7 @@ public class ContextLibrary : MonoBehaviour
         string context = "";
         if (query.getSpots) context = GetSpotsContext(context);
 
-        context += $"\nThis is your NPC data: {GetItemData(new ContextItem { name = "Agent", transform = agent.transform }, true, true, true)}\n";
+        context += $"\nThis is your NPC data: {GetItemData(new ContextItem { transform = agent.transform }, true, true, true)}\n";
 
         if(animations != null && animations.Count > 0 && includePlayingAnimations)
         {
@@ -64,7 +63,7 @@ public class ContextLibrary : MonoBehaviour
     {
         List<string> dataParts = new();
 
-        dataParts.Add($"name: {item.name}");
+        dataParts.Add($"name: {item.transform.name}");
         if (!string.IsNullOrEmpty(item.description)) dataParts.Add($"description: {item.description}");
 
         if (includePosition)

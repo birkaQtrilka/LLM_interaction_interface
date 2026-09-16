@@ -36,7 +36,7 @@ public class Actions_Validation
         var system = Object.FindAnyObjectByType<AgentSystem>();
         string spotName = "SpotA";
         Assert.IsNotNull(system, "AgentSystem was not found in the test scene.");
-        Assert.IsNotNull(system.contextLibrary.spots.Find(x => x.name == spotName), "There is no object named SpotA in ContextLibrary");
+        Assert.IsNotNull(system.contextLibrary.spots.Find(x => x.GetName() == spotName), "There is no object named SpotA in ContextLibrary");
 
         CoroutineResult<ActionsResponse> result = new();
         yield return system.StartCoroutine(system.GetActionsJson("Go to spot a", ContextQuery.GetFullContext(), result));
