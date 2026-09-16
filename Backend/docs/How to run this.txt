@@ -1,3 +1,12 @@
+for docker set-up:
+  to start the server run:
+    docker compose up --build
+  
+  to stop the press:
+    Ctrl+C
+
+for manual set-up:
+
 - Download Python 3.11+
 - cd Backend
 - py -m venv .venv (if not created)
