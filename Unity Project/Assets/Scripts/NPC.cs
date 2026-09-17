@@ -32,4 +32,22 @@ public class NPC : MonoBehaviour
             Debug.LogWarning("Hand is full");
         }
     }
+
+    public Transform ReleaseItem(bool right)
+    {
+        if (right && RightHandTaken)
+        {
+            var item = RightHand.GetChild(0);
+            item.SetParent(null);
+            return item;
+        }
+        else if (!right && LeftHandTaken)
+        {
+            var item = LeftHand.GetChild(0);
+            item.SetParent(null);
+            return item;
+        }
+        Debug.LogWarning("Hand is empty");
+        return null;
+    }
 }

@@ -17,6 +17,7 @@ class ObjectFlags(BaseModel):
     position: bool = False
     rotation: bool = False
     description: bool = False
+    bounds: bool = False
     neighbours: bool = False
 
 class ContextQuery(BaseModel):

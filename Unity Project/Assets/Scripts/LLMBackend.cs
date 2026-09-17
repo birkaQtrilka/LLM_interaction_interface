@@ -32,13 +32,16 @@ public class LLMBackend : MonoBehaviour
         string json = JsonUtility.ToJson(new ContextRequestBody { message = message });
         StartCoroutine(PostJson("/v1/context", json, text =>
         {
-            ContextQuery response = JsonUtility.FromJson<ContextQuery>(text);
-            if (response == null)
+            try
             {
-                onError?.Invoke("Received empty or invalid context from backend");
-                return;
+                Debug.Log($"Received context from backend: {text}");
+                ContextQuery response = JsonUtility.FromJson<ContextQuery>(text);
+                onSuccess?.Invoke(response);
             }
-            onSuccess?.Invoke(response);
+            catch (Exception)
+            {
+                onError?.Invoke("Received invalid context from backend");
+            }
         }, onError));
     }
 
@@ -47,13 +50,15 @@ public class LLMBackend : MonoBehaviour
         string json = JsonUtility.ToJson(new ContextRequestBody { message = message });
         yield return StartCoroutine(PostJson("/v1/context", json, text =>
         {
-            ContextQuery response = JsonUtility.FromJson<ContextQuery>(text);
-            if (response == null)
+            try
+            {
+                ContextQuery response = JsonUtility.FromJson<ContextQuery>(text);
+                res.SetResult(response);
+            }
+            catch (Exception)
             {
                 res.SetError("Received empty or invalid context from backend");
-                return;
             }
-            res.SetResult(response);
         }, err =>
         {
             res.SetError(err);

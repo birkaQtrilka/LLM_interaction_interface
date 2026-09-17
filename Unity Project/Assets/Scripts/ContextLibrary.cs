@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class ContextLibrary : MonoBehaviour
 {
-    [NoFoldout] public List<ContextItem> spots = new();
+    [ DisplayFields("transform") ] public List<ContextItem> spots = new();
     [NoFoldout] public List<ContextItem> environment = new();
     [SerializeField] bool includeChatHistory = true;
     [SerializeField] bool includePlayingAnimations = true;
@@ -13,6 +13,46 @@ public class ContextLibrary : MonoBehaviour
     public uint maxMessageHistory = 10;
     private readonly LinkedList<string> messageHistory = new();
 
+
+    [Header("Debug Visuals")]
+    public bool showGizmos = true;
+
+    private void OnDrawGizmos()
+    {
+        if (!showGizmos || environment == null) return;
+
+        foreach (ContextItem item in environment)
+        {
+            if (item == null || item.transform == null) continue;
+
+            // 1. Draw the Bounding Box
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawWireCube(item.boundingBox.center, item.boundingBox.size);
+
+            // Optional: Draw the expanded threshold box (where it looks for neighbors)
+            Gizmos.color = new Color(0f, 1f, 1f, 0.3f); // Faint cyan
+            float n = item.neighborDistanceThreshold;
+            Vector3 expandedSize = item.boundingBox.size + new Vector3(n, n, n);
+            Gizmos.DrawWireCube(item.boundingBox.center, expandedSize);
+
+            // 2. Draw lines to Neighbors
+            if (item.neighbors != null)
+            {
+                Gizmos.color = Color.yellow;
+                foreach (Transform neighbor in item.neighbors)
+                {
+                    if (neighbor != null)
+                    {
+                        // Draw line from the center of the bounding box to the neighbor
+                        Gizmos.DrawLine(item.boundingBox.center, neighbor.position);
+
+                        // Draw a small sphere at the neighbor's pivot to easily spot it
+                        Gizmos.DrawSphere(neighbor.position, 0.1f);
+                    }
+                }
+            }
+        }
+    }
     public void AddMessageToHistory(string message)
     {
         messageHistory.AddLast(message);
@@ -22,13 +62,20 @@ public class ContextLibrary : MonoBehaviour
         }
     }
 
-    // TODO use the query to filter the context data returned
     public string GetContext(ContextQuery query, List<Animation> animations)
     {
         string context = "";
         if (query.getSpots) context = GetSpotsContext(context);
 
-        context += $"\nThis is your NPC data: {GetItemData(new ContextItem { transform = agent.transform }, true, true, true)}\n";
+        var npcData = GetItemData(
+            new ContextItem { transform = agent.transform }, 
+            includePosition:  true, 
+            includeRotation:  true, 
+            includeBounds:    true, 
+            includeNeighbors: false
+        );
+
+        context += $"\nThis is your NPC data: {npcData}\n";
 
         if(animations != null && animations.Count > 0 && includePlayingAnimations)
         {
@@ -44,7 +91,7 @@ public class ContextLibrary : MonoBehaviour
             context += "\nThese are the environment objects: ";
             foreach (var obj in environment)
             {
-                context += $"\n  {GetItemData(obj, query.objectFlags.position, query.objectFlags.rotation, false)}";
+                context += $"\n  {GetItemData(obj, query.objectFlags.position, query.objectFlags.rotation, false, query.objectFlags.neighbours)}";
             }
         }
 
@@ -59,11 +106,12 @@ public class ContextLibrary : MonoBehaviour
         return context;
     }
 
-    public string GetItemData(ContextItem item, bool includePosition, bool includeRotation, bool includeBounds)
+    public string GetItemData(ContextItem item, bool includePosition, bool includeRotation, bool includeBounds, bool includeNeighbors)
     {
-        List<string> dataParts = new();
-
-        dataParts.Add($"name: {item.transform.name}");
+        List<string> dataParts = new()
+        {
+            $"name: {item.transform.name}"
+        };
         if (!string.IsNullOrEmpty(item.description)) dataParts.Add($"description: {item.description}");
 
         if (includePosition)
@@ -84,6 +132,18 @@ public class ContextLibrary : MonoBehaviour
             dataParts.Add($"boundsSize: {item.boundingBox.size}");
         }
 
+        if (includeNeighbors)
+        {
+            if(!includeBounds) item.RecalculateBounds();
+            item.FindNeighbors();
+            List<string> neighborNames = new();
+            foreach (var neighbor in item.neighbors)
+            {
+                neighborNames.Add(neighbor.name);
+            }
+            dataParts.Add($"neighbors: [{string.Join(", ", neighborNames)}]");
+        }
+
         return $"{{{string.Join(", ", dataParts)}}}";
     }
 
@@ -94,8 +154,18 @@ public class ContextLibrary : MonoBehaviour
         for (int i = 0; i < spots.Count; i++)
         {
             var spot = spots[i];
-            spotJsons[i] = GetItemData(spot, true, false, false);
+            spotJsons[i] = GetItemData(spot, includePosition: true, includeRotation: false, includeBounds: false, includeNeighbors: false);
         }
         return $"{result}[{string.Join(',', spotJsons)}]";
+    }
+
+    [ContextMenu("Update Bounds and Neighbours")]
+    public void UpdateBoundsAndNeighbours()
+    {
+        foreach (var item in environment)
+        {
+            item.RecalculateBounds();
+            item.FindNeighbors();
+        }
     }
 }

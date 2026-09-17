@@ -109,7 +109,7 @@ def build_messages(user_text: str, world: str | dict) -> list[dict]:
         {"role": "user", "content": user},
     ]
 
-
+# todo: have serialization/deserialization and object definition of ContextQuery in one spot 
 @app.post("/v1/context", response_model=ContextQuery)
 def context(body: ContextRequestBody) -> ContextQuery:
     parsed, usage = openai_json(
@@ -127,6 +127,7 @@ def context(body: ContextRequestBody) -> ContextQuery:
             position=bool(objects.get("position")),
             rotation=bool(objects.get("rotation")),
             description=bool(objects.get("description")),
+            bounds=bool(objects.get("bounds")),
             neighbours=bool(objects.get("neighbours")),
         ),
         userFlags=UserFlags(

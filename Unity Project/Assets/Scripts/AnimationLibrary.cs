@@ -4,38 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-[Serializable]
-public class Animation
-{
-    public ActionData data;
-    public IEnumerator behavior;
-    public Action start;
-    public Action end;
-
-    public bool isPlaying;
-    public bool isFinished;
-
-    public Animation(ActionData data, IEnumerator behavior, Action start, Action end)
-    {
-        this.data = data;
-        this.behavior = behavior;
-        this.start = start;
-        this.end = end;
-        this.isPlaying = false;
-        this.isFinished = false;
-    }
-
-    private Animation() { }
-
-    public override string ToString()
-    {
-        string dependencies = data.runAfter != null ? string.Join(", ", data.runAfter) : "";
-
-        return $"Animation: {data?.name}, ID: {data?.id}, isPlaying: {isPlaying}, dependentOn: [{dependencies}], delayBefore: {data?.delayBefore}";
-    }
-
-}
-
 public class AnimationLibrary : MonoBehaviour
 {
     public List<Animation> animations = new();
@@ -76,6 +44,9 @@ public class AnimationLibrary : MonoBehaviour
                 if (obj == null) return $"Couldn't find spot with name {param[0]}";
                 
                 Grab(context.contextLibrary.agent, obj, action);
+                break;
+            case "place":
+                Place(context.contextLibrary.agent, action);
                 break;
         }
 
@@ -209,6 +180,7 @@ public class AnimationLibrary : MonoBehaviour
     // now this is primitive, but it will do for now. We can improve this later with IK and other techniques.
     void Grab(NPC agent, ContextItem item, ActionData action)
     {
+        Flag grabbed = new();
         void start()
         {
             agent.Anim.SetTrigger("Grab");
@@ -218,6 +190,7 @@ public class AnimationLibrary : MonoBehaviour
         void snapObjectToHand()
         {
             agent.GrabItem(item.transform, true);
+            grabbed.value = true;
         }
 
         void end()
@@ -225,7 +198,43 @@ public class AnimationLibrary : MonoBehaviour
             agent.GrabReceiver.OnGrabPoint -= snapObjectToHand;
         }
 
-        PushAnimation(action, Utils.MonitorAnimatorState(agent.Anim, "Blend Tree", layer: 1), start, end);
+        PushAnimation(action, Utils.MonitorFlag(grabbed), start, end);
     }
 
+    void Place(NPC agent, ActionData action)
+    {
+        Flag hasReleased = new();
+
+        void start()
+        {
+            agent.Anim.SetTrigger("Grab");
+            agent.GrabReceiver.OnGrabPoint += releaseItem;
+        }
+
+        void releaseItem()
+        {
+            Transform item = agent.ReleaseItem(right: true);
+
+            if (item != null)
+            {
+                Vector3 placePos = ToVec3(action.parameters[0], action.parameters[1], action.parameters[2]);
+                item.position = placePos;
+            }
+            else
+            {
+                Debug.LogWarning("Agent tried to place an item but wasn't holding anything!");
+            }
+
+            hasReleased.value = true;
+        }
+
+        void end()
+        {
+            agent.GrabReceiver.OnGrabPoint -= releaseItem;
+        }
+
+        
+
+        PushAnimation(action, Utils.MonitorFlag(hasReleased), start, end);
+    }
 }

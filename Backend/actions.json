@@ -23,5 +23,10 @@
     "name": "grab",
     "args": "objectName: string",
     "doc": "pick up a named object from the environment"
+  },
+  {
+    "name": "place",
+    "args": "x: float, y: float, z: float",
+    "doc": "place on top of an environment object"
   }
 ]

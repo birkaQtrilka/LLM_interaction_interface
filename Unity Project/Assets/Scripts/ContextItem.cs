@@ -1,15 +1,23 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 [System.Serializable]
 public class ContextItem
 {
     public Transform transform;
     public string description;
+    public float neighborDistanceThreshold = 1f;
 
-    [HideInInspector]
-    public Bounds boundingBox;
+    public Transform[] neighbors;
+
+    [HideInInspector] public Bounds boundingBox;
+
+
+    // Optional: LayerMask to optimize physical overlap queries
+    //public LayerMask neighborLayerMask = ~0;
 
     public string GetName() => transform.name;
+
     public void RecalculateBounds()
     {
         if (transform == null) return;
@@ -30,5 +38,42 @@ public class ContextItem
         }
 
         boundingBox = bounds;
+    }
+
+    public void FindNeighbors()
+    {
+        if (transform == null || neighborDistanceThreshold < 0) return;
+
+        float n = neighborDistanceThreshold;
+        Vector3 expandedSize = boundingBox.size + new Vector3(n, n, n);
+
+        Vector3 halfExtents = expandedSize * 0.5f;
+
+        Collider[] hits = Physics.OverlapBox(boundingBox.center, halfExtents, Quaternion.identity/*, neighborLayerMask*/);
+
+        HashSet<Transform> validNeighbors = new();
+
+        foreach (Collider hit in hits)
+        {
+            Transform root = FindBase(hit.transform);
+            if (root == null || root == transform) continue;
+            validNeighbors.Add(hit.transform);
+        }
+
+        neighbors = new Transform[validNeighbors.Count];
+        validNeighbors.CopyTo(neighbors);
+    }
+
+    Transform FindBase(Transform t)
+    {
+        do
+        {
+            if (t.TryGetComponent<EnvironmentItemTag>(out _))
+            {
+                return t;
+            }
+            t = t.parent;
+        } while (t.parent != null);
+        return null;
     }
 }

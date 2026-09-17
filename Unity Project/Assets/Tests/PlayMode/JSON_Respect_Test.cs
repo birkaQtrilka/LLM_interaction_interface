@@ -26,7 +26,7 @@ public class JSON_Respect_Test
     {
         bool isFinished = false;
         bool isSuccess = false;
-        ContextQuery responseData = null;
+        ContextQuery? responseData = null;
         string errorMessage = "";
 
         _backend.GetContext(
