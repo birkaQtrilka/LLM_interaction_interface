@@ -48,6 +48,8 @@ public class AnimationLibrary : MonoBehaviour
             case "place":
                 Place(context.contextLibrary.agent, action);
                 break;
+            default:
+                return $"Unknown action: {action.name}";
         }
 
         return null;
@@ -120,6 +122,7 @@ public class AnimationLibrary : MonoBehaviour
         if (animations.Exists(a => a.data.id == data.id))
         {
             Debug.LogWarning($"Animation with id {data.id} already exists. LLM might have hallucinated.");
+            return null;
         }
         animations.Add(anim);
         return anim;

@@ -2521,7 +2521,7 @@ GameObject:
   - component: {fileID: 1074326910}
   - component: {fileID: 1074326911}
   m_Layer: 0
-  m_Name: Phone
+  m_Name: phone
   m_TagString: Root
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
