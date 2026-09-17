@@ -1,0 +1,27 @@
+[
+  {
+    "name": "moveToSpot",
+    "args": "spotName: string",
+    "doc": "when user asks you to move to a specific spot in the world, use this action. The parameter is the name of the spot."
+  },
+  {
+    "name": "moveToPoint",
+    "args": "x: float, y: float, z: float",
+    "doc": "when the user asks you to go to an arbitrary point in the world, use this action. The parameters are the x, y, and z coordinates of the point."
+  },
+  {
+    "name": "talk",
+    "args": "msg: string",
+    "doc": "use this action when the user asks you something or where a comment to some other action is appropriate. The parameter is the text you want to say."
+  },
+  {
+    "name": "lookAt",
+    "args": "targetName: string",
+    "doc": "face a named spot or object"
+  },
+  {
+    "name": "grab",
+    "args": "objectName: string",
+    "doc": "pick up a named object from the environment"
+  }
+]
