@@ -321,21 +321,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ContextLibrary
   spots:
   - transform: {fileID: 1515485808}
-    description: operating table
+    description: 
     neighborDistanceThreshold: 1
     neighbors: []
     boundingBox:
       m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0, y: 0, z: 0}
   - transform: {fileID: 889834146}
-    description: instrument tray
+    description: 
     neighborDistanceThreshold: 1
     neighbors: []
     boundingBox:
       m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0, y: 0, z: 0}
   - transform: {fileID: 2130469908}
-    description: door
+    description: 
     neighborDistanceThreshold: 1
     neighbors: []
     boundingBox:

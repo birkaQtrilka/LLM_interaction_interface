@@ -14,6 +14,8 @@ Reply with a single JSON object that uses every field in this schema. Every valu
 Do not add actions, names, or coordinates.
 {schema_json_string}
 Set a field true only if that data is needed.
+Set getObjects true and objectFlags.position true if the user mentions grabbing, placing, picking up, putting down, holding, or an environment object (phone, tray, scalpel, item).
+Set getSpots true if the user mentions walking, spots, or a place in the room.
 """
 
 def get_system_prompt(PERSONA: str, actions_str: str):
