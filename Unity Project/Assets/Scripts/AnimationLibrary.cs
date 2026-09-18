@@ -22,6 +22,7 @@ public class AnimationLibrary : MonoBehaviour
         {
             case "moveToSpot":
                 ContextItem obj = context.contextLibrary.spots.Find(x => x.GetName() == param[0]);
+                obj ??= context.contextLibrary.environment.Find(x => x.GetName() == param[0]);
                 if (obj == null) return $"Couldn't find spot with name {param[0]}";
 
                 Move(context.contextLibrary.agent.Nav, obj.transform.position, action);
@@ -46,7 +47,10 @@ public class AnimationLibrary : MonoBehaviour
                 Grab(context.contextLibrary.agent, obj, action);
                 break;
             case "place":
+                if (param.Length < 3) return "moveToPoint requires 3 parameters: x, y, z";
+                //if (float.TryParse(param[0], out _)) return $"Wrong parameters: {string.Join(", ", param)}";
                 Place(context.contextLibrary.agent, action);
+
                 break;
             default:
                 return $"Unknown action: {action.name}";

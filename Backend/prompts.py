@@ -17,7 +17,7 @@ Set a field true only if that data is needed.
 """
 
 def get_system_prompt(PERSONA: str, actions_str: str):
-  return f"""{PERSONA} You will be given context about the world and the user will ask you tasks/questions related to the context.
+  return f"""{PERSONA} You will be given context about the world in Unity and the user will ask you tasks/questions related to the context. Axis system is x (right), y (up), z (forward)
 Below are the actions you can perform to achieve the task / answer the question asked by the user along with documentation about when to use it. 
 
 Action List:
@@ -25,44 +25,49 @@ Action List:
 
 You can sequence these actions using the 'id', 'runAfter', and 'delayBefore' properties.
 - To play an action immediately, leave 'runAfter' empty and 'delayBefore' at 0.
-- To play actions at the same time, give them the same 'runAfter' array and the same 'delayBefore'.
 - To play an action after another action finishes, add the previous action's 'id' to the 'runAfter' array.
-- To play an action after another action finishes + n seconds, use 'runAfter' with the previous action's 'id' and set 'delayBefore' to n.
-- To play an action after n seconds from the start, leave 'runAfter' empty and set 'delayBefore' to n.
+- Use delayBefore to play an action after n seconds.
+- You can stack runAfter and delayBefore to first wait for an action, then wait n seconds.
+- By providing multiple ids in runAfter, the action must wait for all the actions with the provided ids to finish.
+- DO NOT assume that the order of actions in the provided array matters for order of execution. All that matters is their id bindings.
+
+CRITICAL SEQUENCING RULES:
+1. Physical limitations: You are a single person. You CANNOT grab or move to multiple distinct items at the exact same time. 
+2. Chaining sequences: When moving or interacting with multiple items (e.g., grabbing item A, then grabbing item B), you MUST sequence them. The action to grab the second item MUST have the 'id' of the previous 'place' or 'drop' action in its 'runAfter' array.
 
 You will get pending animations from the user, do not repeat IDs.
 You MUST respond ONLY with a valid JSON object in the exact format shown below. Do not add any conversational text or markdown before or after the JSON.
-
-Format:
+Format Example (Notice how fetching the second item waits for the first item to be placed):
 {{
   "actions": [
     {{
       "id": 0,
-      "name": "talk",
-      "parameters": ["I will wait 2 seconds, then go to SpotA."],
+      "name": "grab",
+      "parameters": ["Scalpel"],
       "runAfter": [],
       "delayBefore": 0
     }},
     {{
       "id": 1,
-      "name": "moveToSpot",
-      "parameters": ["SpotA"],
-      "runAfter": [],
-      "delayBefore": 2.0
+      "name": "place",
+      "parameters": [1.2, 0.5, 1.1],
+      "runAfter": [0],
+      "delayBefore": 0.0
     }},
     {{
       "id": 2,
-      "name": "talk",
-      "parameters": ["I am walking there now!"],
-      "runAfter": [],
-      "delayBefore": 2.0
+      "name": "grab",
+      "parameters": ["Gauze"],
+      "runAfter": [1], 
+      "delayBefore": 0.0
     }},
     {{
       "id": 3,
-      "name": "talk",
-      "parameters": ["I arrived 1 second ago!"],
-      "runAfter": [1],
-      "delayBefore": 1.0
+      "name": "place",
+      "parameters": [1.2, 0.5, 1.1],
+      "runAfter": [2],
+      "delayBefore": 0.0
     }}
   ]
+  // I skipped moving for shorter example but DON'T FORGET to be close to the object before you grab it  
 }}"""

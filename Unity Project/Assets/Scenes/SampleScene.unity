@@ -799,7 +799,8 @@ MonoBehaviour:
   - Move to spotA then to SpotB and say what you are doing at each step
   - Go and grab the phone
   - Place the item on the closest object
-  - place all the items scattered around on the drawer
+  - place all the items scattered around on top of the drawer
+  - place the phone and the brick on top of the table
   OnTextSent:
     m_PersistentCalls:
       m_Calls: []

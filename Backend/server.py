@@ -100,10 +100,13 @@ def build_messages(user_text: str, world: str | dict) -> list[dict]:
         action_lines.append(f"// {action['doc']}\n{action['name']}({action['args']})")
     
     actions_str = "\n".join(action_lines)
+    print("------------- SYSTEM -------------------")
 
     # Added double curly braces {{ }} inside the f-string where actual JSON brackets are needed
     system = get_system_prompt(PERSONA, actions_str)
-
+    print(system);
+    print("------------- USER -------------------")
+    print(user)
     return [
         {"role": "system", "content": system},
         {"role": "user", "content": user},

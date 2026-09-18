@@ -75,7 +75,6 @@ public class ContextLibrary : MonoBehaviour
     public string GetContext(ContextQuery query, List<Animation> animations)
     {
         string context = "";
-        if (query.getSpots) context = GetSpotsContext(context);
         context = GetNpcContext(context);
 
         if(animations != null && animations.Count > 0 && includePlayingAnimations)
@@ -87,6 +86,7 @@ public class ContextLibrary : MonoBehaviour
             }
         }
 
+        if (query.getSpots) context = GetSpotsContext(context);
         if (environment.Count > 0 && query.getObjects)
         {
             context += "\nThese are the environment objects: ";
@@ -171,7 +171,7 @@ public class ContextLibrary : MonoBehaviour
 
     string GetSpotsContext(string result)
     {
-        result += "These are all the spot positions in the digital world: ";
+        result += "These are all the predifined spots: ";
         string[] spotJsons = new string[this.spots.Count];
         for (int i = 0; i < spots.Count; i++)
         {
