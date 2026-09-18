@@ -40,13 +40,22 @@ public class AnimationLibrary : MonoBehaviour
                 Count(context.chatManager, int.Parse(param[0]), action);
                 break;
             case "grab":
-                obj = context.contextLibrary.environment.Find(x => x.GetName() == param[0]);
-                if (obj == null) return $"Couldn't find spot with name {param[0]}";
+                obj = context.contextLibrary.environment.Find(x =>
+                    string.Equals(x.GetName(), param[0], StringComparison.OrdinalIgnoreCase));
+                if (obj == null) return $"Couldn't find object with name {param[0]}";
                 
                 Grab(context.contextLibrary.agent, obj, action);
                 break;
             case "place":
-                Place(context.contextLibrary.agent, action);
+                if (param.Length < 1)
+                {
+                    return "place requires an object name";
+                }
+                obj = context.contextLibrary.environment.Find(x =>
+                    string.Equals(x.GetName(), param[0], StringComparison.OrdinalIgnoreCase));
+                if (obj == null) return $"Couldn't find object with name {param[0]}";
+
+                Place(context, obj, action);
                 break;
             default:
                 return $"Unknown action: {action.name}";
@@ -184,11 +193,7 @@ public class AnimationLibrary : MonoBehaviour
     void Grab(NPC agent, ContextItem item, ActionData action)
     {
         Flag grabbed = new();
-        void start()
-        {
-            agent.Anim.SetTrigger("Grab");
-            agent.GrabReceiver.OnGrabPoint += snapObjectToHand;
-        }
+        float previousStop = agent.Nav.stoppingDistance;
 
         void snapObjectToHand()
         {
@@ -196,20 +201,54 @@ public class AnimationLibrary : MonoBehaviour
             grabbed.value = true;
         }
 
+        void start()
+        {
+            agent.Anim.SetBool("Walking", true);
+            agent.Nav.stoppingDistance = 0.5f;
+            agent.Nav.SetDestination(item.transform.position);
+        }
+
         void end()
         {
+            agent.Anim.SetBool("Walking", false);
+            agent.Nav.stoppingDistance = previousStop;
             agent.GrabReceiver.OnGrabPoint -= snapObjectToHand;
         }
 
-        PushAnimation(action, Utils.MonitorFlag(grabbed), start, end);
+        IEnumerator behavior()
+        {
+            yield return Utils.MonitorMovement(agent.Nav);
+            agent.Anim.SetBool("Walking", false);
+            agent.GrabReceiver.OnGrabPoint += snapObjectToHand;
+            agent.Anim.SetTrigger("Grab");
+            yield return Utils.MonitorFlag(grabbed);
+        }
+
+        PushAnimation(action, behavior(), start, end);
     }
 
-    void Place(NPC agent, ActionData action)
+    void Place(AgentSystem context, ContextItem surface, ActionData action)
     {
+        NPC agent = context.contextLibrary.agent;
         Flag hasReleased = new();
 
         void start()
         {
+            if (IsInHand(agent, surface.transform))
+            {
+                var fromPrompt = FindSurfaceNamedInPrompt(context, agent);
+                if (fromPrompt != null)
+                {
+                    surface = fromPrompt;
+                }
+                else
+                {
+                    Debug.LogWarning("place target must be a surface in the world, not the held item");
+                    hasReleased.value = true;
+                    return;
+                }
+            }
+
             agent.Anim.SetTrigger("Grab");
             agent.GrabReceiver.OnGrabPoint += releaseItem;
         }
@@ -220,7 +259,9 @@ public class AnimationLibrary : MonoBehaviour
 
             if (item != null)
             {
-                Vector3 placePos = ToVec3(action.parameters[0], action.parameters[1], action.parameters[2]);
+                surface.RecalculateBounds();
+                Vector3 placePos = surface.boundingBox.center;
+                placePos.y = surface.boundingBox.max.y;
                 item.position = placePos;
             }
             else
@@ -236,8 +277,31 @@ public class AnimationLibrary : MonoBehaviour
             agent.GrabReceiver.OnGrabPoint -= releaseItem;
         }
 
-        
-
         PushAnimation(action, Utils.MonitorFlag(hasReleased), start, end);
+    }
+
+    static bool IsInHand(NPC agent, Transform t)
+    {
+        if (t == null) return false;
+        if (agent.RightHand != null && t.IsChildOf(agent.RightHand)) return true;
+        if (agent.LeftHand != null && t.IsChildOf(agent.LeftHand)) return true;
+        return false;
+    }
+
+    static ContextItem FindSurfaceNamedInPrompt(AgentSystem context, NPC agent)
+    {
+        string prompt = context.lastUserPrompt;
+        if (string.IsNullOrEmpty(prompt)) return null;
+
+        foreach (var item in context.contextLibrary.environment)
+        {
+            if (item == null || item.transform == null) continue;
+            if (IsInHand(agent, item.transform)) continue;
+            if (prompt.IndexOf(item.GetName(), StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return item;
+            }
+        }
+        return null;
     }
 }

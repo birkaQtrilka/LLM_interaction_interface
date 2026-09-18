@@ -66,14 +66,14 @@ public class ContextItem
 
     Transform FindBase(Transform t)
     {
-        do
+        while (t != null)
         {
             if (t.TryGetComponent<EnvironmentItemTag>(out _))
             {
                 return t;
             }
             t = t.parent;
-        } while (t.parent != null);
+        }
         return null;
     }
 }

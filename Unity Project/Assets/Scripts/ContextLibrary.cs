@@ -91,7 +91,7 @@ public class ContextLibrary : MonoBehaviour
             context += "\nThese are the environment objects: ";
             foreach (var obj in environment)
             {
-                context += $"\n  {GetItemData(obj, query.objectFlags.position, query.objectFlags.rotation, false, query.objectFlags.neighbours)}";
+                context += $"\n  {GetItemData(obj, query.objectFlags.position, query.objectFlags.rotation, query.objectFlags.bounds, query.objectFlags.neighbours, includeDistance: query.objectFlags.position)}";
             }
         }
 
@@ -119,7 +119,6 @@ public class ContextLibrary : MonoBehaviour
             dataParts.Add($"position: {item.transform.position}");
         }
 
-        // LLM is bad at comparing raw coordinates; give it the length
         if (includeDistance && agent != null && item.transform != null)
         {
             float dist = Vector3.Distance(item.transform.position, agent.transform.position);

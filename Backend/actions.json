@@ -21,7 +21,7 @@
   },
   {
     "name": "place",
-    "args": "x: float, y: float, z: float",
-    "doc": "put the held object down at these world coordinates. The parameters are the x, y, and z of the drop point."
+    "args": "objectName: string",
+    "doc": "put whatever you are holding onto this named environment object. The parameter is the destination surface (for example Tray), never the item in the hand."
   }
 ]

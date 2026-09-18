@@ -25,6 +25,8 @@ Below are the actions you can perform to achieve the task / answer the question 
 Action List:
 {actions_str}
 
+grab's parameter is the item to pick up. place's parameter is the surface to put it on (for example Tray), not the item you grabbed.
+
 You can sequence these actions using the 'id', 'runAfter', and 'delayBefore' properties.
 - To play an action immediately, leave 'runAfter' empty and 'delayBefore' at 0.
 - To play actions at the same time, give them the same 'runAfter' array and the same 'delayBefore'.

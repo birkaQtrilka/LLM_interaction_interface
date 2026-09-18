@@ -46,6 +46,7 @@ public class AgentSystem : MonoBehaviour
     public bool sendAllContext = false;
     [field: SerializeField] public ContextLibrary contextLibrary { get; private set; }
     [field: SerializeField] public ChatManager chatManager { get; private set; }
+    public string lastUserPrompt;
 
     private void Awake()
     {
@@ -59,6 +60,7 @@ public class AgentSystem : MonoBehaviour
 
     public IEnumerator RunSystem(string userPrompt)
     {
+        lastUserPrompt = userPrompt;
         CoroutineResult<ActionsResponse> actionRes = new();
         if (sendAllContext)
         {
