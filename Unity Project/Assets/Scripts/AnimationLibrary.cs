@@ -21,10 +21,24 @@ public class AnimationLibrary : MonoBehaviour
         switch (action.name)
         {
             case "moveToSpot":
-                ContextItem obj = context.contextLibrary.spots.Find(x => x.GetName() == param[0]);
+                if (param.Length < 1) return "moveToSpot requires a spot name";
+                ContextItem obj = FindSpot(context.contextLibrary, param[0]);
+                if (obj != null)
+                {
+                    Move(context.contextLibrary.agent.Nav, obj.transform.position, action);
+                    break;
+                }
+                obj = FindEnv(context.contextLibrary, param[0]);
                 if (obj == null) return $"Couldn't find spot with name {param[0]}";
-
-                Move(context.contextLibrary.agent.Nav, obj.transform.position, action);
+                // LLM used a spot action on an object (Tray). Walk there, or place if already holding.
+                if (context.contextLibrary.agent.RightHandTaken || context.contextLibrary.agent.LeftHandTaken)
+                {
+                    Place(context, action);
+                }
+                else
+                {
+                    Move(context.contextLibrary.agent.Nav, obj.transform.position, action);
+                }
                 break;
             case "talk":
                 Talk(context.chatManager, param[0], action);
@@ -40,8 +54,7 @@ public class AnimationLibrary : MonoBehaviour
                 Count(context.chatManager, int.Parse(param[0]), action);
                 break;
             case "grab":
-                obj = context.contextLibrary.environment.Find(x =>
-                    string.Equals(x.GetName(), param[0], StringComparison.OrdinalIgnoreCase));
+                obj = FindEnv(context.contextLibrary, param[0]);
                 if (obj == null) return $"Couldn't find object with name {param[0]}";
                 
                 Grab(context.contextLibrary.agent, obj, action);
@@ -51,11 +64,7 @@ public class AnimationLibrary : MonoBehaviour
                 {
                     return "place requires an object name";
                 }
-                obj = context.contextLibrary.environment.Find(x =>
-                    string.Equals(x.GetName(), param[0], StringComparison.OrdinalIgnoreCase));
-                if (obj == null) return $"Couldn't find object with name {param[0]}";
-
-                Place(context, obj, action);
+                Place(context, action);
                 break;
             default:
                 return $"Unknown action: {action.name}";
@@ -227,37 +236,18 @@ public class AnimationLibrary : MonoBehaviour
         PushAnimation(action, behavior(), start, end);
     }
 
-    void Place(AgentSystem context, ContextItem surface, ActionData action)
+    void Place(AgentSystem context, ActionData action)
     {
         NPC agent = context.contextLibrary.agent;
         Flag hasReleased = new();
-
-        void start()
-        {
-            if (IsInHand(agent, surface.transform))
-            {
-                var fromPrompt = FindSurfaceNamedInPrompt(context, agent);
-                if (fromPrompt != null)
-                {
-                    surface = fromPrompt;
-                }
-                else
-                {
-                    Debug.LogWarning("place target must be a surface in the world, not the held item");
-                    hasReleased.value = true;
-                    return;
-                }
-            }
-
-            agent.Anim.SetTrigger("Grab");
-            agent.GrabReceiver.OnGrabPoint += releaseItem;
-        }
+        float previousStop = agent.Nav.stoppingDistance;
+        ContextItem surface = null;
 
         void releaseItem()
         {
             Transform item = agent.ReleaseItem(right: true);
 
-            if (item != null)
+            if (item != null && surface != null)
             {
                 surface.RecalculateBounds();
                 Vector3 placePos = surface.boundingBox.center;
@@ -272,12 +262,71 @@ public class AnimationLibrary : MonoBehaviour
             hasReleased.value = true;
         }
 
+        void start()
+        {
+            surface = ResolvePlaceSurface(context, agent, action.parameters);
+            if (surface == null)
+            {
+                Debug.LogWarning("place target must be a surface in the world, not the held item");
+                hasReleased.value = true;
+                return;
+            }
+
+            agent.Anim.SetBool("Walking", true);
+            agent.Nav.stoppingDistance = 0.5f;
+            agent.Nav.SetDestination(surface.transform.position);
+        }
+
         void end()
         {
+            agent.Anim.SetBool("Walking", false);
+            agent.Nav.stoppingDistance = previousStop;
             agent.GrabReceiver.OnGrabPoint -= releaseItem;
         }
 
-        PushAnimation(action, Utils.MonitorFlag(hasReleased), start, end);
+        IEnumerator behavior()
+        {
+            if (surface == null) yield break;
+            yield return Utils.MonitorMovement(agent.Nav);
+            agent.Anim.SetBool("Walking", false);
+            agent.GrabReceiver.OnGrabPoint += releaseItem;
+            agent.Anim.SetTrigger("Grab");
+            yield return Utils.MonitorFlag(hasReleased);
+        }
+
+        PushAnimation(action, behavior(), start, end);
+    }
+
+    static ContextItem FindSpot(ContextLibrary lib, string name)
+    {
+        return lib.spots.Find(x =>
+            x != null && x.transform != null &&
+            string.Equals(x.GetName(), name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    static ContextItem FindEnv(ContextLibrary lib, string name)
+    {
+        return lib.environment.Find(x =>
+            x != null && x.transform != null &&
+            string.Equals(x.GetName(), name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    static ContextItem ResolvePlaceSurface(AgentSystem context, NPC agent, string[] parameters)
+    {
+        if (parameters != null && parameters.Length >= 2)
+        {
+            var last = FindEnv(context.contextLibrary, parameters[parameters.Length - 1]);
+            if (last != null && !IsInHand(agent, last.transform)) return last;
+        }
+        if (parameters != null)
+        {
+            foreach (var p in parameters)
+            {
+                var item = FindEnv(context.contextLibrary, p);
+                if (item != null && !IsInHand(agent, item.transform)) return item;
+            }
+        }
+        return FindSurfaceNamedInPrompt(context, agent);
     }
 
     static bool IsInHand(NPC agent, Transform t)

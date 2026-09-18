@@ -15,7 +15,7 @@ Do not add actions, names, or coordinates.
 {schema_json_string}
 Set a field true only if that data is needed.
 Set getObjects true and objectFlags.position true if the user mentions grabbing, placing, picking up, putting down, holding, or an environment object (phone, tray, scalpel, item).
-Set getSpots true if the user mentions walking, spots, or a place in the room.
+Set getSpots true only if the user mentions walking to a named spot (SpotA, SpotB, SpotC). Putting an item on Tray is not a spot.
 """
 
 def get_system_prompt(PERSONA: str, actions_str: str):
@@ -25,7 +25,10 @@ Below are the actions you can perform to achieve the task / answer the question 
 Action List:
 {actions_str}
 
-grab's parameter is the item to pick up. place's parameter is the surface to put it on (for example Tray), not the item you grabbed.
+Spots and objects are different lists. moveToSpot is only for spot names (SpotA, SpotB, SpotC). Tray, phone, and Scalpel are objects: grab them or place onto them, never moveToSpot.
+grab's parameter is the item to pick up. place's parameter is only the surface (Tray), not the item in the hand. Do not also send moveToSpot for a place.
+Only emit actions for this user request. Do not add a place because an earlier message mentioned a tray. If they asked only to grab, do not place.
+If you grab and then place, the place action must list the grab id in runAfter so place waits until the item is in hand.
 
 You can sequence these actions using the 'id', 'runAfter', and 'delayBefore' properties.
 - To play an action immediately, leave 'runAfter' empty and 'delayBefore' at 0.

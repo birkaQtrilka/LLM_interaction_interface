@@ -88,7 +88,7 @@ public class ContextLibrary : MonoBehaviour
 
         if (environment.Count > 0 && query.getObjects)
         {
-            context += "\nThese are the environment objects: ";
+            context += "\nThese are environment objects (grab to pick up, place to put something on them). Tray is an object, not a spot: ";
             foreach (var obj in environment)
             {
                 context += $"\n  {GetItemData(obj, query.objectFlags.position, query.objectFlags.rotation, query.objectFlags.bounds, query.objectFlags.neighbours, includeDistance: query.objectFlags.position)}";
@@ -155,7 +155,7 @@ public class ContextLibrary : MonoBehaviour
 
     string GetSpotsContext(string result)
     {
-        result += "These are all the spot positions in the digital world: ";
+        result += "These are walk spots (moveToSpot uses these names only): ";
         string[] spotJsons = new string[this.spots.Count];
         for (int i = 0; i < spots.Count; i++)
         {

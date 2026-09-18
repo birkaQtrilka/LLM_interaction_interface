@@ -2,7 +2,7 @@
   {
     "name": "moveToSpot",
     "args": "spotName: string",
-    "doc": "when user asks you to move to a specific spot in the world, use this action. The parameter is the name of the spot."
+    "doc": "walk to a named floor spot only (SpotA, SpotB, SpotC). Never use this for objects such as Tray, phone, or Scalpel."
   },
   {
     "name": "moveToPoint",
@@ -22,6 +22,6 @@
   {
     "name": "place",
     "args": "objectName: string",
-    "doc": "put whatever you are holding onto this named environment object. The parameter is the destination surface (for example Tray), never the item in the hand."
+    "doc": "put whatever you are holding onto a named environment object. One parameter: the destination surface (Tray), never the item in the hand. Do not also emit moveToSpot."
   }
 ]

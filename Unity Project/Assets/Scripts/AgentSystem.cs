@@ -47,9 +47,11 @@ public class AgentSystem : MonoBehaviour
     [field: SerializeField] public ContextLibrary contextLibrary { get; private set; }
     [field: SerializeField] public ChatManager chatManager { get; private set; }
     public string lastUserPrompt;
+    UserTestLogger logger;
 
     private void Awake()
     {
+        logger = GetComponent<UserTestLogger>();
         chatManager.OnTextSent.AddListener(OnUserMessage);
     }
 
@@ -94,6 +96,7 @@ public class AgentSystem : MonoBehaviour
         {
             Debug.LogError($"Error getting context: {res.Error}");
             chatManager.AddChat($"Error getting context: {res.Error}");
+            logger?.LogTurn(userPrompt, res.Error);
         }
     }
 
@@ -107,13 +110,16 @@ public class AgentSystem : MonoBehaviour
 
         if (res.Status == ContextStatus.Success)
         {
-            Debug.Log($"Backend actions: {JsonUtility.ToJson(res.Response, true)}");
+            string backendJson = JsonUtility.ToJson(res.Response, true);
+            Debug.Log($"Backend actions: {backendJson}");
+            logger?.LogTurn(userPrompt, backendJson);
             ActionsSuccess(res.Response);
         }
         else
         {
             Debug.LogError($"Error getting context: {res.Error}");
             chatManager.AddChat(res.Error);
+            logger?.LogTurn(userPrompt, res.Error);
         }
     }
 
@@ -122,6 +128,20 @@ public class AgentSystem : MonoBehaviour
         if (reply.actions == null)
         {
             return;
+        }
+
+        int grabId = -1;
+        foreach (var action in reply.actions)
+        {
+            if (action.name == "grab") grabId = action.id;
+        }
+        foreach (var action in reply.actions)
+        {
+            if (action.name == "place" && grabId >= 0 && action.id != grabId
+                && (action.runAfter == null || action.runAfter.Length == 0))
+            {
+                action.runAfter = new[] { grabId };
+            }
         }
 
         foreach (var action in reply.actions)
