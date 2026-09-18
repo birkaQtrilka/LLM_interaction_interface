@@ -106,7 +106,7 @@ public class ContextLibrary : MonoBehaviour
         return context;
     }
 
-    public string GetItemData(ContextItem item, bool includePosition, bool includeRotation, bool includeBounds, bool includeNeighbors)
+    public string GetItemData(ContextItem item, bool includePosition, bool includeRotation, bool includeBounds, bool includeNeighbors, bool includeDistance = false)
     {
         List<string> dataParts = new()
         {
@@ -117,6 +117,13 @@ public class ContextLibrary : MonoBehaviour
         if (includePosition)
         {
             dataParts.Add($"position: {item.transform.position}");
+        }
+
+        // LLM is bad at comparing raw coordinates; give it the length
+        if (includeDistance && agent != null && item.transform != null)
+        {
+            float dist = Vector3.Distance(item.transform.position, agent.transform.position);
+            dataParts.Add($"distanceFromNpc: {dist:F2}");
         }
 
         if (includeRotation)
@@ -154,7 +161,7 @@ public class ContextLibrary : MonoBehaviour
         for (int i = 0; i < spots.Count; i++)
         {
             var spot = spots[i];
-            spotJsons[i] = GetItemData(spot, includePosition: true, includeRotation: false, includeBounds: false, includeNeighbors: false);
+            spotJsons[i] = GetItemData(spot, includePosition: true, includeRotation: false, includeBounds: false, includeNeighbors: false, includeDistance: true);
         }
         return $"{result}[{string.Join(',', spotJsons)}]";
     }

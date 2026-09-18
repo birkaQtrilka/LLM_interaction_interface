@@ -15,11 +15,6 @@
     "doc": "use this action when the user asks you something or where a comment to some other action is appropriate. The parameter is the text you want to say."
   },
   {
-    "name": "lookAt",
-    "args": "targetName: string",
-    "doc": "face a named spot or object"
-  },
-  {
     "name": "grab",
     "args": "objectName: string",
     "doc": "pick up a named object from the environment"
@@ -27,6 +22,6 @@
   {
     "name": "place",
     "args": "x: float, y: float, z: float",
-    "doc": "place on top of an environment object"
+    "doc": "put the held object down at these world coordinates. The parameters are the x, y, and z of the drop point."
   }
 ]
