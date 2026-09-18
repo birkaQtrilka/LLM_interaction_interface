@@ -10,9 +10,10 @@ public class AgentSystem : MonoBehaviour
     public bool sendAllContext = false;
     [field: SerializeField] public ContextLibrary contextLibrary { get; private set; }
     [field: SerializeField] public ChatManager chatManager { get; private set; }
-
+    public AnimationLibrary AnimationLibrary => animationLibrary;
     private void Awake()
     {
+        if (chatManager == null) return;
         chatManager.OnTextSent.AddListener(OnUserMessage);
     }
 
@@ -59,6 +60,7 @@ public class AgentSystem : MonoBehaviour
         }
     }
 
+
     public IEnumerator GetActionsJson(string userPrompt, ContextQuery context, CoroutineResult<ActionsResponse> res = null)
     {
         res ??= new();
@@ -76,7 +78,7 @@ public class AgentSystem : MonoBehaviour
         else
         {
             Debug.LogError($"Error getting context: {res.Error}");
-            chatManager.AddChat(res.Error);
+            AddChat(res.Error);
         }
     }
 
@@ -93,8 +95,14 @@ public class AgentSystem : MonoBehaviour
             if (!string.IsNullOrEmpty(error))
             {
                 Debug.Log(error);
-                chatManager.AddChat(error);
+                AddChat(error);
             }
         }
+    }
+
+    public void AddChat(string message) 
+    {
+        if (chatManager == null) return;
+        chatManager.AddChat(message);
     }
 }
