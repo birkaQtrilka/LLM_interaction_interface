@@ -42,7 +42,7 @@ public class ContextItem
 
     public void FindNeighbors()
     {
-        if (transform == null || neighborDistanceThreshold < 0) return;
+        if (transform == null || neighborDistanceThreshold <= 0) return;
 
         float n = neighborDistanceThreshold;
         Vector3 expandedSize = boundingBox.size + new Vector3(n, n, n);
@@ -57,7 +57,7 @@ public class ContextItem
         {
             Transform root = FindBase(hit.transform);
             if (root == null || root == transform) continue;
-            validNeighbors.Add(hit.transform);
+            validNeighbors.Add(root);
         }
 
         neighbors = new Transform[validNeighbors.Count];
@@ -66,14 +66,10 @@ public class ContextItem
 
     Transform FindBase(Transform t)
     {
-        do
-        {
-            if (t.TryGetComponent<EnvironmentItemTag>(out _))
-            {
-                return t;
-            }
-            t = t.parent;
-        } while (t.parent != null);
-        return null;
+        if (t == null) return null;
+
+        var tag = t.GetComponentInParent<EnvironmentItemTag>();
+
+        return tag != null ? tag.transform : null;
     }
 }

@@ -2,7 +2,7 @@
   {
     "name": "moveToSpot",
     "args": "spotName: string",
-    "doc": "when user asks you to move to a specific spot in the world, use this action. The parameter is the name of the spot."
+    "doc": "when user asks you to move to a specific spot in the world, use this action. The parameter is the name of the spot. DO NOT use this if you want to move to environment objects"
   },
   {
     "name": "moveToPoint",
@@ -22,11 +22,11 @@
   {
     "name": "grab",
     "args": "objectName: string",
-    "doc": "pick up a named object from the environment"
+    "doc": "pick up a named object from the environment. DO NOT grab if npc has item via itemInRightHand: None/name field. Always move close enough to grab"
   },
   {
     "name": "place",
     "args": "x: float, y: float, z: float",
-    "doc": "place on top of an environment object"
+    "doc": "place on top of an environment object (above the bounding box). DO NOT place if npc has empty hand. Look if NPC itemInRightHand: None. Always move close enough to place"
   }
 ]

@@ -800,6 +800,7 @@ MonoBehaviour:
   - Go and grab the phone
   - Place the item on the closest object
   - place all the items scattered around on the drawer
+  - place the brick and phone on the drawer
   OnTextSent:
     m_PersistentCalls:
       m_Calls: []

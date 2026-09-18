@@ -19,13 +19,11 @@ public class NPC : MonoBehaviour
         {
             item.SetParent(RightHand);
             item.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
-            item.GetChild(0).localPosition = Vector3.zero;
         }
         else if (!right && !LeftHandTaken)
         {
             item.SetParent(LeftHand);
             item.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
-            item.GetChild(0).localPosition = Vector3.zero;
         }
         else
         {
@@ -35,19 +33,22 @@ public class NPC : MonoBehaviour
 
     public Transform ReleaseItem(bool right)
     {
+        var item = GetItem(right);
+        if (item == null) return null;
+        item.SetParent(null);
+        return item;
+    }
+
+    public Transform GetItem(bool right)
+    {
         if (right && RightHandTaken)
         {
-            var item = RightHand.GetChild(0);
-            item.SetParent(null);
-            return item;
+            return RightHand.GetChild(0);
         }
         else if (!right && LeftHandTaken)
         {
-            var item = LeftHand.GetChild(0);
-            item.SetParent(null);
-            return item;
+            return LeftHand.GetChild(0);
         }
-        Debug.LogWarning("Hand is empty");
         return null;
     }
 }
