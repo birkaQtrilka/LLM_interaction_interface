@@ -22,11 +22,11 @@
   {
     "name": "grab",
     "args": "objectName: string",
-    "doc": "pick up a named object from the environment. DO NOT grab if npc has item via itemInRightHand: None/name field or if it's too heavy. Always move close enough to grab. You can grab only ONE item at a time"
+    "doc": "pick up a named object from the environment. DO NOT grab if npc has item via itemInRightHand: \"name\" field or if it's too heavy. Always move close enough to grab. You can grab only ONE item at a time"
   },
   {
     "name": "place",
-    "args": "x: float, y: float, z: float",
-    "doc": "place on top of an environment object (above the bounding box). DO NOT place if npc has empty hand. Look if NPC itemInRightHand: None. Always move close enough to place"
+    "args": "objectNameToPlaceOnto: string",
+    "doc": "place on environment object (provided in the parameters). DO NOT place if npc has empty hand. Look if NPC itemInRightHand: None. Always move close enough to place"
   }
 ]

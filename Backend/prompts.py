@@ -50,7 +50,7 @@ Format Example (Notice how fetching the second item waits for the first item to 
     {{
       "id": 1,
       "name": "place",
-      "parameters": [1.2, 0.5, 1.1],
+      "parameters": [ "desk" ],
       "runAfter": [0],
       "delayBefore": 0.0
     }},
@@ -64,7 +64,7 @@ Format Example (Notice how fetching the second item waits for the first item to 
     {{
       "id": 3,
       "name": "place",
-      "parameters": [1.2, 0.5, 1.1],
+      "parameters": [ "desk" ],
       "runAfter": [2],
       "delayBefore": 0.0
     }}

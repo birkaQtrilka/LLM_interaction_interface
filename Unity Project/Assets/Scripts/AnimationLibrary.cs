@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AI;
 
 public class AnimationLibrary : MonoBehaviour
 {
@@ -25,38 +24,41 @@ public class AnimationLibrary : MonoBehaviour
                 obj ??= context.contextLibrary.environment.Find(x => x.GetName() == param[0]);
                 if (obj == null) return $"Couldn't find spot with name {param[0]}";
 
-                Move(context.contextLibrary.agent.Nav, obj.transform.position, action);
+                ExecuteAction(Actions.Move(context.contextLibrary.agent, obj.transform.position, action));
                 break;
             case "talk":
-                Talk(context.chatManager, param[0], action);
+                ExecuteAction(Actions.Talk(context.chatManager, param[0], action));
                 break;
             case "moveToPoint":
                 if (param.Length < 3)
                 {
                     return "moveToPoint requires 3 parameters: x, y, z";
                 }
-                Move(context.contextLibrary.agent.Nav, ToVec3(param[0], param[1], param[2]), action);
+                ExecuteAction(Actions.Move(context.contextLibrary.agent, ToVec3(param[0], param[1], param[2]), action));
                 break;
             case "count": //for testing purposes
-                Count(context.chatManager, int.Parse(param[0]), action);
+                ExecuteAction(Actions.Count(context.chatManager, int.Parse(param[0]), action));
                 break;
             case "grab":
                 obj = context.contextLibrary.environment.Find(x => x.GetName() == param[0]);
                 if (obj == null) return $"Couldn't find spot with name {param[0]}";
                 
-                Grab(context.contextLibrary.agent, obj, action);
+                ExecuteAction(Actions.Grab(context.contextLibrary.agent, obj, action));
                 break;
             case "place":
-                if (param.Length < 3) return "moveToPoint requires 3 parameters: x, y, z";
-                //if (float.TryParse(param[0], out _)) return $"Wrong parameters: {string.Join(", ", param)}";
-                Place(context.contextLibrary.agent, action);
-
+                if (param.Length != 1) return "moveToPoint requires 1 string parameter";
+                ExecuteAction(Actions.Place(context.contextLibrary.agent, action, context.contextLibrary.environment));
                 break;
             default:
                 return $"Unknown action: {action.name}";
         }
 
         return null;
+    }
+
+    public void ExecuteAction(AnimAction exe)
+    {
+        PushAnimation(exe.data, exe.behavior, exe.start, exe.end);
     }
 
     private IEnumerator AnimationManagerCoroutine()
@@ -140,108 +142,4 @@ public class AnimationLibrary : MonoBehaviour
         return new Vector3(x, y, z);
     }
 
-    void Count(ChatManager chat, int total, ActionData action)
-    {
-        IEnumerator behavior()
-        {
-            int count = 0;
-
-            while (count <= total)
-            {
-                chat.AddChat($"Count: {count++}");
-
-                yield return new WaitForSeconds(1f);
-            }
-        }
-
-        PushAnimation(action, behavior());
-    }
-
-    void Talk(ChatManager chat, string msg, ActionData action)
-    {
-        void start()
-        {
-            chat.AddChat(msg);
-        }
-        PushAnimation(action, null, start);
-    }
-
-    void Move(NavMeshAgent agent, Vector3 pos, ActionData action)
-    {
-        var animator = agent.GetComponentInChildren<Animator>();
-        void start()
-        {
-            animator.SetBool("Walking", true);
-            agent.SetDestination(pos);
-        }
-
-        void end()
-        {
-            animator.SetBool("Walking", false);
-        }
-
-        IEnumerator behavior = Utils.MonitorMovement(agent);
-        PushAnimation(action, behavior, start, end);
-    }
-
-    // now this is primitive, but it will do for now. We can improve this later with IK and other techniques.
-    void Grab(NPC agent, ContextItem item, ActionData action)
-    {
-        Flag grabbed = new();
-        void start()
-        {
-            agent.Anim.SetTrigger("Grab");
-            agent.GrabReceiver.OnGrabPoint += snapObjectToHand;
-        }
-
-        void snapObjectToHand()
-        {
-            agent.GrabItem(item.transform, true);
-            grabbed.value = true;
-        }
-
-        void end()
-        {
-            agent.GrabReceiver.OnGrabPoint -= snapObjectToHand;
-        }
-
-        PushAnimation(action, Utils.MonitorFlag(grabbed), start, end);
-    }
-
-    void Place(NPC agent, ActionData action)
-    {
-        Flag hasReleased = new();
-
-        void start()
-        {
-            agent.Anim.SetTrigger("Grab");
-            agent.GrabReceiver.OnGrabPoint += releaseItem;
-        }
-
-        void releaseItem()
-        {
-            Transform item = agent.ReleaseItem(right: true);
-
-            if (item != null)
-            {
-                Vector3 placePos = ToVec3(action.parameters[0], action.parameters[1], action.parameters[2]);
-                item.position = placePos;
-            }
-            else
-            {
-                Debug.LogWarning("Agent tried to place an item but wasn't holding anything!");
-            }
-
-            hasReleased.value = true;
-        }
-
-        void end()
-        {
-            agent.GrabReceiver.OnGrabPoint -= releaseItem;
-        }
-
-        
-
-        PushAnimation(action, Utils.MonitorFlag(hasReleased), start, end);
-    }
 }
