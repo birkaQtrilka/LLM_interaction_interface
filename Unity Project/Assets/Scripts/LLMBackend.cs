@@ -4,12 +4,6 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 
-[Serializable]
-public class ActionsResponse
-{
-    public ActionData[] actions;
-}
-
 public class LLMBackend : MonoBehaviour
 {
     [Serializable]

@@ -1,41 +1,5 @@
-using System;
 using System.Collections;
 using UnityEngine;
-using static UnityEngine.Audio.ProcessorInstance;
-
-[Serializable]
-public class ActionData
-{
-    public int id;
-    public string name;
-    public string[] parameters;
-    public int[] runAfter;
-    public float delayBefore;
-}
-
-public enum ContextStatus { Success, Failure }
-
-public class CoroutineResult<Res, Err>
-{
-    public ContextStatus Status;
-    public Res Response;
-    public Err Error;
-    public bool IsDone;
-
-    public void SetResult(Res r)
-    {
-        Status = ContextStatus.Success;
-        Response = r;
-        IsDone = true;
-    } 
-
-    public void SetError(Err e)
-    {
-        Status = ContextStatus.Failure;
-        Error = e;
-        IsDone = true;
-    }
-}
 
 public class CoroutineResult<Res> : CoroutineResult<Res, string> { }
 
@@ -105,6 +69,7 @@ public class AgentSystem : MonoBehaviour
 
         if (res.Status == ContextStatus.Success)
         {
+            Debug.Log($"completion tokens: {res.Response.completion_tokens}\nprompt tokens: {res.Response.prompt_tokens}");
             Debug.Log($"Backend actions: {JsonUtility.ToJson(res.Response, true)}");
             ActionsSuccess(res.Response);
         }
