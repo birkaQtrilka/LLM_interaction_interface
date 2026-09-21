@@ -14,6 +14,9 @@ public class AgentSystem : MonoBehaviour
     UserTestLogger logger;
 
     public AnimationLibrary AnimationLibrary => animationLibrary;
+    public bool IsBusy { get; private set; }
+    public ActionsResponse LastActions { get; private set; }
+
     private void Awake()
     {
         logger = new UserTestLogger("UserTestLogs");
@@ -27,6 +30,14 @@ public class AgentSystem : MonoBehaviour
     }
 
     public IEnumerator RunSystem(string userPrompt)
+    {
+        IsBusy = true;
+        LastActions = null;
+        yield return RunTurn(userPrompt);
+        IsBusy = false;
+    }
+
+    IEnumerator RunTurn(string userPrompt)
     {
         lastUserPrompt = userPrompt;
         CoroutineResult<ActionsResponse> actionRes = new();
@@ -81,6 +92,7 @@ public class AgentSystem : MonoBehaviour
             string backendJson = JsonUtility.ToJson(res.Response, true);
             Debug.Log($"Backend actions: {backendJson}");
             logger?.LogTurn(userPrompt, backendJson);
+            LastActions = res.Response;
             ActionsSuccess(res.Response);
         }
         else

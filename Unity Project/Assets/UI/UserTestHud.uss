@@ -1,0 +1,58 @@
+.root {
+    flex-grow: 1;
+    align-items: center;
+}
+
+.hud {
+    margin-top: 28px;
+    padding: 18px 32px;
+    border-radius: 16px;
+    background-color: rgba(10, 16, 28, 0.28);
+    backdrop-filter: blur(14px) tint(rgba(180, 210, 240, 0.18));
+    filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.4));
+    align-items: center;
+    max-width: 720px;
+}
+
+.step {
+    font-size: 14px;
+    color: rgb(170, 205, 230);
+    -unity-font-style: bold;
+    margin-bottom: 4px;
+    -unity-text-align: upper-center;
+}
+
+.instruction {
+    font-size: 22px;
+    color: rgb(245, 248, 252);
+    white-space: normal;
+    -unity-text-align: upper-center;
+}
+
+.status {
+    margin-top: 8px;
+    font-size: 14px;
+    color: rgb(235, 200, 130);
+    white-space: normal;
+    -unity-text-align: upper-center;
+    min-height: 18px;
+}
+
+.complete {
+    margin-top: 28px;
+    padding: 20px 36px;
+    border-radius: 16px;
+    background-color: rgba(10, 16, 28, 0.28);
+    backdrop-filter: blur(14px) tint(rgba(160, 230, 190, 0.2));
+    filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.4));
+}
+
+.complete-label {
+    font-size: 24px;
+    color: rgb(245, 248, 252);
+    -unity-font-style: bold;
+}
+
+.hidden {
+    display: none;
+}
