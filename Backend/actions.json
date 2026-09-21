@@ -15,11 +15,6 @@
     "doc": "use this action when the user asks you something or where a comment to some other action is appropriate. The parameter is the text you want to say."
   },
   {
-    "name": "lookAt",
-    "args": "targetName: string",
-    "doc": "face a named spot or object"
-  },
-  {
     "name": "grab",
     "args": "objectName: string",
     "doc": "pick up a named object from the environment. DO NOT grab if npc has item via itemInRightHand: \"name\" field or if it's too heavy. Always move close enough to grab. You can grab only ONE item at a time"

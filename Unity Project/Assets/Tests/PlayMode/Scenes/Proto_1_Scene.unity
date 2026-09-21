@@ -952,6 +952,7 @@ MonoBehaviour:
   sendAllContext: 1
   <contextLibrary>k__BackingField: {fileID: 163989116}
   <chatManager>k__BackingField: {fileID: 0}
+  lastUserPrompt: 
 --- !u!4 &967212467
 Transform:
   m_ObjectHideFlags: 0
@@ -1275,9 +1276,9 @@ MonoBehaviour:
   m_OverrideTileSize: 0
   m_TileSize: 256
   m_OverrideVoxelSize: 0
-  m_VoxelSize: 0.11666667
+  m_VoxelSize: 0.033333335
   m_MinRegionArea: 2
-  m_NavMeshData: {fileID: 23800000, guid: cb57487ff5d24194082a97f8b7c5831c, type: 2}
+  m_NavMeshData: {fileID: 23800000, guid: eff5a2f1f8f06ff459ab207138abb080, type: 2}
   m_BuildHeightMesh: 0
 --- !u!114 &1820304974
 MonoBehaviour:

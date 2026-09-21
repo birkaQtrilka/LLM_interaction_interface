@@ -171,7 +171,7 @@ public class ContextLibrary : MonoBehaviour
 
     string GetSpotsContext(string result)
     {
-        result += "These are all the predifined spots: ";
+        result += "These are walk spots (moveToSpot uses these names only): ";
         string[] spotJsons = new string[this.spots.Count];
         for (int i = 0; i < spots.Count; i++)
         {

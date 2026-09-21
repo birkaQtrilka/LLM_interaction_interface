@@ -41,7 +41,7 @@ public class AnimationLibrary : MonoBehaviour
                 break;
             case "grab":
                 obj = context.contextLibrary.environment.Find(x => x.GetName() == param[0]);
-                if (obj == null) return $"Couldn't find spot with name {param[0]}";
+                if (obj == null) return $"Couldn't find object with name {param[0]}";
                 
                 ExecuteAction(Actions.Grab(context.contextLibrary.agent, obj, action));
                 break;

@@ -19,10 +19,13 @@ public class ChatManager : MonoBehaviour
     {
         input = GetComponentInChildren<TMP_InputField>();
         input.onSubmit.AddListener(OnSubmit);
+        // Button OnClick is empty in the scene; Enter alone is easy to miss in Game view
+        GetComponentInChildren<Button>()?.onClick.AddListener(() => OnSubmit(input.text));
     }
 
     private void OnSubmit(string txt)
     {
+        if (string.IsNullOrWhiteSpace(txt)) return;
         AddChat(txt);
         input.text = string.Empty;
         OnTextSent?.Invoke(txt);
