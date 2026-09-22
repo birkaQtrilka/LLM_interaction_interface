@@ -3,8 +3,6 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-// UIDocument builds the visual tree in OnEnable, so this script runs after it
-[DefaultExecutionOrder(100)]
 public class UserTestLoop : MonoBehaviour
 {
     public enum StepGoal
@@ -25,7 +23,7 @@ public class UserTestLoop : MonoBehaviour
     }
 
     [SerializeField] AgentSystem agentSystem;
-    [SerializeField] UIDocument uiDocument;
+    [SerializeField] PanelRenderer panelRenderer;
     [SerializeField] Step[] steps;
 
     int current;
@@ -38,14 +36,7 @@ public class UserTestLoop : MonoBehaviour
 
     void OnEnable()
     {
-        var root = uiDocument.rootVisualElement;
-        hud = root.Q("hud");
-        complete = root.Q("complete");
-        stepLabel = root.Q<Label>("step-label");
-        instructionLabel = root.Q<Label>("instruction");
-        statusLabel = root.Q<Label>("status");
-        ShowCurrent();
-
+        panelRenderer.RegisterUIReloadCallback(OnUIReload);
         if (agentSystem.chatManager != null)
         {
             agentSystem.chatManager.OnTextSent.AddListener(OnUserMessage);
@@ -54,13 +45,27 @@ public class UserTestLoop : MonoBehaviour
 
     void OnDisable()
     {
+        if (panelRenderer != null)
+        {
+            panelRenderer.UnregisterUIReloadCallback(OnUIReload);
+        }
         if (agentSystem != null && agentSystem.chatManager != null)
         {
             agentSystem.chatManager.OnTextSent.RemoveListener(OnUserMessage);
         }
     }
 
-    void OnUserMessage(string _)
+    void OnUIReload(PanelRenderer renderer, VisualElement root, int version)
+    {
+        hud = root.Q("hud");
+        complete = root.Q("complete");
+        stepLabel = root.Q<Label>("step-label");
+        instructionLabel = root.Q<Label>("instruction");
+        statusLabel = root.Q<Label>("status");
+        ShowCurrent();
+    }
+
+    void OnUserMessage(string message)
     {
         if (waiting || current >= steps.Length) return;
         StartCoroutine(AfterTurn());
@@ -91,6 +96,8 @@ public class UserTestLoop : MonoBehaviour
 
     void ShowCurrent()
     {
+        if (hud == null || complete == null) return;
+
         if (current >= steps.Length)
         {
             hud.AddToClassList("hidden");
