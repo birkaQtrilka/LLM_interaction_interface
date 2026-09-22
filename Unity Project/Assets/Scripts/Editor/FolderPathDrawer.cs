@@ -1,3 +1,4 @@
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -13,14 +14,10 @@ public class FolderPathDrawer : PropertyDrawer
         EditorGUI.PropertyField(fieldRect, property, label);
         if (!GUI.Button(buttonRect, "Browse")) return;
 
-        string start = property.stringValue;
-        if (string.IsNullOrEmpty(start))
-        {
-            start = UserTestLogger.DefaultFolder();
-        }
-
+        string root = UserTestLogger.RepoRoot();
+        string start = Path.Combine(root, property.stringValue);
         string picked = EditorUtility.OpenFolderPanel("User test logs", start, "");
         if (string.IsNullOrEmpty(picked)) return;
-        property.stringValue = picked;
+        property.stringValue = new DirectoryInfo(picked).Name;
     }
 }

@@ -2242,7 +2242,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e4c1a92b0d84f6e9c3a5b17d8e2f4a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UserTestLogger
-  logFolder: 
+  logFolder: TempLogs 
 --- !u!4 &967212467
 Transform:
   m_ObjectHideFlags: 0

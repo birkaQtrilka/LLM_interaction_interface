@@ -5,30 +5,23 @@ using UnityEngine;
 public class UserTestLogger : MonoBehaviour
 {
     [FolderPath]
-    [SerializeField] string logFolder;
+    [SerializeField] string logFolder = "TempLogs";
 
     string path;
 
     void Awake()
     {
         string fileName = $"user-test-{DateTime.Now:yyyyMMdd-HHmmss}.csv";
-        string folder = string.IsNullOrWhiteSpace(logFolder) ? DefaultFolder() : logFolder;
+        string folder = Path.Combine(RepoRoot(), logFolder);
         Directory.CreateDirectory(folder);
         path = Path.Combine(folder, fileName);
         File.WriteAllText(path, "timestamp,user_message,backend_response\n");
         Debug.Log("User test log written to " + path);
     }
 
-    // Repo root / UserTestLogs in the Editor, otherwise the player save folder
-    public static string DefaultFolder()
+    public static string RepoRoot()
     {
-#if UNITY_EDITOR
-        string unityProject = Directory.GetParent(Application.dataPath).FullName;
-        string repoRoot = Directory.GetParent(unityProject).FullName;
-        return Path.Combine(repoRoot, "UserTestLogs");
-#else
-        return Application.persistentDataPath;
-#endif
+        return Directory.GetParent(Directory.GetParent(Application.dataPath).FullName).FullName;
     }
 
     public void LogTurn(string userMessage, string backendResponse)
