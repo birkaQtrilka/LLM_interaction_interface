@@ -1558,6 +1558,7 @@ MonoBehaviour:
   sendAllContext: 1
   <contextLibrary>k__BackingField: {fileID: 163989116}
   <chatManager>k__BackingField: {fileID: 390957927}
+  logger: {fileID: 967212468}
 --- !u!114 &967212468
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1569,7 +1570,8 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7e4c1a92b0d84f6e9c3a5b17d8e2f4a0, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Scripts::UserTestLogger
+  m_EditorClassIdentifier: Assembly-CSharp::UserTestLogger
+  logFolder: 
 --- !u!4 &967212467
 Transform:
   m_ObjectHideFlags: 0

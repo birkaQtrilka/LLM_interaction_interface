@@ -10,8 +10,8 @@ public class AgentSystem : MonoBehaviour
     public bool sendAllContext = false;
     [field: SerializeField] public ContextLibrary contextLibrary { get; private set; }
     [field: SerializeField] public ChatManager chatManager { get; private set; }
+    [SerializeField] UserTestLogger logger;
     public string lastUserPrompt;
-    UserTestLogger logger;
 
     public AnimationLibrary AnimationLibrary => animationLibrary;
     public bool IsBusy { get; private set; }
@@ -19,7 +19,6 @@ public class AgentSystem : MonoBehaviour
 
     private void Awake()
     {
-        logger = new UserTestLogger("UserTestLogs");
         if (chatManager == null) return;
         chatManager.OnTextSent.AddListener(OnUserMessage);
     }

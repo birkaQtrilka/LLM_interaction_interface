@@ -1,0 +1,6 @@
+timestamp,user_message,backend_response
+"2026-09-22T10:22:38.3781080+02:00","Hi tehre","{
+    ""actions"": [],
+    ""prompt_tokens"": 1356,
+    ""completion_tokens"": 7
+}"
