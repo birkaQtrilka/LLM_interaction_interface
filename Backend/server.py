@@ -53,56 +53,18 @@ def flags_from(data: object) -> dict:
     return data
 
 
-def world_to_text(world: str | dict) -> str:
-    if isinstance(world, str):
-        return world
-
-    output_lines = []
-
-    spot_parts = []
-    for spot in world.get("spots") or []:
-        pos = spot.get("position") or {}
-        spot_parts.append(f"{spot.get('name')}: ({pos.get('x')}, {pos.get('y')}, {pos.get('z')})")
-        
-    if spot_parts:
-        output_lines.append("These are all the spot positions in the digital world: " + ", ".join(spot_parts))
-
-    npc = world.get("npc") or {}
-    if npc:
-        pos = npc.get("position") or {}
-        rot = npc.get("rotation") or {}
-        output_lines.append(
-            f"This is your NPC data: position: ({pos.get('x')}, {pos.get('y')}, {pos.get('z')}), "
-            f"rotation: ({rot.get('x')}, {rot.get('y')}, {rot.get('z')}, {rot.get('w')})"
-        )
-
-    item_parts = []
-    for item in world.get("environment") or []:
-        item_pos = item.get("position") or {}
-        item_parts.append(
-            f"{item.get('name')}: ({item_pos.get('x')}, {item_pos.get('y')}, {item_pos.get('z')})"
-        )
-        
-    if item_parts:
-        output_lines.append("These are objects you can grab: " + ", ".join(item_parts))
-
-    return "\n".join(output_lines)
 
 
-def build_messages(user_text: str, world: str | dict) -> list[dict]:
-    user = user_text
-    if world:
-        user = f"Context:\n{world_to_text(world)}\n\nUser request: {user_text}"
+def build_messages(user_text: str, world: str) -> list[dict]:
+    user = f"Context:\n{world}\n\nUser request: {user_text}"
         
     action_lines = []
     for action in ACTIONS:
-        # Formatted to match Unity: "// comment \n actionName(params)"
         action_lines.append(f"// {action['doc']}\n{action['name']}({action['args']})")
     
     actions_str = "\n".join(action_lines)
     print("------------- SYSTEM -------------------")
 
-    # Added double curly braces {{ }} inside the f-string where actual JSON brackets are needed
     system = get_system_prompt(PERSONA, actions_str)
     print(system);
     print("------------- USER -------------------")
@@ -148,10 +110,11 @@ def turn(body: ActionsRequestBody) -> ActionsResponse:
     parsed, usage = openai_json(build_messages(body.message, body.world))
 
     actions = []
+    print("-----------------ACTIONS-----------------")
+    print(parsed)
     for item in parsed.get("actions") or []:
         if not isinstance(item, dict):
             continue
-            
         params = item.get("parameters") or []
         if not isinstance(params, list):
             params = [params]
@@ -164,6 +127,7 @@ def turn(body: ActionsRequestBody) -> ActionsResponse:
             ActionData(
                 id=int(item.get("id", 0)),
                 name=str(item.get("name") or ""),
+                agent=str(item.get("agent") or "AAAA"),
                 parameters=[str(p) for p in params],
                 runAfter=[int(r) for r in run_after],
                 delayBefore=float(item.get("delayBefore", 0.0))

@@ -25,7 +25,7 @@ public class ContextLibrary : MonoBehaviour
     [SerializeField] bool includeChatHistory = true;
     [SerializeField] bool includePlayingAnimations = true;
                                                     
-    public NPC agent;
+    public NPC[] agents;
 
     public uint maxMessageHistory = 10;
     private readonly LinkedList<string> messageHistory = new();
@@ -194,7 +194,10 @@ public class ContextLibrary : MonoBehaviour
     string GetNpcContext(string context)
     {
         List<string> npcDataParts = new(10);
-        GetItemData(
+        List<string> npcs = new(2);
+        foreach (var agent in agents)
+        {
+            GetItemData(
             npcDataParts,
             new ContextItem { transform = agent.transform },
             new ItemDataQuery(
@@ -205,10 +208,14 @@ public class ContextLibrary : MonoBehaviour
                 includeDescription: true
             )
         );
-        Transform rightHandItem = agent.GetItem(right: true);
-        npcDataParts.Add($"itemInRightHand: {(rightHandItem == null ? "None" : rightHandItem.name)}");
-        string npcData = string.Join(",", npcDataParts);
-        context += $"\nThis is your NPC data: {npcData}\n";
+            Transform rightHandItem = agent.GetItem(right: true);
+            npcDataParts.Add($"itemInRightHand: {(rightHandItem == null ? "None" : rightHandItem.name)}");
+            npcs.Add( $"{{{string.Join(", ", npcDataParts)}}}");
+            npcDataParts.Clear();
+        }
+
+        
+        context += $"\nThese are the agents: [{string.Join(", ", npcs)}]\n";
         return context ;
     }
 
@@ -220,45 +227,5 @@ public class ContextLibrary : MonoBehaviour
             item.RecalculateBounds();
             item.FindNeighbors();
         }
-    }
-
-    public bool IsOnSurface(string itemName, string surfaceName)
-    {
-        ContextItem surface = environment.Find(x => x.GetName() == surfaceName);
-        if (surface == null) return false;
-
-        surface.RecalculateBounds();
-        surface.FindNeighbors();
-        Transform item = null;
-        if (surface.neighbors != null)
-        {
-            foreach (Transform neighbor in surface.neighbors)
-            {
-                if (neighbor != null && neighbor.name == itemName)
-                {
-                    item = neighbor;
-                    break;
-                }
-            }
-        }
-        if (item == null) return false;
-
-        Bounds box = surface.boundingBox;
-        Vector3 p = item.position;
-        return p.y >= box.max.y
-            && p.x >= box.min.x && p.x <= box.max.x
-            && p.z >= box.min.z && p.z <= box.max.z;
-    }
-
-    public bool IsNearSpot(string spotName, float maxDistance = 0.1f)
-    {
-        ContextItem spot = spots.Find(x => x.GetName() == spotName);
-        if (spot == null || agent == null) return false;
-
-        Vector3 npcPos = agent.transform.position;
-        npcPos.y = 0;
-        Vector3 spotPos = spot.transform.position;
-        spotPos.y = 0;
-        return Vector3.Distance(npcPos, spotPos) < maxDistance;
     }
 }

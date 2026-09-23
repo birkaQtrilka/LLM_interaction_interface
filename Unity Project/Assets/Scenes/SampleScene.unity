@@ -427,7 +427,8 @@ MonoBehaviour:
       m_Extent: {x: 0, y: 0, z: 0}
   includeChatHistory: 1
   includePlayingAnimations: 0
-  agent: {fileID: 1860244335}
+  agents:
+  - {fileID: 1860244335}
   maxMessageHistory: 10
   showGizmos: 1
 --- !u!4 &163989117
@@ -3716,7 +3717,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7143666008480823539, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: m_Name
-      value: NPC
+      value: NPC1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

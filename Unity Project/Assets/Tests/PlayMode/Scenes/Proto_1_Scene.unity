@@ -301,7 +301,8 @@ MonoBehaviour:
       m_Extent: {x: 0, y: 0, z: 0}
   includeChatHistory: 0
   includePlayingAnimations: 0
-  agent: {fileID: 1860244335}
+  agents:
+  - {fileID: 1860244335}
   maxMessageHistory: 10
   showGizmos: 1
 --- !u!4 &163989117
@@ -952,7 +953,7 @@ MonoBehaviour:
   sendAllContext: 1
   <contextLibrary>k__BackingField: {fileID: 163989116}
   <chatManager>k__BackingField: {fileID: 0}
-  lastUserPrompt: 
+  logger: {fileID: 0}
 --- !u!4 &967212467
 Transform:
   m_ObjectHideFlags: 0

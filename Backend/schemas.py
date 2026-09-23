@@ -32,6 +32,7 @@ class ContextQuery(BaseModel):
 class ActionData(BaseModel):
     id: int = 0
     name: str
+    agent: str
     parameters: list[str] = Field(default_factory=list)
     runAfter: list[int] = Field(default_factory=list)
     delayBefore: float = 0.0

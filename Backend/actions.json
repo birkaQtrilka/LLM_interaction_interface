@@ -2,26 +2,26 @@
   {
     "name": "moveTo",
     "args": "spotName: string",
-    "doc": "when user asks you to move to a specific spot or environment object in the world, use this action. The parameter is the name of the spot or environment object"
+    "doc": "when user asks an agent to move to a specific spot or environment object in the world, use this action. spotName is the name of the spot or environment object. The 'agent' field on the action object identifies which NPC performs it."
   },
   {
     "name": "moveToPoint",
     "args": "x: float, y: float, z: float",
-    "doc": "when the user asks you to go to an arbitrary point in the world, use this action. The parameters are the x, y, and z coordinates of the point."
+    "doc": "when the user asks an agent to go to an arbitrary point in the world, use this action. x, y, z are the coordinates of the point. The 'agent' field on the action object identifies which NPC performs it."
   },
   {
     "name": "talk",
     "args": "msg: string",
-    "doc": "use this action when the user asks you something or where a comment to some other action is appropriate. The parameter is the text you want to say."
+    "doc": "use this action when the user asks something or where a comment to some other action is appropriate. msg is the text to say. The 'agent' field on the action object identifies which NPC is speaking."
   },
   {
     "name": "grab",
     "args": "objectName: string",
-    "doc": "Pick up a named object from the environment. Precondition: itemInRightHand must be empty (no item held). If itemInRightHand already has a value, do not grab again, use the held item directly. Always moveTo the object first. Only one item can be held at a time."
+    "doc": "the agent named in the action's 'agent' field picks up a named object from the environment. DO NOT grab if that agent's itemInRightHand is already non-empty. DO NOT grab if the object has grabbable: false, regardless of what the name suggests. Always do moveTo for this agent to get close to the object first. Each agent can hold only ONE item at a time, but different agents can each hold their own item simultaneously."
   },
   {
     "name": "place",
     "args": "objectNameToPlaceOnto: string",
-    "doc": "Put down the currently held item onto the named environment object. Precondition: itemInRightHand must be non-empty, this is what makes place valid. If itemInRightHand is empty, there is nothing to place, use talk to explain instead. Always moveTo the target object first."
+    "doc": "the agent named in the action's 'agent' field places the item currently in its own itemInRightHand onto the named environment object. Precondition: that agent's itemInRightHand must be non-empty. If it is empty, there is nothing for that agent to place, use talk instead. Always do moveTo for this agent to get close to the target object first."
   }
 ]
