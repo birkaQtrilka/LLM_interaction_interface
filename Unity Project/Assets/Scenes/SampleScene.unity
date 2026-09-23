@@ -398,7 +398,7 @@ MonoBehaviour:
       m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0, y: 0, z: 0}
   - transform: {fileID: 193983044}
-    description: stuck to the ground
+    description: 
     neighborDistanceThreshold: 1
     neighbors: []
     boundingBox:
@@ -425,7 +425,7 @@ MonoBehaviour:
     boundingBox:
       m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0, y: 0, z: 0}
-  includeChatHistory: 0
+  includeChatHistory: 1
   includePlayingAnimations: 0
   agent: {fileID: 1860244335}
   maxMessageHistory: 10
@@ -798,9 +798,11 @@ MonoBehaviour:
   - Move to the middle point between SpotA and SpotB
   - Move to spotA then to SpotB and say what you are doing at each step
   - Go and grab the phone
-  - Place the item on the closest object
+  - Place the item you grabbed on the closest object
   - place all the items scattered around on top of the drawer
   - place the phone and the brick on top of the table
+  - hi
+  - Fly off into space ang give me a rock
   OnTextSent:
     m_PersistentCalls:
       m_Calls: []
@@ -2238,6 +2240,7 @@ GameObject:
   m_Component:
   - component: {fileID: 967212467}
   - component: {fileID: 967212466}
+  - component: {fileID: 967212468}
   m_Layer: 0
   m_Name: AgentSystem
   m_TagString: Untagged
@@ -2259,9 +2262,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AgentSystem
   llm: {fileID: 522124488}
   animationLibrary: {fileID: 2033616363}
-  sendAllContext: 1
+  sendAllContext: 0
   <contextLibrary>k__BackingField: {fileID: 163989116}
   <chatManager>k__BackingField: {fileID: 390957927}
+  logger: {fileID: 967212468}
 --- !u!4 &967212467
 Transform:
   m_ObjectHideFlags: 0
@@ -2277,6 +2281,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &967212468
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 967212465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e4c1a92b0d84f6e9c3a5b17d8e2f4a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::UserTestLogger
+  logFolder: TempLogs
 --- !u!1 &1053885443
 GameObject:
   m_ObjectHideFlags: 0

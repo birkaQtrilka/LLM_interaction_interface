@@ -18,7 +18,7 @@ ContextQuery Rules:
 ObjectFlags Rules (Only relevant if getObjects is true):
 - position: True if the user mentions interacting with or needing the location of an environment object.
 - rotation: True if the orientation, facing direction, or angle of the object is needed.
-- description: True if the visual appearance or physical details of the object are mentioned. Also true if the user asks to interact with the object, because it may have a description that disallows certain interactions
+- description: True if the visual appearance or physical details of the object are mentioned. Also true if the user asks to interact with the object, because it may have a description that allows/disallows certain interactions
 - bounds: True if the user's request involves placing, fitting, or positioning an object (bounds are needed to check the target has room), OR if size is explicitly mentioned.
 - neighbours: True if the user's request involves placing an item onto/into another object (to check what's already there), grabbing (to check what's blocking access), OR if adjacency is explicitly asked about.
 

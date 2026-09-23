@@ -14,6 +14,7 @@ public class AgentSystem : MonoBehaviour
     public AnimationLibrary AnimationLibrary => animationLibrary;
     public bool IsBusy { get; private set; }
     public ActionsResponse LastActions { get; private set; }
+    [SerializeField] UserTestLogger logger;
 
     private void Awake()
     {
@@ -36,7 +37,6 @@ public class AgentSystem : MonoBehaviour
 
     IEnumerator RunTurn(string userPrompt)
     {
-        lastUserPrompt = userPrompt;
         CoroutineResult<ActionsResponse> actionRes = new();
         if (sendAllContext)
         {
