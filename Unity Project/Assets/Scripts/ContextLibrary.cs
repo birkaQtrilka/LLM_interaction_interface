@@ -221,4 +221,44 @@ public class ContextLibrary : MonoBehaviour
             item.FindNeighbors();
         }
     }
+
+    public bool IsOnSurface(string itemName, string surfaceName)
+    {
+        ContextItem surface = environment.Find(x => x.GetName() == surfaceName);
+        if (surface == null) return false;
+
+        surface.RecalculateBounds();
+        surface.FindNeighbors();
+        Transform item = null;
+        if (surface.neighbors != null)
+        {
+            foreach (Transform neighbor in surface.neighbors)
+            {
+                if (neighbor != null && neighbor.name == itemName)
+                {
+                    item = neighbor;
+                    break;
+                }
+            }
+        }
+        if (item == null) return false;
+
+        Bounds box = surface.boundingBox;
+        Vector3 p = item.position;
+        return p.y >= box.max.y
+            && p.x >= box.min.x && p.x <= box.max.x
+            && p.z >= box.min.z && p.z <= box.max.z;
+    }
+
+    public bool IsNearSpot(string spotName, float maxDistance = 0.1f)
+    {
+        ContextItem spot = spots.Find(x => x.GetName() == spotName);
+        if (spot == null || agent == null) return false;
+
+        Vector3 npcPos = agent.transform.position;
+        npcPos.y = 0;
+        Vector3 spotPos = spot.transform.position;
+        spotPos.y = 0;
+        return Vector3.Distance(npcPos, spotPos) < maxDistance;
+    }
 }

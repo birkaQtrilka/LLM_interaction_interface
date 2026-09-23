@@ -10,12 +10,13 @@ public class AgentSystem : MonoBehaviour
     public bool sendAllContext = false;
     [field: SerializeField] public ContextLibrary contextLibrary { get; private set; }
     [field: SerializeField] public ChatManager chatManager { get; private set; }
-    UserTestLogger logger;
 
     public AnimationLibrary AnimationLibrary => animationLibrary;
+    public bool IsBusy { get; private set; }
+    public ActionsResponse LastActions { get; private set; }
+
     private void Awake()
     {
-        logger = new UserTestLogger("UserTestLogs");
         if (chatManager == null) return;
         chatManager.OnTextSent.AddListener(OnUserMessage);
     }
@@ -27,6 +28,15 @@ public class AgentSystem : MonoBehaviour
 
     public IEnumerator RunSystem(string userPrompt)
     {
+        IsBusy = true;
+        LastActions = null;
+        yield return RunTurn(userPrompt);
+        IsBusy = false;
+    }
+
+    IEnumerator RunTurn(string userPrompt)
+    {
+        lastUserPrompt = userPrompt;
         CoroutineResult<ActionsResponse> actionRes = new();
         if (sendAllContext)
         {
@@ -82,6 +92,7 @@ public class AgentSystem : MonoBehaviour
             string backendJson = JsonUtility.ToJson(res.Response, true);
             Debug.Log($"Backend actions: {backendJson}");
             logger?.LogTurn(userPrompt, backendJson);
+            LastActions = res.Response;
             ActionsSuccess(res.Response);
         }
         else
