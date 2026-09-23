@@ -398,7 +398,7 @@ MonoBehaviour:
       m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0, y: 0, z: 0}
   - transform: {fileID: 193983044}
-    description: 
+    description: '{ grabbable: false }'
     neighborDistanceThreshold: 1
     neighbors: []
     boundingBox:
@@ -412,14 +412,14 @@ MonoBehaviour:
       m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0, y: 0, z: 0}
   - transform: {fileID: 856723458}
-    description: 
+    description: '{ grabbable: false, placeable: true }'
     neighborDistanceThreshold: 1
     neighbors: []
     boundingBox:
       m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0, y: 0, z: 0}
   - transform: {fileID: 686402769}
-    description: 
+    description: '{ grabbable: false }'
     neighborDistanceThreshold: 1
     neighbors: []
     boundingBox:
