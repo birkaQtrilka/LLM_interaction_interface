@@ -10,7 +10,7 @@ public class AnimationQueueTest : MonoBehaviour
         animationLibrary.PlayAnimation(AgentSystem, new ActionData
         {
             id = 1,
-            name = "moveToSpot",
+            name = "moveTo",
             parameters = new string[] { "SpotA" },
             runAfter = new int[] { },
             delayBefore = 0

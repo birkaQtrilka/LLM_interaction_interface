@@ -7,7 +7,8 @@ public struct ContextQuery
     public bool getObjects;
     public ObjectFlags objectFlags;
     public UserFlags userFlags;
-
+    public int prompt_tokens;
+    public int completion_tokens;
     // TODO: getAnimations, getChatHistory, getAgent
     public static ContextQuery GetFullContext()
     {
@@ -28,7 +29,9 @@ public struct ContextQuery
                 description: true,
                 bounds: true,
                 neighbours: true
-            )
+            ),
+            prompt_tokens = 0,
+            completion_tokens = 0,
         };
     }
 }

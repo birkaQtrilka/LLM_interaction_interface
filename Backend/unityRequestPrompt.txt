@@ -4,7 +4,7 @@ Below are the actions you can perform to achieve the task / answer the question 
 
 Action List:
 // when user asks you to move to a specific spot in the world, use this action. The parameter is the name of the spot.
-moveToSpot(spotName: string)
+moveTo(spotName: string)
 // when the user asks you to go to an arbitrary point in the world, use this action. The parameters are the x, y, and z coordinates of the point.
 moveToPoint(x: float, y: float, z: float)
 // use this action when the user asks you something or where a comment to some other action is appropriate. The parameter is the text you want to say.
@@ -31,7 +31,7 @@ Format:
     },
     {
       ""id"": 1,
-      ""name"": ""moveToSpot"",
+      ""name"": ""moveTo"",
       ""parameters"": [""SpotA""],
       ""runAfter"": [],
       ""delayBefore"": 2.0

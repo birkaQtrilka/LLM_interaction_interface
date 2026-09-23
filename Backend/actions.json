@@ -1,8 +1,8 @@
 [
   {
-    "name": "moveToSpot",
+    "name": "moveTo",
     "args": "spotName: string",
-    "doc": "when user asks you to move to a specific spot in the world, use this action. The parameter is the name of the spot. ONLY USE THIS ACTION WITH SPOT NAMES AND NOT WITH ENVIRONMENT OBJECT NAMES"
+    "doc": "when user asks you to move to a specific spot or environment object in the world, use this action. The parameter is the name of the spot or environment object"
   },
   {
     "name": "moveToPoint",
@@ -17,11 +17,11 @@
   {
     "name": "grab",
     "args": "objectName: string",
-    "doc": "pick up a named object from the environment. DO NOT grab if npc has item via itemInRightHand: \"name\" field or if it's too heavy. Always move close enough to grab. You can grab only ONE item at a time"
+    "doc": "pick up a named object from the environment. DO NOT grab if npc has item via itemInRightHand: \"name\" field or if it's too heavy. Always do \"moveTo\" action to get close to the grabable. You can grab only ONE item at a time"
   },
   {
     "name": "place",
     "args": "objectNameToPlaceOnto: string",
-    "doc": "place on environment object (provided in the parameters). DO NOT place if npc has empty hand. Look if NPC itemInRightHand: None. Always move close enough to place"
+    "doc": "place on environment object (provided in the parameters). DO NOT place if npc has empty hand. Look if NPC itemInRightHand: None. Always do \"moveTo\" action to get close to the placeable"
   }
 ]

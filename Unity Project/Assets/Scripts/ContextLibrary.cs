@@ -7,12 +7,14 @@ public struct ItemDataQuery
     public bool inclRotation;
     public bool inclBounds;
     public bool inclNeighbors;
-    public ItemDataQuery(bool includePosition, bool includeRotation, bool includeBounds, bool includeNeighbors)
+    public bool inclDescription;
+    public ItemDataQuery(bool includePosition, bool includeRotation, bool includeBounds, bool includeNeighbors, bool includeDescription)
     {
         this.inclPosition = includePosition;
         this.inclRotation = includeRotation;
         this.inclBounds = includeBounds;
         this.inclNeighbors = includeNeighbors;
+        this.inclDescription = includeDescription;
     }
 }
 
@@ -97,8 +99,10 @@ public class ContextLibrary : MonoBehaviour
                     new ItemDataQuery(
                         query.objectFlags.position,
                         query.objectFlags.rotation,
-                        includeBounds: false,
-                        query.objectFlags.neighbours)
+                        query.objectFlags.bounds,
+                        query.objectFlags.neighbours,
+                        query.objectFlags.description
+                        )
                     );
                 context += $"\n  {objData}";
             }
@@ -125,7 +129,6 @@ public class ContextLibrary : MonoBehaviour
 
     public List<string> GetItemData(List<string> dataParts, ContextItem item, ItemDataQuery q)
     {
-        if (!string.IsNullOrEmpty(item.description)) dataParts.Add($"description: {item.description}");
         dataParts.Add($"name: {item.GetName()}");
 
         if (q.inclPosition)
@@ -165,13 +168,14 @@ public class ContextLibrary : MonoBehaviour
             }
             dataParts.Add($"neighbors: [{string.Join(", ", neighborNames)}]");
         }
+        if (!string.IsNullOrEmpty(item.description)) dataParts.Add($"description: {item.description}");
 
         return dataParts ;
     }
 
     string GetSpotsContext(string result)
     {
-        result += "These are walk spots (moveToSpot uses these names only): ";
+        result += "These are walk spots: ";
         string[] spotJsons = new string[this.spots.Count];
         for (int i = 0; i < spots.Count; i++)
         {
@@ -180,7 +184,8 @@ public class ContextLibrary : MonoBehaviour
                 includePosition: true, 
                 includeRotation: false, 
                 includeBounds: false, 
-                includeNeighbors: false
+                includeNeighbors: false,
+                includeDescription: false
             ));
         }
         return $"{result}[{string.Join(',', spotJsons)}]";
@@ -196,7 +201,8 @@ public class ContextLibrary : MonoBehaviour
                 includePosition: true,
                 includeRotation: true,
                 includeBounds: true,
-                includeNeighbors: false
+                includeNeighbors: false,
+                includeDescription: true
             )
         );
         Transform rightHandItem = agent.GetItem(right: true);

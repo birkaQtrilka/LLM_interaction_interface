@@ -25,6 +25,7 @@ class ContextQuery(BaseModel):
     getObjects: bool = False
     objectFlags: ObjectFlags = Field(default_factory=ObjectFlags)
     userFlags: UserFlags = Field(default_factory=UserFlags)
+    # purely for logging, won't be used in game logic
     prompt_tokens: int = 0
     completion_tokens: int = 0
 

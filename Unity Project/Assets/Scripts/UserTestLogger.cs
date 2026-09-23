@@ -18,7 +18,7 @@ public class UserTestLogger
         Directory.CreateDirectory(folder);
         path = Path.Combine(folder, fileName);
         File.WriteAllText(path, "timestamp,user_message,backend_response\n");
-        Debug.Log("User test log written to UserTestLogs/" + fileName);
+        Debug.Log("User test log written to " + folder);
     }
 
     public void LogTurn(string userMessage, string backendResponse)

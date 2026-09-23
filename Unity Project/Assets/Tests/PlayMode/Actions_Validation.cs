@@ -5,7 +5,6 @@ using UnityEngine.TestTools;
 using UnityEngine.SceneManagement;
 using System.Linq;
 
-
 #if UNITY_EDITOR
 using UnityEditor.SceneManagement;
 #endif
@@ -13,23 +12,41 @@ using UnityEditor.SceneManagement;
 public class Actions_Validation
 {
     AgentSystem system;
+    const string scenePath = "Assets/Tests/PlayMode/Scenes/Proto_1_Scene.unity";
 
     [UnitySetUp]
     public IEnumerator SetupScene()
     {
-        string scenePath = "Assets/Tests/PlayMode/Scenes/Proto_1_Scene.unity";
+        Debug.Log("Loading test scene...");
 
+#if UNITY_EDITOR
+        // Loading Additively prevents destroying the Unity Test Runner's internal scene
         AsyncOperation asyncLoad = EditorSceneManager.LoadSceneAsyncInPlayMode(
             scenePath,
-            new LoadSceneParameters(LoadSceneMode.Single)
+            new LoadSceneParameters(LoadSceneMode.Additive)
         );
+#else
+        // Fallback for standalone test builds (Requires scene in Build Settings)
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(scenePath, LoadSceneMode.Additive);
+#endif
 
         while (!asyncLoad.isDone)
         {
             yield return null;
         }
-        LogAssert.ignoreFailingMessages = false;
+
+        yield return null;
+
+        // Set it as active so instantiated objects go here
+        SceneManager.SetActiveScene(SceneManager.GetSceneByPath(scenePath));
         system = Object.FindAnyObjectByType<AgentSystem>();
+    }
+
+    [UnityTearDown]
+    public IEnumerator TearDownScene()
+    {
+        // Clean up the additive scene so the next test starts fresh
+        yield return SceneManager.UnloadSceneAsync(scenePath);
     }
 
     [UnityTest]
@@ -40,11 +57,13 @@ public class Actions_Validation
         Assert.IsNotNull(system.contextLibrary.spots.Find(x => x.GetName() == spotName), "There is no object named SpotA in ContextLibrary");
 
         CoroutineResult<ActionsResponse> result = new();
-        yield return system.StartCoroutine(system.GetActionsJson("Go to spot a", ContextQuery.GetFullContext(), result));
+
+        // Better practice: yield the enumerator directly instead of wrapping in StartCoroutine
+        yield return system.GetActionsJson("Go to spot a", ContextQuery.GetFullContext(), result);
 
         Assert.AreEqual(result.Status, ContextStatus.Success);
-        var action = result.Response.actions.FirstOrDefault(x => x.name == "moveToSpot");
-        Assert.IsNotNull(action, "LLM did not return a moveToSpot action");
+        var action = result.Response.actions.FirstOrDefault(x => x.name == "moveTo");
+        Assert.IsNotNull(action, "LLM did not return a moveTo action");
         Assert.AreEqual(action.parameters[0], spotName, "LLM is moving to the wrong spot");
     }
 
@@ -69,19 +88,22 @@ public class Actions_Validation
         }
         Assert.AreNotEqual(farthestPos, new Vector3(), "farthest point is not populated");
 
-        yield return system.StartCoroutine(SendAndWaitForAnimations("Move towards the farthest spot to you"));
-        
+        yield return SendAndWaitForAnimations("Move towards the farthest spot to you");
+
         var pos = agent.transform.position;
         pos = new Vector3(pos.x, 0, pos.z);
         Assert.That(Vector3.Distance(pos, farthestPos), Is.LessThan(0.1f), $"agent spot is {pos}, should be close to {farthestPos}");
     }
 
+    [UnityTest]
     public IEnumerator Place_On_Table()
     {
-        yield return system.StartCoroutine(SendAndWaitForAnimations("place the phone and the brick on top of the table"));
+        yield return SendAndWaitForAnimations("place the phone and the brick on top of the table");
+
         ContextItem table = system.contextLibrary.environment.Find(x => x.GetName() == "Table");
         Assert.NotNull(table);
         table.FindNeighbors();
+
         Transform phone = table.neighbors.FirstOrDefault(x => x.name == "phone");
         Transform brick = table.neighbors.FirstOrDefault(x => x.name == "Brick");
         Assert.NotNull(phone);
@@ -94,12 +116,9 @@ public class Actions_Validation
     public void AssertOnTopOfBounds(Transform tr, Bounds tableBounds)
     {
         Vector3 p = tr.position;
-        // Is it above the top of the table?
         Assert.GreaterOrEqual(p.y, tableBounds.max.y, $"{tr.name} center is not above the table's top surface.");
-        // Is it inside the table's X bounds?
         Assert.GreaterOrEqual(p.x, tableBounds.min.x, $"{tr.name} is too far left (X min).");
         Assert.LessOrEqual(p.x, tableBounds.max.x, $"{tr.name} is too far right (X max).");
-        // Is it inside the table's Z bounds?
         Assert.GreaterOrEqual(p.z, tableBounds.min.z, $"{tr.name} is too far back (Z min).");
         Assert.LessOrEqual(p.z, tableBounds.max.z, $"{tr.name} is too far forward (Z max).");
     }
@@ -107,10 +126,9 @@ public class Actions_Validation
     public IEnumerator SendAndWaitForAnimations(string message)
     {
         CoroutineResult<ActionsResponse> result = new();
-        yield return system.StartCoroutine(system.GetActionsJson(message, ContextQuery.GetFullContext(), result));
-        // wait untill all animations are done
+        yield return system.GetActionsJson(message, ContextQuery.GetFullContext(), result);
+
         yield return null;
         yield return new WaitUntil(() => system.AnimationLibrary.animations.Count == 0);
     }
-    // TODO: add more tests for grab, check if it returns actions that don't exist etc.
 }

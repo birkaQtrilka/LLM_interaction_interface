@@ -19,7 +19,7 @@ public class AnimationLibrary : MonoBehaviour
 
         switch (action.name)
         {
-            case "moveToSpot":
+            case "moveTo":
                 ContextItem obj = context.contextLibrary.spots.Find(x => x.GetName() == param[0]);
                 obj ??= context.contextLibrary.environment.Find(x => x.GetName() == param[0]);
                 if (obj == null) return $"Couldn't find spot with name {param[0]}";

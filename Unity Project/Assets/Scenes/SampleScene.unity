@@ -398,7 +398,7 @@ MonoBehaviour:
       m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0, y: 0, z: 0}
   - transform: {fileID: 193983044}
-    description: 
+    description: stuck to the ground
     neighborDistanceThreshold: 1
     neighbors: []
     boundingBox:
@@ -2262,7 +2262,6 @@ MonoBehaviour:
   sendAllContext: 1
   <contextLibrary>k__BackingField: {fileID: 163989116}
   <chatManager>k__BackingField: {fileID: 390957927}
-  lastUserPrompt: 
 --- !u!4 &967212467
 Transform:
   m_ObjectHideFlags: 0

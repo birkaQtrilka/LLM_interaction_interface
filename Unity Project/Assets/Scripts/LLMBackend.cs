@@ -28,7 +28,6 @@ public class LLMBackend : MonoBehaviour
         {
             try
             {
-                Debug.Log($"Received context from backend: {text}");
                 ContextQuery response = JsonUtility.FromJson<ContextQuery>(text);
                 onSuccess?.Invoke(response);
             }

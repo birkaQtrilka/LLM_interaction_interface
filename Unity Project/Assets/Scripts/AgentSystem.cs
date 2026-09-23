@@ -10,7 +10,6 @@ public class AgentSystem : MonoBehaviour
     public bool sendAllContext = false;
     [field: SerializeField] public ContextLibrary contextLibrary { get; private set; }
     [field: SerializeField] public ChatManager chatManager { get; private set; }
-    public string lastUserPrompt;
     UserTestLogger logger;
 
     public AnimationLibrary AnimationLibrary => animationLibrary;
@@ -28,7 +27,6 @@ public class AgentSystem : MonoBehaviour
 
     public IEnumerator RunSystem(string userPrompt)
     {
-        lastUserPrompt = userPrompt;
         CoroutineResult<ActionsResponse> actionRes = new();
         if (sendAllContext)
         {
@@ -56,7 +54,10 @@ public class AgentSystem : MonoBehaviour
 
         if (res.Status == ContextStatus.Success)
         {
-            Debug.Log($"Backend context: {JsonUtility.ToJson(res.Response, true)}");
+            string backendResponse = JsonUtility.ToJson(res.Response, true);
+            Debug.Log($"Backend context: {backendResponse}");
+            Debug.Log($"completion tokens: {res.Response.completion_tokens}\nprompt tokens: {res.Response.prompt_tokens}");
+            logger?.LogTurn(userPrompt, backendResponse);
         }
         else
         {
@@ -97,7 +98,7 @@ public class AgentSystem : MonoBehaviour
         {
             return;
         }
-
+        bool wasErr = false;
         foreach (var action in reply.actions)
         {
             string error = animationLibrary.PlayAnimation(this, action);
@@ -105,7 +106,13 @@ public class AgentSystem : MonoBehaviour
             {
                 Debug.Log(error);
                 AddChat(error);
+                wasErr = true;
+                break;
             }
+        }
+        if (wasErr)
+        {
+            animationLibrary.animations.Clear();
         }
     }
 
