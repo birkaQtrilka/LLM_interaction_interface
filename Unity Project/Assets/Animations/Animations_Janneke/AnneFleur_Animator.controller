@@ -32,7 +32,7 @@ AnimatorController:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: AnneFleur_FullBody
+  m_Name: AnneFleur_Animator
   serializedVersion: 6
   m_AnimatorParameters: []
   m_AnimatorLayers:
