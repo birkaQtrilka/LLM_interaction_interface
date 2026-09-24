@@ -85,6 +85,30 @@ public class Actions_Validation_Tests
     }
 
     [UnityTest]
+    public IEnumerator LLM_Finds_Grab_From_Prompt()
+    {
+        string objectName = "phone";
+        Assert.IsNotNull(system, "AgentSystem was not found in the test scene.");
+        Assert.IsNotNull(system.contextLibrary.environment.Find(x => x.GetName() == objectName), "There is no object named phone in ContextLibrary");
+        NPC agent = system.contextLibrary.agents[0];
+
+        CoroutineResult<ActionsResponse> result = new();
+        yield return system.GetActionsJson("Pick up the phone", ContextQuery.GetFullContext(), result);
+
+        Assert.AreEqual(result.Status, ContextStatus.Success);
+        var move = result.Response.actions.FirstOrDefault(x => x.name == "moveTo" && x.parameters != null && x.parameters.Length > 0 && x.parameters[0] == objectName);
+        var grab = result.Response.actions.FirstOrDefault(x => x.name == "grab");
+        Assert.IsNull(result.Response.actions.FirstOrDefault(x => x.name == "place"), "LLM placed an item when only a grab was asked");
+        Assert.IsNotNull(move, "LLM did not moveTo the phone before grabbing");
+        Assert.IsNotNull(grab, "LLM did not return a grab action");
+        Assert.AreEqual(agent.name, move.agent, "moveTo action is assigned to the wrong agent");
+        Assert.AreEqual(agent.name, grab.agent, "grab action is assigned to the wrong agent");
+        Assert.IsNotEmpty(grab.parameters, "grab action has no object name");
+        Assert.AreEqual(objectName, grab.parameters[0], "LLM is grabbing the wrong object");
+        Assert.That(grab.runAfter, Does.Contain(move.id), "grab does not wait for the moveTo");
+    }
+
+    [UnityTest]
     public IEnumerator Move_To_Farthest_Spot()
     {
         NPC agent = system.contextLibrary.agents[0];
