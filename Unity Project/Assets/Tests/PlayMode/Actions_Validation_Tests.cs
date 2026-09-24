@@ -127,8 +127,10 @@ public class Actions_Validation_Tests
         Assert.That(grab.runAfter, Does.Contain(move.id), "grab does not wait for the moveTo");
     }
 
+    // TODO: Grab reaches the hand
+
     [UnityTest]
-    public IEnumerator Move_To_Farthest_Spot()
+    public IEnumerator Move_To_Furthest_Spot()
     {
         NPC agent = system.contextLibrary.agents[0];
         var agentStartPos = agent.transform.position;
@@ -153,6 +155,24 @@ public class Actions_Validation_Tests
         var pos = agent.transform.position;
         pos = new Vector3(pos.x, 0, pos.z);
         Assert.That(Vector3.Distance(pos, farthestPos), Is.LessThan(0.1f), $"agent spot is {pos}, should be close to {farthestPos}");
+    }
+
+    [UnityTest]
+    public IEnumerator Move_To_SpotB()
+    {
+        string spotName = "SpotB";
+        Assert.IsNotNull(system, "AgentSystem was not found in the test scene.");
+        ContextItem spot = system.contextLibrary.spots.Find(x => x.GetName() == spotName);
+        Assert.IsNotNull(spot, "There is no object named SpotB in ContextLibrary");
+        NPC agent = system.contextLibrary.agents[0];
+
+        yield return SendAndWaitForAnimations("Go to SpotB");
+
+        var pos = agent.transform.position;
+        pos = new Vector3(pos.x, 0, pos.z);
+        var spotPos = spot.transform.position;
+        spotPos = new Vector3(spotPos.x, 0, spotPos.z);
+        Assert.That(Vector3.Distance(pos, spotPos), Is.LessThan(0.1f), $"agent spot is {pos}, should be close to {spotPos}");
     }
 
     [UnityTest]
