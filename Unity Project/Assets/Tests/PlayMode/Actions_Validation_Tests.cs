@@ -68,6 +68,23 @@ public class Actions_Validation_Tests
     }
 
     [UnityTest]
+    public IEnumerator LLM_Finds_Talk_From_Prompt()
+    {
+        Assert.IsNotNull(system, "AgentSystem was not found in the test scene.");
+        NPC agent = system.contextLibrary.agents[0];
+
+        CoroutineResult<ActionsResponse> result = new();
+        yield return system.GetActionsJson("Say hello", ContextQuery.GetFullContext(), result);
+
+        Assert.AreEqual(result.Status, ContextStatus.Success);
+        var action = result.Response.actions.FirstOrDefault(x => x.name == "talk");
+        Assert.IsNotNull(action, "LLM did not return a talk action");
+        Assert.AreEqual(agent.name, action.agent, "talk action is assigned to the wrong agent");
+        Assert.IsNotEmpty(action.parameters, "talk action has no message");
+        Assert.That(action.parameters[0], Does.Contain("hello").IgnoreCase, "talk message does not say hello");
+    }
+
+    [UnityTest]
     public IEnumerator Move_To_Farthest_Spot()
     {
         NPC agent = system.contextLibrary.agents[0];
