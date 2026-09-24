@@ -9,7 +9,7 @@ using System.Linq;
 using UnityEditor.SceneManagement;
 #endif
 
-public class Actions_Validation
+public class Actions_Validation_Tests
 {
     AgentSystem system;
     const string scenePath = "Assets/Tests/PlayMode/Scenes/Proto_1_Scene.unity";

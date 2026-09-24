@@ -377,7 +377,7 @@ MonoBehaviour:
       m_Extent: {x: 0, y: 0, z: 0}
   environment:
   - transform: {fileID: 1074326910}
-    description: '{ grabbable: true }'
+    description: 
     neighborDistanceThreshold: 1
     neighbors: []
     boundingBox:
@@ -391,7 +391,7 @@ MonoBehaviour:
       m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0, y: 0, z: 0}
   - transform: {fileID: 2008853972}
-    description: '{ grabbable: false }'
+    description: 
     neighborDistanceThreshold: 1
     neighbors: []
     boundingBox:
@@ -405,7 +405,7 @@ MonoBehaviour:
       m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0, y: 0, z: 0}
   - transform: {fileID: 52645841}
-    description: '{ grabbable: true }'
+    description: 
     neighborDistanceThreshold: 1
     neighbors: []
     boundingBox:
@@ -426,8 +426,8 @@ MonoBehaviour:
       m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0, y: 0, z: 0}
   includeChatHistory: 1
-  includePlayingAnimations: 0
-  agent: {fileID: 1860244335}
+  includePlayingAnimations: 1
+  agent: {fileID: 0}
   maxMessageHistory: 10
   showGizmos: 1
 --- !u!4 &163989117
@@ -793,14 +793,14 @@ MonoBehaviour:
   chatContent: {fileID: 1875796642}
   scrollRect: {fileID: 1424570045}
   preparedMessages:
-  - Move towards the closest spot to you
+  - Move NPC2 towards the closest spot to them
   - Move towards the farthest spot to you
   - Move to the middle point between SpotA and SpotB
   - Move to spotA then to SpotB and say what you are doing at each step
   - Go and grab the phone
   - Place the item you grabbed on the closest object
   - place all the items scattered around on top of the drawer
-  - place the phone and the brick on top of the table
+  - place the phone and the brick on top of the table using both npcs
   - hi
   - Fly off into space ang give me a rock
   OnTextSent:
@@ -2262,10 +2262,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AgentSystem
   llm: {fileID: 522124488}
   animationLibrary: {fileID: 2033616363}
-  logger: {fileID: 967212468}
   sendAllContext: 0
   <contextLibrary>k__BackingField: {fileID: 163989116}
   <chatManager>k__BackingField: {fileID: 390957927}
+  logger: {fileID: 967212468}
 --- !u!4 &967212467
 Transform:
   m_ObjectHideFlags: 0
@@ -3071,6 +3071,63 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1521759649}
   m_CullTransparentMesh: 1
+--- !u!1001 &1544732887
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 2.49
+      objectReference: {fileID: 0}
+    - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.48
+      objectReference: {fileID: 0}
+    - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.73
+      objectReference: {fileID: 0}
+    - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7143666008480823539, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_Name
+      value: NPC2
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
 --- !u!1 &1820304968
 GameObject:
   m_ObjectHideFlags: 0
@@ -3193,7 +3250,7 @@ MonoBehaviour:
   m_OverrideVoxelSize: 0
   m_VoxelSize: 0.033333335
   m_MinRegionArea: 2
-  m_NavMeshData: {fileID: 23800000, guid: cb57487ff5d24194082a97f8b7c5831c, type: 2}
+  m_NavMeshData: {fileID: 23800000, guid: 499195c8cc1eb6645a7f3fd2c1eec79e, type: 2}
   m_BuildHeightMesh: 0
 --- !u!114 &1820304974
 MonoBehaviour:
@@ -3716,7 +3773,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7143666008480823539, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: m_Name
-      value: NPC
+      value: NPC1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3741,5 +3798,6 @@ SceneRoots:
   - {fileID: 1074326910}
   - {fileID: 52645841}
   - {fileID: 6347365546403489509}
+  - {fileID: 1544732887}
   - {fileID: 737304171}
   - {fileID: 340412654}
