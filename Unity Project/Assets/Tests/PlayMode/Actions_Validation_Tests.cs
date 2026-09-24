@@ -68,7 +68,69 @@ public class Actions_Validation_Tests
     }
 
     [UnityTest]
-    public IEnumerator Move_To_Farthest_Spot()
+    public IEnumerator LLM_Finds_MoveTo_Object_From_Prompt()
+    {
+        string objectName = "Chair";
+        Assert.IsNotNull(system, "AgentSystem was not found in the test scene.");
+        Assert.IsNotNull(system.contextLibrary.environment.Find(x => x.GetName() == objectName), "There is no object named Chair in ContextLibrary");
+        NPC agent = system.contextLibrary.agents[0];
+
+        CoroutineResult<ActionsResponse> result = new();
+        yield return system.GetActionsJson("Go to the chair", ContextQuery.GetFullContext(), result);
+
+        Assert.AreEqual(result.Status, ContextStatus.Success);
+        ActionData action = result.Response.actions.FirstOrDefault(x => x.name == "moveTo");
+        Assert.IsNotNull(action, "LLM did not return a moveTo action");
+        Assert.AreEqual(agent.name, action.agent, "moveTo action is assigned to the wrong agent");
+        Assert.IsNotEmpty(action.parameters, "moveTo action has no target");
+        Assert.AreEqual(objectName, action.parameters[0], "LLM is moving to the wrong object");
+    }
+
+    [UnityTest]
+    public IEnumerator LLM_Finds_Talk_From_Prompt()
+    {
+        Assert.IsNotNull(system, "AgentSystem was not found in the test scene.");
+        NPC agent = system.contextLibrary.agents[0];
+
+        CoroutineResult<ActionsResponse> result = new();
+        yield return system.GetActionsJson("Say hello", ContextQuery.GetFullContext(), result);
+
+        Assert.AreEqual(result.Status, ContextStatus.Success);
+        var action = result.Response.actions.FirstOrDefault(x => x.name == "talk");
+        Assert.IsNotNull(action, "LLM did not return a talk action");
+        Assert.AreEqual(agent.name, action.agent, "talk action is assigned to the wrong agent");
+        Assert.IsNotEmpty(action.parameters, "talk action has no message");
+        Assert.That(action.parameters[0], Does.Contain("hello").IgnoreCase, "talk message does not say hello");
+    }
+
+    [UnityTest]
+    public IEnumerator LLM_Finds_Grab_From_Prompt()
+    {
+        string objectName = "phone";
+        Assert.IsNotNull(system, "AgentSystem was not found in the test scene.");
+        Assert.IsNotNull(system.contextLibrary.environment.Find(x => x.GetName() == objectName), "There is no object named phone in ContextLibrary");
+        NPC agent = system.contextLibrary.agents[0];
+
+        CoroutineResult<ActionsResponse> result = new();
+        yield return system.GetActionsJson("Pick up the phone", ContextQuery.GetFullContext(), result);
+
+        Assert.AreEqual(result.Status, ContextStatus.Success);
+        var move = result.Response.actions.FirstOrDefault(x => x.name == "moveTo" && x.parameters != null && x.parameters.Length > 0 && x.parameters[0] == objectName);
+        var grab = result.Response.actions.FirstOrDefault(x => x.name == "grab");
+        Assert.IsNull(result.Response.actions.FirstOrDefault(x => x.name == "place"), "LLM placed an item when only a grab was asked");
+        Assert.IsNotNull(move, "LLM did not moveTo the phone before grabbing");
+        Assert.IsNotNull(grab, "LLM did not return a grab action");
+        Assert.AreEqual(agent.name, move.agent, "moveTo action is assigned to the wrong agent");
+        Assert.AreEqual(agent.name, grab.agent, "grab action is assigned to the wrong agent");
+        Assert.IsNotEmpty(grab.parameters, "grab action has no object name");
+        Assert.AreEqual(objectName, grab.parameters[0], "LLM is grabbing the wrong object");
+        Assert.That(grab.runAfter, Does.Contain(move.id), "grab does not wait for the moveTo");
+    }
+
+    // TODO: Grab reaches the hand
+
+    [UnityTest]
+    public IEnumerator Move_To_Furthest_Spot()
     {
         NPC agent = system.contextLibrary.agents[0];
         var agentStartPos = agent.transform.position;
@@ -93,6 +155,24 @@ public class Actions_Validation_Tests
         var pos = agent.transform.position;
         pos = new Vector3(pos.x, 0, pos.z);
         Assert.That(Vector3.Distance(pos, farthestPos), Is.LessThan(0.1f), $"agent spot is {pos}, should be close to {farthestPos}");
+    }
+
+    [UnityTest]
+    public IEnumerator Move_To_SpotB()
+    {
+        string spotName = "SpotB";
+        Assert.IsNotNull(system, "AgentSystem was not found in the test scene.");
+        ContextItem spot = system.contextLibrary.spots.Find(x => x.GetName() == spotName);
+        Assert.IsNotNull(spot, "There is no object named SpotB in ContextLibrary");
+        NPC agent = system.contextLibrary.agents[0];
+
+        yield return SendAndWaitForAnimations("Go to SpotB");
+
+        var pos = agent.transform.position;
+        pos = new Vector3(pos.x, 0, pos.z);
+        var spotPos = spot.transform.position;
+        spotPos = new Vector3(spotPos.x, 0, spotPos.z);
+        Assert.That(Vector3.Distance(pos, spotPos), Is.LessThan(0.1f), $"agent spot is {pos}, should be close to {spotPos}");
     }
 
     [UnityTest]
