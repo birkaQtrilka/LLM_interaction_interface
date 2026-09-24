@@ -21,6 +21,7 @@ public class Agent_System_Tests
         NPC agent = GameObject.Instantiate(npcPrefab);
         ctx.agents.Add(agent);
         agentSystem.Init(llm, anim, ctx);
+
     }
 
     [TearDown]
