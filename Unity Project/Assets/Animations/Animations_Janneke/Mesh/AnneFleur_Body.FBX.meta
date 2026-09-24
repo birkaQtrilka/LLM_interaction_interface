@@ -1,9 +1,14 @@
 fileFormatVersion: 2
-guid: 4215ef41961b58a46980e13d34bcf006
+guid: 6374180fa5c44af4ab1bd0c364c9a31d
 ModelImporter:
   serializedVersion: 24600
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_GrayTexture_Body
+    second: {fileID: 2100000, guid: 4707f3813906eaf4f904f14d2b5872d4, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -110,7 +115,7 @@ ModelImporter:
   autoGenerateAvatarMappingIfUnspecified: 1
   animationType: 2
   humanoidOversampling: 1
-  avatarSetup: 0
+  avatarSetup: 1
   addHumanoidExtraRootOnlyWhenUsingAvatar: 1
   importBlendShapeDeformPercent: 1
   remapMaterialsIfMaterialImportModeIsNone: 0
