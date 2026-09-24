@@ -91,7 +91,7 @@ public class AgentSystem : MonoBehaviour
         else
         {
             Debug.LogError($"Error getting context: {res.Error}");
-            chatManager.AddChat($"Error getting context: {res.Error}");
+            AddChat($"System: Error getting context: {res.Error}");
             logger?.LogTurn(userPrompt, res.Error);
         }
         SetBusiness(false);
@@ -131,7 +131,7 @@ public class AgentSystem : MonoBehaviour
         else
         {
             Debug.LogError($"Error getting context: {res.Error}");
-            AddChat(res.Error);
+            AddChat("System: " + res.Error);
             logger?.LogTurn(userPrompt, res.Error);
         }
         SetBusiness(false);
@@ -151,7 +151,7 @@ public class AgentSystem : MonoBehaviour
             if (!string.IsNullOrEmpty(error))
             {
                 Debug.Log(error);
-                AddChat(error);
+                AddChat("System: " + error);
                 wasErr = true;
                 break;
             }

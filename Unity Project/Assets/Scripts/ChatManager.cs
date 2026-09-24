@@ -35,7 +35,7 @@ public class ChatManager : MonoBehaviour
     private void OnSubmit(string txt)
     {
         if (string.IsNullOrWhiteSpace(txt) || !CanSend) return;
-        AddChat(txt);
+        AddChat("You: " + txt);
         input.text = string.Empty;
         OnTextSent?.Invoke(txt);
     }
