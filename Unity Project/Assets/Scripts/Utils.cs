@@ -5,12 +5,13 @@ using UnityEngine.AI;
 
 public static class Utils
 {
-    public static IEnumerator MonitorMovement(NavMeshAgent agent, Action onDestinationReached = null)
+    public static IEnumerator MonitorMovement(NavMeshAgent agent, Action onDestinationReached = null, Action onMove = null)
     {
         yield return new WaitUntil(() => !agent.pathPending);
 
-        while (IsAgentMoving(agent))
+        while (IsAgentMoving(agent) || agent.isStopped)
         {
+            if (!agent.isStopped) onMove?.Invoke();
             yield return null;
         }
 
