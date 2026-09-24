@@ -7,6 +7,7 @@ public class AgentSystem : MonoBehaviour
 {
     [SerializeField] LLMBackend llm;
     [SerializeField] AnimationLibrary animationLibrary;
+    [SerializeField] UserTestLogger logger;
     public bool sendAllContext = false;
     [field: SerializeField] public ContextLibrary contextLibrary { get; private set; }
     [field: SerializeField] public ChatManager chatManager { get; private set; }
@@ -14,7 +15,13 @@ public class AgentSystem : MonoBehaviour
     public AnimationLibrary AnimationLibrary => animationLibrary;
     public bool IsBusy { get; private set; }
     public ActionsResponse LastActions { get; private set; }
-    [SerializeField] UserTestLogger logger;
+
+    public void Init(LLMBackend llm, AnimationLibrary anim, ContextLibrary ctx)
+    {
+        this.llm = llm;
+        this.animationLibrary = anim;
+        this.contextLibrary = ctx;
+    }
 
     private void Awake()
     {
@@ -29,10 +36,14 @@ public class AgentSystem : MonoBehaviour
 
     public IEnumerator RunSystem(string userPrompt)
     {
-        IsBusy = true;
+        if(IsBusy)
+        {
+            Debug.LogWarning("Still processing a previous message, wait until it's done");
+            yield break;
+        }
+        
         LastActions = null;
         yield return RunTurn(userPrompt);
-        IsBusy = false;
     }
 
     IEnumerator RunTurn(string userPrompt)
@@ -58,6 +69,14 @@ public class AgentSystem : MonoBehaviour
     public IEnumerator GetContextJson(string userPrompt, CoroutineResult<ContextQuery> res = null)
     {
         res ??= new();
+        if (IsBusy)
+        {
+            string err = "Still processing a previous message, wait until it's done";
+            Debug.LogWarning(err);
+            res.SetError(err);
+            yield break;
+        }
+        SetBusiness(true);
         Debug.Log($"Sending to backend Round 1: {userPrompt}");
 
         yield return StartCoroutine(llm.GetContext(userPrompt, res));
@@ -75,12 +94,26 @@ public class AgentSystem : MonoBehaviour
             chatManager.AddChat($"Error getting context: {res.Error}");
             logger?.LogTurn(userPrompt, res.Error);
         }
+        SetBusiness(false);
     }
 
+    public void SetBusiness(bool busy)
+    {
+        IsBusy = busy;
+        if (chatManager != null) chatManager.SetActiveSending(!busy);
+    }
 
     public IEnumerator GetActionsJson(string userPrompt, ContextQuery context, CoroutineResult<ActionsResponse> res = null)
     {
         res ??= new();
+        if (IsBusy)
+        {
+            string err = "Still processing a previous message, wait until it's done";
+            Debug.LogWarning(err);
+            res.SetError(err);
+            yield break;
+        }
+        SetBusiness(true);
         string world = contextLibrary.GetContext(context, animationLibrary.animations);
         Debug.Log($"Sending to backend Round 2:\n{world}\n{userPrompt}");
 
@@ -101,6 +134,8 @@ public class AgentSystem : MonoBehaviour
             AddChat(res.Error);
             logger?.LogTurn(userPrompt, res.Error);
         }
+        SetBusiness(false);
+
     }
 
     void ActionsSuccess(ActionsResponse reply)
@@ -127,7 +162,7 @@ public class AgentSystem : MonoBehaviour
         }
     }
 
-    public void AddChat(string message) 
+    void AddChat(string message) 
     {
         if (chatManager == null) return;
         chatManager.AddChat(message);

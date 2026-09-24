@@ -25,7 +25,7 @@ public class ContextLibrary : MonoBehaviour
     [SerializeField] bool includeChatHistory = true;
     [SerializeField] bool includePlayingAnimations = true;
                                                     
-    public NPC[] agents;
+    public List<NPC> agents = new();
 
     public uint maxMessageHistory = 10;
     private readonly LinkedList<string> messageHistory = new();

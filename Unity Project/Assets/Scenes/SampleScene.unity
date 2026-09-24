@@ -377,7 +377,7 @@ MonoBehaviour:
       m_Extent: {x: 0, y: 0, z: 0}
   environment:
   - transform: {fileID: 1074326910}
-    description: 
+    description: '{ grabbable: true }'
     neighborDistanceThreshold: 1
     neighbors: []
     boundingBox:
@@ -391,7 +391,7 @@ MonoBehaviour:
       m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0, y: 0, z: 0}
   - transform: {fileID: 2008853972}
-    description: 
+    description: '{ grabbable: false }'
     neighborDistanceThreshold: 1
     neighbors: []
     boundingBox:
@@ -405,7 +405,7 @@ MonoBehaviour:
       m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0, y: 0, z: 0}
   - transform: {fileID: 52645841}
-    description: 
+    description: '{ grabbable: true }'
     neighborDistanceThreshold: 1
     neighbors: []
     boundingBox:
@@ -427,8 +427,7 @@ MonoBehaviour:
       m_Extent: {x: 0, y: 0, z: 0}
   includeChatHistory: 1
   includePlayingAnimations: 0
-  agents:
-  - {fileID: 1860244335}
+  agents: []
   maxMessageHistory: 10
   showGizmos: 1
 --- !u!4 &163989117
@@ -2263,10 +2262,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AgentSystem
   llm: {fileID: 522124488}
   animationLibrary: {fileID: 2033616363}
+  logger: {fileID: 967212468}
   sendAllContext: 0
   <contextLibrary>k__BackingField: {fileID: 163989116}
   <chatManager>k__BackingField: {fileID: 390957927}
-  logger: {fileID: 967212468}
 --- !u!4 &967212467
 Transform:
   m_ObjectHideFlags: 0

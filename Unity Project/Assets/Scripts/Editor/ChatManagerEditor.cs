@@ -36,6 +36,8 @@ public class ChatManagerEditor : Editor
                 return;
             }
             ChatManager chatManager = (ChatManager)target;
+            if (!chatManager.CanSend) return;
+
 
             MethodInfo onSubmitMethod = typeof(ChatManager).GetMethod("OnSubmit", BindingFlags.NonPublic | BindingFlags.Instance);
             if (onSubmitMethod != null)

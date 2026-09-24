@@ -12,20 +12,29 @@ public class ChatManager : MonoBehaviour
     public string[] preparedMessages;
 
     TMP_InputField input;
+    Button inputBtn;
 
     public UnityEvent<string> OnTextSent;
+    public bool CanSend => input.interactable;
 
     private void Awake()
     {
         input = GetComponentInChildren<TMP_InputField>();
         input.onSubmit.AddListener(OnSubmit);
         // Button OnClick is empty in the scene; Enter alone is easy to miss in Game view
-        GetComponentInChildren<Button>()?.onClick.AddListener(() => OnSubmit(input.text));
+        inputBtn = GetComponentInChildren<Button>();
+        if (inputBtn != null) inputBtn.onClick.AddListener(() => OnSubmit(input.text));
+    }
+
+    public void SetActiveSending(bool isActive)
+    {
+        input.interactable =    isActive;
+        if(inputBtn != null) inputBtn.interactable = isActive;
     }
 
     private void OnSubmit(string txt)
     {
-        if (string.IsNullOrWhiteSpace(txt)) return;
+        if (string.IsNullOrWhiteSpace(txt) || !CanSend) return;
         AddChat(txt);
         input.text = string.Empty;
         OnTextSent?.Invoke(txt);
