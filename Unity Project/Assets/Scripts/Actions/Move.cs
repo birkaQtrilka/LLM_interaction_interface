@@ -14,6 +14,7 @@ public static partial class Actions
         void end()
         {
             agent.Anim.SetBool("Walking", false);
+            agent.Nav.ResetPath();
         }
 
         return new AnimAction(action, start, Utils.MonitorMovement(agent.Nav), end);

@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.AI;
-
+[SelectionBase]
 public class NPC : MonoBehaviour
 {
     [field: SerializeField] public Transform RightHand { get; private set; }
