@@ -68,6 +68,25 @@ public class Actions_Validation_Tests
     }
 
     [UnityTest]
+    public IEnumerator LLM_Finds_MoveTo_Object_From_Prompt()
+    {
+        string objectName = "Chair";
+        Assert.IsNotNull(system, "AgentSystem was not found in the test scene.");
+        Assert.IsNotNull(system.contextLibrary.environment.Find(x => x.GetName() == objectName), "There is no object named Chair in ContextLibrary");
+        NPC agent = system.contextLibrary.agents[0];
+
+        CoroutineResult<ActionsResponse> result = new();
+        yield return system.GetActionsJson("Go to the chair", ContextQuery.GetFullContext(), result);
+
+        Assert.AreEqual(result.Status, ContextStatus.Success);
+        ActionData action = result.Response.actions.FirstOrDefault(x => x.name == "moveTo");
+        Assert.IsNotNull(action, "LLM did not return a moveTo action");
+        Assert.AreEqual(agent.name, action.agent, "moveTo action is assigned to the wrong agent");
+        Assert.IsNotEmpty(action.parameters, "moveTo action has no target");
+        Assert.AreEqual(objectName, action.parameters[0], "LLM is moving to the wrong object");
+    }
+
+    [UnityTest]
     public IEnumerator LLM_Finds_Talk_From_Prompt()
     {
         Assert.IsNotNull(system, "AgentSystem was not found in the test scene.");
