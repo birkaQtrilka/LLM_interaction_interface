@@ -251,49 +251,49 @@ MonoBehaviour:
       m_Extent: {x: 0, y: 0, z: 0}
   environment:
   - transform: {fileID: 1074326910}
-    description: 
+    description: '{grabbable:true,canPlaceOn:false}'
     neighborDistanceThreshold: 1
     neighbors: []
     boundingBox:
       m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0, y: 0, z: 0}
   - transform: {fileID: 1820304972}
-    description: 
+    description: '{grabbable:false,canPlaceOn:true}'
     neighborDistanceThreshold: 0
     neighbors: []
     boundingBox:
       m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0, y: 0, z: 0}
   - transform: {fileID: 2008853972}
-    description: 
+    description: '{grabbable:false,canPlaceOn:true}'
     neighborDistanceThreshold: 1
     neighbors: []
     boundingBox:
       m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0, y: 0, z: 0}
   - transform: {fileID: 193983044}
-    description: 
+    description: '{grabbable:false,canPlaceOn:true}'
     neighborDistanceThreshold: 1
     neighbors: []
     boundingBox:
       m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0, y: 0, z: 0}
   - transform: {fileID: 52645841}
-    description: 
+    description: '{grabbable:true,canPlaceOn:false}'
     neighborDistanceThreshold: 1
     neighbors: []
     boundingBox:
       m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0, y: 0, z: 0}
   - transform: {fileID: 856723458}
-    description: 
+    description: '{grabbable:false,canPlaceOn:true}'
     neighborDistanceThreshold: 1
     neighbors: []
     boundingBox:
       m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0, y: 0, z: 0}
   - transform: {fileID: 686402769}
-    description: 
+    description: '{grabbable:false,canPlaceOn:true}'
     neighborDistanceThreshold: 1
     neighbors: []
     boundingBox:
@@ -950,10 +950,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AgentSystem
   llm: {fileID: 522124488}
   animationLibrary: {fileID: 2033616363}
+  logger: {fileID: 0}
   sendAllContext: 1
   <contextLibrary>k__BackingField: {fileID: 163989116}
   <chatManager>k__BackingField: {fileID: 0}
-  logger: {fileID: 0}
 --- !u!4 &967212467
 Transform:
   m_ObjectHideFlags: 0
