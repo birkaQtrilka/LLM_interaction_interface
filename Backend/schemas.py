@@ -8,6 +8,9 @@ class ActionsRequestBody(BaseModel):
 class ContextRequestBody(BaseModel):
     message: str
 
+class SessionRequestBody(BaseModel):
+    session_id: str
+
 class UserFlags(BaseModel):
     position: bool = False
     rotation: bool = False

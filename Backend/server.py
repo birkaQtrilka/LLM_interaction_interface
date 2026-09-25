@@ -1,5 +1,7 @@
 ﻿import json
 import os
+import uuid
+from datetime import datetime
 from pathlib import Path
 
 import httpx
@@ -8,7 +10,7 @@ from fastapi import FastAPI, HTTPException
 
 from schemas import (
     ActionsRequestBody, ContextRequestBody, ContextQuery, 
-    ActionsResponse, ActionData, ObjectFlags, UserFlags
+    ActionsResponse, ActionData, ObjectFlags, UserFlags, SessionRequestBody
 )
 from prompts import PERSONA, CONTEXT_CATALOG, get_system_prompt
 BASE_DIR = Path(__file__).resolve().parent
@@ -18,6 +20,19 @@ with open(BASE_DIR / "actions.json", "r") as f:
     ACTIONS = json.load(f)
 
 app = FastAPI()
+LOGS_DIR = BASE_DIR / "logs"
+
+def session_path(session_id: str) -> Path:
+    # Filename is the GUID, so anything else could escape the logs folder.
+    try:
+        parsed = uuid.UUID(session_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="session_id must be a GUID")
+    return LOGS_DIR / f"{parsed}.json"
+
+def write_session(path: Path, data: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2))
 
 def openai_json(messages: list[dict]) -> tuple[dict, dict]:
     api_key = os.environ.get("OPENAI_API_KEY")
@@ -139,3 +154,29 @@ def turn(body: ActionsRequestBody) -> ActionsResponse:
         prompt_tokens=int(usage.get("prompt_tokens") or 0),
         completion_tokens=int(usage.get("completion_tokens") or 0),
     )
+
+
+@app.post("/v1/session/start")
+def session_start(body: SessionRequestBody) -> dict:
+    path = session_path(body.session_id)
+    # A turn can arrive before this call. Do not wipe turns already written.
+    if path.exists():
+        return {"session_id": path.stem}
+    write_session(path, {
+        "session_id": path.stem,
+        "started_at": datetime.now().isoformat(timespec="seconds"),
+        "ended_at": None,
+        "turns": [],
+    })
+    return {"session_id": path.stem}
+
+
+@app.post("/v1/session/end")
+def session_end(body: SessionRequestBody) -> dict:
+    path = session_path(body.session_id)
+    if not path.exists():
+        return {"session_id": path.stem}
+    data = json.loads(path.read_text())
+    data["ended_at"] = datetime.now().isoformat(timespec="seconds")
+    write_session(path, data)
+    return {"session_id": path.stem}
