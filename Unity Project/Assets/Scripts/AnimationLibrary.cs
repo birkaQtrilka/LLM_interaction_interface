@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class AnimationLibrary : MonoBehaviour
 {
-    public List<Animation> animations = new();
+    public List<AnimationInstance> animations = new();
     public ulong id;
 
     private void Start()
@@ -17,6 +17,8 @@ public class AnimationLibrary : MonoBehaviour
     {
         var param = action.parameters;
         NPC agent = context.GetAgent(action.agent);
+        if (agent == null) return $"Couldn't find agent with name {action.agent}";
+
         switch (action.name)
         {
             case "moveTo":
@@ -26,45 +28,37 @@ public class AnimationLibrary : MonoBehaviour
                 obj ??= context.GetAgent(name)?.transform;
                 if (obj == null) return $"Couldn't find spot with name {param[0]}";
 
-                ExecuteAction(Actions.Move(agent, obj.position, action));
-                break;
+                return ExecuteAction(Actions.Move(agent, obj.position, action));
             case "talk":
-                ExecuteAction(Actions.Talk(context.chatManager, param[0], action));
-                break;
+                return ExecuteAction(Actions.Talk(context.chatManager, param[0], action));
             case "moveToPoint":
                 if (param.Length < 3) return "moveToPoint requires 3 parameters: x, y, z"; 
 
-                ExecuteAction(Actions.Move(agent, ToVec3(param[0], param[1], param[2]), action));
-                break;
+                return ExecuteAction(Actions.Move(agent, ToVec3(param[0], param[1], param[2]), action));
             case "count": //for testing purposes
 
-                ExecuteAction(Actions.Count(context.chatManager, int.Parse(param[0]), action));
-                break;
+                return ExecuteAction(Actions.Count(context.chatManager, int.Parse(param[0]), action));
             case "grab":
                 var objToGrab = context.GetObject(param[0]);
                 if (objToGrab == null) return $"Couldn't find object with name {param[0]}";
                 
-                ExecuteAction(Actions.Grab(agent, objToGrab, action));
-                break;
+                return ExecuteAction(Actions.Grab(agent, objToGrab, action));
             case "place":
-                if (param.Length != 1) return "moveToPoint requires 1 string parameter";
+                if (param.Length != 1) return "place requires 1 string parameter";
 
-                ExecuteAction(Actions.Place(agent, context.contextLibrary.environment, action));
-                break;
+                return ExecuteAction(Actions.Place(agent, context.contextLibrary.environment, action));
             case "give":
 
-                ExecuteAction(Actions.Give(agent, context, action));
-                break;
+                return ExecuteAction(Actions.Give(agent, context, action));
             default:
                 return $"Unknown action: {action.name}";
         }
 
-        return null;
     }
 
-    public void ExecuteAction(AnimAction exe)
+    public string ExecuteAction(AnimAction exe)
     {
-        PushAnimation(exe.data, exe.behavior, exe.start, exe.end);
+        return PushAnimation(exe.data, exe.behavior, exe.start, exe.end) != null ? null : $"Action with id {exe.data.id} already exists"; 
     }
 
     private IEnumerator AnimationManagerCoroutine()
@@ -111,7 +105,7 @@ public class AnimationLibrary : MonoBehaviour
         }
     }
 
-    private IEnumerator ExecuteAnimation(Animation anim)
+    private IEnumerator ExecuteAnimation(AnimationInstance anim)
     {
         if (anim.start != null)
         {
@@ -128,9 +122,9 @@ public class AnimationLibrary : MonoBehaviour
         anim.isFinished = true;
     }
 
-    public Animation PushAnimation(ActionData data, IEnumerator behavior, Action start = null, Action end = null)
+    public AnimationInstance PushAnimation(ActionData data, IEnumerator behavior, Action start = null, Action end = null)
     {
-        var anim = new Animation(data, behavior, start, end);
+        var anim = new AnimationInstance(data, behavior, start, end);
         if (animations.Exists(a => a.data.id == data.id))
         {
             Debug.LogWarning($"Animation with id {data.id} already exists. LLM might have hallucinated.");

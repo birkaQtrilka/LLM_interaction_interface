@@ -12,7 +12,7 @@ public static partial class Actions
 
             while (count <= total)
             {
-                chat.AddChat($"Count: {count++}");
+                chat.AddChat($"{action.agent}: Count- {count++}");
 
                 yield return new WaitForSeconds(1f);
             }

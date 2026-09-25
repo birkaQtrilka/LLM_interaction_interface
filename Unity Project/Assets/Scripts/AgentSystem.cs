@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -52,6 +53,7 @@ public class AgentSystem : MonoBehaviour
         if (sendAllContext)
         {
             yield return StartCoroutine(GetActionsJson(userPrompt, ContextQuery.GetFullContext(), actionRes));
+            if (actionRes.Status == ContextStatus.Failure) yield break;
         }
         else
         {
@@ -66,76 +68,86 @@ public class AgentSystem : MonoBehaviour
         contextLibrary.AddMessageToHistory(userPrompt);
     }
 
-    public IEnumerator GetContextJson(string userPrompt, CoroutineResult<ContextQuery> res = null)
+    IEnumerator RunBusy(IEnumerator work, Action<string> onBusy = null)
     {
-        res ??= new();
         if (IsBusy)
         {
             string err = "Still processing a previous message, wait until it's done";
             Debug.LogWarning(err);
-            res.SetError(err);
+            onBusy?.Invoke(err);
             yield break;
         }
+
         SetBusiness(true);
-        Debug.Log($"Sending to backend Round 1: {userPrompt}");
-
-        yield return StartCoroutine(llm.GetContext(userPrompt, res));
-
-        if (res.Status == ContextStatus.Success)
+        try
         {
-            string backendResponse = JsonUtility.ToJson(res.Response, true);
-            Debug.Log($"Backend context: {backendResponse}");
-            Debug.Log($"completion tokens: {res.Response.completion_tokens}\nprompt tokens: {res.Response.prompt_tokens}");
-            logger?.LogTurn(userPrompt, backendResponse);
+            yield return StartCoroutine(work);
         }
-        else
+        finally
         {
-            Debug.LogError($"Error getting context: {res.Error}");
-            AddChat($"System: Error getting context: {res.Error}");
-            logger?.LogTurn(userPrompt, res.Error);
+            SetBusiness(false);
         }
-        SetBusiness(false);
+    }
+
+    public IEnumerator GetContextJson(string userPrompt, CoroutineResult<ContextQuery> res = null)
+    {
+        res ??= new();
+        yield return RunBusy(Body(), res.SetError);
+
+        IEnumerator Body()
+        {
+            Debug.Log($"Sending to backend Round 1: {userPrompt}");
+            yield return StartCoroutine(llm.GetContext(userPrompt, res));
+
+            if (res.Status == ContextStatus.Success)
+            {
+                string backendResponse = JsonUtility.ToJson(res.Response, true);
+                Debug.Log($"Backend context: {backendResponse}");
+                Debug.Log($"completion tokens: {res.Response.completion_tokens}\nprompt tokens: {res.Response.prompt_tokens}");
+                logger?.LogTurn(userPrompt, backendResponse);
+            }
+            else
+            {
+                Debug.LogError($"Error getting context: {res.Error}");
+                AddChat($"System: Error getting context: {res.Error}");
+                logger?.LogTurn(userPrompt, res.Error);
+            }
+        }
+    }
+
+    public IEnumerator GetActionsJson(string userPrompt, ContextQuery context, CoroutineResult<ActionsResponse> res = null)
+    {
+        res ??= new();
+        yield return RunBusy(Body(), res.SetError);
+
+        IEnumerator Body()
+        {
+            string world = contextLibrary.GetContext(context, animationLibrary.animations);
+            Debug.Log($"Sending to backend Round 2:\n{world}\n{userPrompt}");
+            yield return StartCoroutine(llm.GetActions(userPrompt, world, res));
+
+            if (res.Status == ContextStatus.Success)
+            {
+                Debug.Log($"completion tokens: {res.Response.completion_tokens}\nprompt tokens: {res.Response.prompt_tokens}");
+                string backendJson = JsonUtility.ToJson(res.Response, true);
+                Debug.Log($"Backend actions: {backendJson}");
+                logger?.LogTurn(userPrompt, backendJson);
+                LastActions = res.Response;
+                ActionsSuccess(res.Response);
+            }
+            else
+            {
+                Debug.LogError($"Error getting context: {res.Error}");
+                AddChat("System: " + res.Error);
+                logger?.LogTurn(userPrompt, res.Error);
+            }
+        }
     }
 
     public void SetBusiness(bool busy)
     {
         IsBusy = busy;
         if (chatManager != null) chatManager.SetActiveSending(!busy);
-    }
-
-    public IEnumerator GetActionsJson(string userPrompt, ContextQuery context, CoroutineResult<ActionsResponse> res = null)
-    {
-        res ??= new();
-        if (IsBusy)
-        {
-            string err = "Still processing a previous message, wait until it's done";
-            Debug.LogWarning(err);
-            res.SetError(err);
-            yield break;
-        }
-        SetBusiness(true);
-        string world = contextLibrary.GetContext(context, animationLibrary.animations);
-        Debug.Log($"Sending to backend Round 2:\n{world}\n{userPrompt}");
-
-        yield return StartCoroutine(llm.GetActions(userPrompt, world, res));
-
-        if (res.Status == ContextStatus.Success)
-        {
-            Debug.Log($"completion tokens: {res.Response.completion_tokens}\nprompt tokens: {res.Response.prompt_tokens}");
-            string backendJson = JsonUtility.ToJson(res.Response, true);
-            Debug.Log($"Backend actions: {backendJson}");
-            logger?.LogTurn(userPrompt, backendJson);
-            LastActions = res.Response;
-            ActionsSuccess(res.Response);
-        }
-        else
-        {
-            Debug.LogError($"Error getting context: {res.Error}");
-            AddChat("System: " + res.Error);
-            logger?.LogTurn(userPrompt, res.Error);
-        }
-        SetBusiness(false);
-
     }
 
     void ActionsSuccess(ActionsResponse reply)

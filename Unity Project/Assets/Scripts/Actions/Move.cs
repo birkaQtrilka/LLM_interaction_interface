@@ -6,7 +6,7 @@ public static partial class Actions
 {
     static readonly Dictionary<NPC, Vector3> reserved = new();
 
-    public static Vector3 Reserve(NPC npc, Vector3 target, float spacing = 1f)
+    static Vector3 Reserve(NPC npc, Vector3 target, float spacing = 1f)
     {
         Release(npc);
         for (int ring = 0; ring < 4; ring++)
@@ -34,7 +34,7 @@ public static partial class Actions
         return false;
     }
 
-    public static void Release(NPC npc) => reserved.Remove(npc);
+    static void Release(NPC npc) => reserved.Remove(npc);
 
     public static AnimAction Move(NPC agent, Vector3 pos, ActionData action)
     {
