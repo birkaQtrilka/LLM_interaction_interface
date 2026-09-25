@@ -4,9 +4,12 @@ class ActionsRequestBody(BaseModel):
     message: str
     # Unity sends a snapshot object; curl can still send a string
     world: str | dict = ""
+    # Empty skips the session log, so curl still works before Unity sends a session.
+    session_id: str = ""
 
 class ContextRequestBody(BaseModel):
     message: str
+    session_id: str = ""
 
 class SessionRequestBody(BaseModel):
     session_id: str
