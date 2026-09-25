@@ -1,12 +1,17 @@
 using UnityEngine;
 
-public static partial class Actions
+public class Give : IAgentAction
 {
-    public static AnimAction Give(NPC agent, AgentSystem system, ActionData action)
+    public string Name => "give";
+
+    public string TryBuild(ActionData action, AgentSystem context, NPC agent, out AnimAction result)
     {
-        NPC otherAgent = system.GetAgent(action.parameters[0]); 
-        Debug.Assert(otherAgent != null);
-        Debug.Assert(agent != null);
+        result = default;
+        if (action.parameters.Length < 1) return "give requires 1 parameter: recipient agent name";
+
+        NPC otherAgent = context.GetAgent(action.parameters[0]);
+        if (otherAgent == null) return $"Couldn't find agent with name {action.parameters[0]}";
+        //if (agent.GetItem(right: true) == null) return "Hand is empty";
 
         Flag interchanged = new();
         void start()
@@ -28,7 +33,7 @@ public static partial class Actions
             agent.GrabReceiver.OnGrabPoint -= snapObjectToHand;
         }
 
-        return new AnimAction(action, start, Utils.MonitorFlag(interchanged), end);
+        result = new AnimAction(action, start, Utils.MonitorFlag(interchanged), end);
+        return null;
     }
-
 }

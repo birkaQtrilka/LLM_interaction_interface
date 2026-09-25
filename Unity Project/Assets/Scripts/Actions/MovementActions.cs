@@ -1,10 +1,29 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-public static partial class Actions
+static class MovementActions
 {
     static readonly Dictionary<NPC, Vector3> reserved = new();
+
+    public static AnimAction Build(NPC agent, Vector3 pos, ActionData action)
+    {
+        void start()
+        {
+            agent.Anim.SetBool("Walking", true);
+            agent.Nav.SetDestination(Reserve(agent, pos, agent.Nav.radius + .2f));
+        }
+
+        void end()
+        {
+            Release(agent);
+            agent.Anim.SetBool("Walking", false);
+            agent.Nav.ResetPath();
+            agent.Nav.isStopped = false;
+        }
+
+        return new AnimAction(action, start, Utils.MonitorMovement(agent.Nav), end);
+    }
 
     static Vector3 Reserve(NPC npc, Vector3 target, float spacing = 1f)
     {
@@ -24,7 +43,7 @@ public static partial class Actions
                 return hit.position;
             }
         }
-        return target; // no free slot found, fall back to the raw target
+        return target;
     }
 
     static bool IsTaken(NPC self, Vector3 p, float minDist)
@@ -35,24 +54,4 @@ public static partial class Actions
     }
 
     static void Release(NPC npc) => reserved.Remove(npc);
-
-    public static AnimAction Move(NPC agent, Vector3 pos, ActionData action)
-    {
-        void start()
-        {
-            agent.Anim.SetBool("Walking", true);
-            agent.Nav.SetDestination(Reserve(agent, pos, agent.Nav.radius + .2f));
-        }
-
-        void end()
-        {
-            Release(agent);
-            agent.Anim.SetBool("Walking", false);
-            agent.Nav.ResetPath();
-            agent.Nav.isStopped = false;
-        }
-
-        return new AnimAction(action, start, Utils.MonitorMovement(agent.Nav), end);
-    }
-
 }

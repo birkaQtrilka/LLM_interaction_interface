@@ -1,12 +1,64 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class AnimationLibrary : MonoBehaviour
 {
     public List<AnimationInstance> animations = new();
     public ulong id;
+
+    readonly Dictionary<string, IAgentAction> registry = new();
+
+    private void Awake()
+    {
+        BuildRegistry();
+    }
+
+    void BuildRegistry()
+    {
+        var actionTypes = UnityEngine.Assemblies.CurrentAssemblies.GetLoadedAssemblies().SelectMany(SafeGetTypes)
+            .Where(t => typeof(IAgentAction).IsAssignableFrom(t) && !t.IsAbstract && !t.IsInterface);
+
+        foreach (var type in actionTypes)
+        {
+            IAgentAction instance;
+            try
+            {
+                instance = (IAgentAction)Activator.CreateInstance(type);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Failed to create IAgentAction instance for {type.Name}: {e.Message}");
+                continue;
+            }
+
+            if (registry.TryGetValue(instance.Name, out var existing))
+            {
+                Debug.LogError($"Duplicate action name \"{instance.Name}\": {existing.GetType().Name} and {type.Name} both claim it. Keeping {existing.GetType().Name}.");
+                continue;
+            }
+
+            registry[instance.Name] = instance;
+        }
+
+        Debug.Log($"AnimationLibrary registered {registry.Count} actions: {string.Join(", ", registry.Keys)}");
+    }
+
+    static IEnumerable<Type> SafeGetTypes(System.Reflection.Assembly assembly)
+    {
+        try
+        {
+            return assembly.GetTypes();
+        }
+        catch (System.Reflection.ReflectionTypeLoadException e)
+        {
+            // Some assemblies (editor-only, third-party with missing refs) can fail to fully load types.
+            // Fall back to whatever did load successfully instead of losing the whole assembly's actions.
+            return e.Types.Where(t => t != null);
+        }
+    }
 
     private void Start()
     {
@@ -15,50 +67,23 @@ public class AnimationLibrary : MonoBehaviour
 
     public string PlayAnimation(AgentSystem context, ActionData action)
     {
-        var param = action.parameters;
+        if (!registry.TryGetValue(action.name, out var handler))
+            return $"Unknown action: {action.name}";
+
         NPC agent = context.GetAgent(action.agent);
         if (agent == null) return $"Couldn't find agent with name {action.agent}";
 
-        switch (action.name)
-        {
-            case "moveTo":
-                string name = param[0];
-                Transform obj = context.GetSpot(name)?.transform;
-                obj ??= context.GetObject(name)?.transform;
-                obj ??= context.GetAgent(name)?.transform;
-                if (obj == null) return $"Couldn't find spot with name {param[0]}";
+        string error = handler.TryBuild(action, context, agent, out AnimAction result);
+        if (error != null) return error;
 
-                return ExecuteAction(Actions.Move(agent, obj.position, action));
-            case "talk":
-                return ExecuteAction(Actions.Talk(context.chatManager, param[0], action));
-            case "moveToPoint":
-                if (param.Length < 3) return "moveToPoint requires 3 parameters: x, y, z"; 
-
-                return ExecuteAction(Actions.Move(agent, ToVec3(param[0], param[1], param[2]), action));
-            case "count": //for testing purposes
-
-                return ExecuteAction(Actions.Count(context.chatManager, int.Parse(param[0]), action));
-            case "grab":
-                var objToGrab = context.GetObject(param[0]);
-                if (objToGrab == null) return $"Couldn't find object with name {param[0]}";
-                
-                return ExecuteAction(Actions.Grab(agent, objToGrab, action));
-            case "place":
-                if (param.Length != 1) return "place requires 1 string parameter";
-
-                return ExecuteAction(Actions.Place(agent, context.contextLibrary.environment, action));
-            case "give":
-
-                return ExecuteAction(Actions.Give(agent, context, action));
-            default:
-                return $"Unknown action: {action.name}";
-        }
-
+        return ExecuteAction(result);
     }
 
     public string ExecuteAction(AnimAction exe)
     {
-        return PushAnimation(exe.data, exe.behavior, exe.start, exe.end) != null ? null : $"Action with id {exe.data.id} already exists"; 
+        return PushAnimation(exe.data, exe.behavior, exe.start, exe.end) != null
+            ? null
+            : $"Action with id {exe.data.id} already exists";
     }
 
     private IEnumerator AnimationManagerCoroutine()
