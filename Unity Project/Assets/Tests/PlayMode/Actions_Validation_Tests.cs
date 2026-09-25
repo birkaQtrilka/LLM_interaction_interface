@@ -20,7 +20,7 @@ public class Actions_Validation_Tests
         Debug.Log("Loading test scene...");
 
 #if UNITY_EDITOR
-        // Loading Additively prevents destroying the Unity Test Runner's internal scene
+        // Loading Additively prevents destroying the Unity Test Runner's internal scene.
         AsyncOperation asyncLoad = EditorSceneManager.LoadSceneAsyncInPlayMode(
             scenePath,
             new LoadSceneParameters(LoadSceneMode.Additive)
