@@ -12,7 +12,7 @@ public class AgentSystem : MonoBehaviour
     public bool sendAllContext = false;
     [field: SerializeField] public ContextLibrary contextLibrary { get; private set; }
     [field: SerializeField] public ChatManager chatManager { get; private set; }
-
+    [SerializeField] UISpriteAnimator loadingAnimator;
     public AnimationLibrary AnimationLibrary => animationLibrary;
     public bool IsBusy { get; private set; }
     public ActionsResponse LastActions { get; private set; }
@@ -148,6 +148,11 @@ public class AgentSystem : MonoBehaviour
     {
         IsBusy = busy;
         if (chatManager != null) chatManager.SetActiveSending(!busy);
+        if(loadingAnimator != null)
+        {
+            if(busy) loadingAnimator.Play();
+            else loadingAnimator.Stop();
+        }
     }
 
     void ActionsSuccess(ActionsResponse reply)
