@@ -827,6 +827,7 @@ MonoBehaviour:
   - place the phone and the brick on top of the table using both npcs
   - hi
   - Fly off into space ang give me a rock
+  - NPC1 give the phone to NPC2
   OnTextSent:
     m_PersistentCalls:
       m_Calls: []

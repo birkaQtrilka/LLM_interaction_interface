@@ -41,7 +41,7 @@ public static partial class Actions
         void start()
         {
             agent.Anim.SetBool("Walking", true);
-            agent.Nav.SetDestination(Reserve(agent, pos, agent.Nav.radius+.2f));
+            agent.Nav.SetDestination(Reserve(agent, pos, agent.Nav.radius + .2f));
         }
 
         void end()

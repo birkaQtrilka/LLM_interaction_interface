@@ -167,4 +167,20 @@ public class AgentSystem : MonoBehaviour
         if (chatManager == null) return;
         chatManager.AddChat(message);
     }
+
+    public NPC GetAgent(string name)
+    {
+        return contextLibrary.agents.Find(a=>a.name == name);
+    }
+
+    public ContextItem GetObject(string name)
+    {
+        return contextLibrary.environment.Find(a => a.GetName() == name);
+
+    }
+
+    public Transform GetSpot(string name)
+    {
+        return contextLibrary.spots.Find(a => a.GetName() == name)?.transform;
+    }
 }

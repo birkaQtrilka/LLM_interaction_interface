@@ -3,7 +3,7 @@ using UnityEngine;
 
 public static partial class Actions
 {
-    public static AnimAction Place(NPC agent, ActionData action, List<ContextItem> environment)
+    public static AnimAction Place(NPC agent, List<ContextItem> environment, ActionData action)
     {
         Flag hasReleased = new();
         var obj = environment.Find(x => x.GetName() == action.parameters[0]);
