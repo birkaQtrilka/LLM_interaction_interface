@@ -1,5 +1,6 @@
 ﻿import json
 import os
+import time
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -34,7 +35,11 @@ def write_session(path: Path, data: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=2))
 
-def append_turn(session_id: str, endpoint: str, system: str, user: str, response: object) -> None:
+def elapsed_s(started: float) -> float:
+    # Seconds since the request arrived, sampled when the model call returns
+    return round(time.perf_counter() - started, 3)
+
+def append_turn(session_id: str, endpoint: str, system: str, user: str, response: object, llm_s: float) -> None:
     if not session_id:
         return
     path = session_path(session_id)
@@ -54,6 +59,7 @@ def append_turn(session_id: str, endpoint: str, system: str, user: str, response
         "system": system,
         "user": user,
         "response": response,
+        "llm_s": llm_s,
     })
     write_session(path, data)
 
@@ -115,6 +121,7 @@ def build_messages(user_text: str, world: str) -> list[dict]:
 # todo: have serialization/deserialization and object definition of ContextQuery in one spot 
 @app.post("/v1/context", response_model=ContextQuery)
 def context(body: ContextRequestBody) -> ContextQuery:
+    started = time.perf_counter()
     if body.session_id:
         session_path(body.session_id)
     try:
@@ -125,8 +132,9 @@ def context(body: ContextRequestBody) -> ContextQuery:
             ]
         )
     except HTTPException as exc:
-        append_turn(body.session_id, "context", CONTEXT_CATALOG, body.message, exc.detail)
+        append_turn(body.session_id, "context", CONTEXT_CATALOG, body.message, exc.detail, elapsed_s(started))
         raise
+    llm_s = elapsed_s(started)
     user = flags_from(parsed.get("userFlags"))
     objects = flags_from(parsed.get("objectFlags"))
     reply = ContextQuery(
@@ -147,12 +155,13 @@ def context(body: ContextRequestBody) -> ContextQuery:
         prompt_tokens=int(usage.get("prompt_tokens") or 0),
         completion_tokens=int(usage.get("completion_tokens") or 0),
     )
-    append_turn(body.session_id, "context", CONTEXT_CATALOG, body.message, reply.model_dump())
+    append_turn(body.session_id, "context", CONTEXT_CATALOG, body.message, reply.model_dump(), llm_s)
     return reply
 
 
 @app.post("/v1/turn", response_model=ActionsResponse)
 def turn(body: ActionsRequestBody) -> ActionsResponse:
+    started = time.perf_counter()
     if body.session_id:
         session_path(body.session_id)
     messages = build_messages(body.message, body.world)
@@ -161,8 +170,9 @@ def turn(body: ActionsRequestBody) -> ActionsResponse:
     try:
         parsed, usage = openai_json(messages)
     except HTTPException as exc:
-        append_turn(body.session_id, "turn", system, user, exc.detail)
+        append_turn(body.session_id, "turn", system, user, exc.detail, elapsed_s(started))
         raise
+    llm_s = elapsed_s(started)
 
     actions = []
     print("-----------------ACTIONS-----------------")
@@ -194,7 +204,7 @@ def turn(body: ActionsRequestBody) -> ActionsResponse:
         prompt_tokens=int(usage.get("prompt_tokens") or 0),
         completion_tokens=int(usage.get("completion_tokens") or 0),
     )
-    append_turn(body.session_id, "turn", system, user, reply.model_dump())
+    append_turn(body.session_id, "turn", system, user, reply.model_dump(), llm_s)
     return reply
 
 
