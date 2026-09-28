@@ -1,0 +1,58 @@
+{
+  "families": [
+    {
+      "action": "moveTo",
+      "label": "go to SpotA",
+      "prompts": [
+        "Go to SpotA",
+        "Walk to spot a",
+        "Move to SpotA"
+      ]
+    },
+    {
+      "action": "moveTo",
+      "label": "go to the chair",
+      "prompts": [
+        "Go to the chair",
+        "Walk to the chair",
+        "Move to the chair"
+      ]
+    },
+    {
+      "action": "grab",
+      "label": "grab the phone",
+      "prompts": [
+        "pick up the phone",
+        "bring the phone",
+        "grab the phone"
+      ]
+    },
+    {
+      "action": "grab",
+      "label": "grab the brick",
+      "prompts": [
+        "pick up the brick",
+        "bring the brick",
+        "grab the brick"
+      ]
+    },
+    {
+      "action": "place",
+      "label": "phone on the table",
+      "prompts": [
+        "place the phone on the table",
+        "put the phone on the table",
+        "set the phone down on the table"
+      ]
+    },
+    {
+      "action": "talk",
+      "label": "greet",
+      "prompts": [
+        "Say hello",
+        "Say hi",
+        "Greet me"
+      ]
+    }
+  ]
+}
