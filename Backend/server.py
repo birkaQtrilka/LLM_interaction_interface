@@ -22,6 +22,8 @@ with open(BASE_DIR / "actions.json", "r") as f:
 
 app = FastAPI()
 LOGS_DIR = BASE_DIR / "logs"
+# The system text is the same on every turn, so the log omits it unless this is on
+LOG_SYSTEM = False
 
 def session_path(session_id: str) -> Path:
     # Filename is the GUID, so anything else could escape the logs folder.
@@ -53,14 +55,16 @@ def append_turn(session_id: str, endpoint: str, system: str, user: str, response
             "ended_at": None,
             "turns": [],
         }
-    data["turns"].append({
+    turn = {
         "at": datetime.now().isoformat(timespec="seconds"),
         "endpoint": endpoint,
-        "system": system,
         "user": user,
         "response": response,
         "llm_s": llm_s,
-    })
+    }
+    if LOG_SYSTEM:
+        turn["system"] = system
+    data["turns"].append(turn)
     write_session(path, data)
 
 def openai_json(messages: list[dict]) -> tuple[dict, dict]:
