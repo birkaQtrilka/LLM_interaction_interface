@@ -27,6 +27,16 @@ public class ContextLibrary : MonoBehaviour
                                                     
     public List<NPC> agents = new();
 
+    // Auto-assign agents from the scene if none are assigned
+    void Awake()
+    {
+        if (agents.Count > 0) return;
+        agents.AddRange(FindObjectsByType<NPC>());
+        Debug.LogWarning(agents.Count == 0
+            ? "ContextLibrary agents is empty and the scene has no NPC"
+            : $"ContextLibrary agents was empty, added {agents.Count} NPC(s) from the scene");
+    }
+
     public uint maxMessageHistory = 10;
     private readonly LinkedList<string> messageHistory = new();
 
