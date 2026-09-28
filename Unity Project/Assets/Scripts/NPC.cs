@@ -1,6 +1,8 @@
+using System;
 using UnityEngine;
 using UnityEngine.AI;
 
+[SelectionBase]
 public class NPC : MonoBehaviour
 {
     [field: SerializeField] public Transform RightHand { get; private set; }
@@ -8,6 +10,8 @@ public class NPC : MonoBehaviour
     [field: SerializeField] public NavMeshAgent Nav { get; private set; }
     [field: SerializeField] public GrabReceiver GrabReceiver { get; private set; }
     [field: SerializeField] public Animator Anim { get; private set; }
+    
+    public event Action<Collision> OnCollide;
 
     public bool RightHandTaken => RightHand.childCount > 0;
 
@@ -50,5 +54,10 @@ public class NPC : MonoBehaviour
             return LeftHand.GetChild(0);
         }
         return null;
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        OnCollide?.Invoke(collision);
     }
 }

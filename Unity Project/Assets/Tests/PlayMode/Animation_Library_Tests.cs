@@ -5,7 +5,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-public class AnimationLibraryTests
+public class Animation_Library_Tests
 {
     private GameObject go;
     private AnimationLibrary library;

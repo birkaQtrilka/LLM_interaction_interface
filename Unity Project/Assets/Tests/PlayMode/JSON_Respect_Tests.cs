@@ -3,7 +3,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-public class JSON_Respect_Test
+public class JSON_Respect_Tests
 {
     private GameObject _testObject;
     private LLMBackend _backend;

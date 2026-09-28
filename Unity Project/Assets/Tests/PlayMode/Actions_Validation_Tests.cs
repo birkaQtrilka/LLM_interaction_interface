@@ -9,7 +9,7 @@ using System.Linq;
 using UnityEditor.SceneManagement;
 #endif
 
-public class Actions_Validation
+public class Actions_Validation_Tests
 {
     AgentSystem system;
     const string scenePath = "Assets/Tests/PlayMode/Scenes/Proto_1_Scene.unity";
@@ -37,7 +37,7 @@ public class Actions_Validation
 
         yield return null;
 
-        // Set it as active so instantiated objects go here
+        // Set it as active so instantiated objects go hereee
         SceneManager.SetActiveScene(SceneManager.GetSceneByPath(scenePath));
         system = Object.FindAnyObjectByType<AgentSystem>();
     }
@@ -70,7 +70,7 @@ public class Actions_Validation
     [UnityTest]
     public IEnumerator Move_To_Farthest_Spot()
     {
-        NPC agent = system.contextLibrary.agent;
+        NPC agent = system.contextLibrary.agents[0];
         var agentStartPos = agent.transform.position;
         agentStartPos = new Vector3(agentStartPos.x, 0, agentStartPos.z);
 

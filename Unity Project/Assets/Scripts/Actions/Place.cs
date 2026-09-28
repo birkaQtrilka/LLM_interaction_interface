@@ -10,7 +10,7 @@ public static partial class Actions
 
         void start()
         {
-            agent.Anim.SetTrigger("Grab");
+            agent.Anim.SetTrigger("Place");
             agent.GrabReceiver.OnGrabPoint += releaseItem;
         }
 

@@ -14,7 +14,7 @@ public static partial class Actions
                 return;
             }
 
-            chat.AddChat(msg);
+            chat.AddChat($"{action.agent}: {msg}");
         }
 
         return new AnimAction(action, start, null, null);

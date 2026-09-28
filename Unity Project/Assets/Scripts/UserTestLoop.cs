@@ -114,19 +114,54 @@ public class UserTestLoop : MonoBehaviour
 
     bool StepPassed(Step step)
     {
-        switch (step.goal)
+        return step.goal switch
         {
-            case StepGoal.Talk:
-                return LastHas("talk", null);
-            case StepGoal.Grab:
-                return IsHolding(step.targetName) || LastHas("grab", step.targetName);
-            case StepGoal.PlaceOn:
-                return agentSystem.contextLibrary.IsOnSurface(step.targetName, step.surfaceName);
-            case StepGoal.MoveToSpot:
-                return agentSystem.contextLibrary.IsNearSpot(step.targetName);
-            default:
-                return false;
+            StepGoal.Talk => LastHas("talk", null),
+            StepGoal.Grab => IsHolding(step.targetName) || LastHas("grab", step.targetName),
+            StepGoal.PlaceOn => IsOnSurface(agentSystem.contextLibrary, step.targetName, step.surfaceName),
+            StepGoal.MoveToSpot => IsNearSpot(agentSystem.contextLibrary, agentSystem.contextLibrary.agents[0], step.targetName),
+            _ => false,
+        };
+    }
+
+    public bool IsOnSurface(ContextLibrary ctx, string itemName, string surfaceName)
+    {
+        ContextItem surface = ctx.environment.Find(x => x.GetName() == surfaceName);
+        if (surface == null) return false;
+
+        surface.RecalculateBounds();
+        surface.FindNeighbors();
+        Transform item = null;
+        if (surface.neighbors != null)
+        {
+            foreach (Transform neighbor in surface.neighbors)
+            {
+                if (neighbor != null && neighbor.name == itemName)
+                {
+                    item = neighbor;
+                    break;
+                }
+            }
         }
+        if (item == null) return false;
+
+        Bounds box = surface.boundingBox;
+        Vector3 p = item.position;
+        return p.y >= box.max.y
+            && p.x >= box.min.x && p.x <= box.max.x
+            && p.z >= box.min.z && p.z <= box.max.z;
+    }
+
+    public bool IsNearSpot(ContextLibrary ctx, NPC agent, string spotName, float maxDistance = 0.1f)
+    {
+        ContextItem spot = ctx.spots.Find(x => x.GetName() == spotName);
+        if (spot == null || agent == null) return false;
+
+        Vector3 npcPos = agent.transform.position;
+        npcPos.y = 0;
+        Vector3 spotPos = spot.transform.position;
+        spotPos.y = 0;
+        return Vector3.Distance(npcPos, spotPos) < maxDistance;
     }
 
     bool LastHas(string actionName, string target)
@@ -149,7 +184,7 @@ public class UserTestLoop : MonoBehaviour
 
     bool IsHolding(string itemName)
     {
-        NPC npc = agentSystem.contextLibrary.agent;
+        NPC npc = agentSystem.contextLibrary.agents[0];
         Transform item = npc.GetItem(true) ?? npc.GetItem(false);
         return item != null && item.name == itemName;
     }

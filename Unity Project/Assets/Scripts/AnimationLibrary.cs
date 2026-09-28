@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class AnimationLibrary : MonoBehaviour
@@ -16,7 +17,7 @@ public class AnimationLibrary : MonoBehaviour
     public string PlayAnimation(AgentSystem context, ActionData action)
     {
         var param = action.parameters;
-
+        NPC agent = context.contextLibrary.agents.First(x=> x.name == action.agent);
         switch (action.name)
         {
             case "moveTo":
@@ -24,7 +25,7 @@ public class AnimationLibrary : MonoBehaviour
                 obj ??= context.contextLibrary.environment.Find(x => x.GetName() == param[0]);
                 if (obj == null) return $"Couldn't find spot with name {param[0]}";
 
-                ExecuteAction(Actions.Move(context.contextLibrary.agent, obj.transform.position, action));
+                ExecuteAction(Actions.Move(agent, obj.transform.position, action));
                 break;
             case "talk":
                 ExecuteAction(Actions.Talk(context.chatManager, param[0], action));
@@ -34,7 +35,7 @@ public class AnimationLibrary : MonoBehaviour
                 {
                     return "moveToPoint requires 3 parameters: x, y, z";
                 }
-                ExecuteAction(Actions.Move(context.contextLibrary.agent, ToVec3(param[0], param[1], param[2]), action));
+                ExecuteAction(Actions.Move(agent, ToVec3(param[0], param[1], param[2]), action));
                 break;
             case "count": //for testing purposes
                 ExecuteAction(Actions.Count(context.chatManager, int.Parse(param[0]), action));
@@ -43,11 +44,11 @@ public class AnimationLibrary : MonoBehaviour
                 obj = context.contextLibrary.environment.Find(x => x.GetName() == param[0]);
                 if (obj == null) return $"Couldn't find object with name {param[0]}";
                 
-                ExecuteAction(Actions.Grab(context.contextLibrary.agent, obj, action));
+                ExecuteAction(Actions.Grab(agent, obj, action));
                 break;
             case "place":
                 if (param.Length != 1) return "moveToPoint requires 1 string parameter";
-                ExecuteAction(Actions.Place(context.contextLibrary.agent, action, context.contextLibrary.environment));
+                ExecuteAction(Actions.Place(agent, action, context.contextLibrary.environment));
                 break;
             default:
                 return $"Unknown action: {action.name}";
