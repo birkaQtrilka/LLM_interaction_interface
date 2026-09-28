@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Net.Http;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -10,6 +11,7 @@ public class LLMBackend : MonoBehaviour
     class ContextRequestBody
     {
         public string message;
+        public string session_id;
     }
 
     [Serializable]
@@ -17,13 +19,49 @@ public class LLMBackend : MonoBehaviour
     {
         public string message;
         public string world;
+        public string session_id;
+    }
+
+    [Serializable]
+    class SessionRequestBody
+    {
+        public string session_id;
     }
 
     public string baseUrl = "http://127.0.0.1:8000";
+    string sessionId;
+
+    void Start()
+    {
+        sessionId = Guid.NewGuid().ToString();
+        string json = JsonUtility.ToJson(new SessionRequestBody { session_id = sessionId });
+        StartCoroutine(PostJson("/v1/session/start", json, null, null));
+    }
+
+    // Play Mode exit stops coroutines, so this call has to finish here.
+    void OnDestroy()
+    {
+        if (string.IsNullOrEmpty(sessionId)) return;
+        try
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                client.Timeout = TimeSpan.FromSeconds(2);
+                string json = JsonUtility.ToJson(new SessionRequestBody { session_id = sessionId });
+                using (StringContent content = new StringContent(json, Encoding.UTF8, "application/json"))
+                {
+                    client.PostAsync(baseUrl.TrimEnd('/') + "/v1/session/end", content).GetAwaiter().GetResult();
+                }
+            }
+        }
+        catch (Exception)
+        {
+        }
+    }
     
     public void GetContext(string message, Action<ContextQuery> onSuccess, Action<string> onError = null)
     {
-        string json = JsonUtility.ToJson(new ContextRequestBody { message = message });
+        string json = JsonUtility.ToJson(new ContextRequestBody { message = message, session_id = sessionId ?? "" });
         StartCoroutine(PostJson("/v1/context", json, text =>
         {
             try
@@ -40,7 +78,7 @@ public class LLMBackend : MonoBehaviour
 
     public IEnumerator GetContext(string message, CoroutineResult<ContextQuery> res)
     {
-        string json = JsonUtility.ToJson(new ContextRequestBody { message = message });
+        string json = JsonUtility.ToJson(new ContextRequestBody { message = message, session_id = sessionId ?? "" });
         yield return StartCoroutine(PostJson("/v1/context", json, text =>
         {
             try
@@ -60,7 +98,7 @@ public class LLMBackend : MonoBehaviour
 
     public IEnumerator GetActions(string message, string world, CoroutineResult<ActionsResponse> res)
     {
-        string json = JsonUtility.ToJson(new ActionsRequestBody { message = message, world = world });
+        string json = JsonUtility.ToJson(new ActionsRequestBody { message = message, world = world, session_id = sessionId ?? "" });
         yield return StartCoroutine(PostJson("/v1/turn", json, text =>
         {
             ActionsResponse response = JsonUtility.FromJson<ActionsResponse>(text);
@@ -78,7 +116,7 @@ public class LLMBackend : MonoBehaviour
 
     public void GetActions(string message, string world, Action<ActionsResponse> onSuccess, Action<string> onError = null)
     {
-        string json = JsonUtility.ToJson(new ActionsRequestBody { message = message, world = world });
+        string json = JsonUtility.ToJson(new ActionsRequestBody { message = message, world = world, session_id = sessionId ?? "" });
         StartCoroutine(PostJson("/v1/turn", json, text =>
         {
             ActionsResponse response = JsonUtility.FromJson<ActionsResponse>(text);

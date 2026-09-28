@@ -950,7 +950,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AgentSystem
   llm: {fileID: 522124488}
   animationLibrary: {fileID: 2033616363}
-  logger: {fileID: 0}
   sendAllContext: 1
   <contextLibrary>k__BackingField: {fileID: 163989116}
   <chatManager>k__BackingField: {fileID: 0}

@@ -185,7 +185,7 @@ public class UserTestLoop : MonoBehaviour
     bool IsHolding(string itemName)
     {
         NPC npc = agentSystem.contextLibrary.agents[0];
-        Transform item = npc.GetItem(true) ?? npc.GetItem(false);
+        Transform item = npc.GetItem(true);
         return item != null && item.name == itemName;
     }
 }
