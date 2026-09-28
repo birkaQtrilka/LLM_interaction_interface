@@ -74,7 +74,7 @@ public class ContextLibrary : MonoBehaviour
         }
     }
 
-    public string GetContext(ContextQuery query, List<Animation> animations)
+    public string GetContext(ContextQuery query, List<AnimationInstance> animations)
     {
         string context = "";
         context = GetNpcContext(context);

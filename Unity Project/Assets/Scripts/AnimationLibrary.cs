@@ -6,8 +6,59 @@ using UnityEngine;
 
 public class AnimationLibrary : MonoBehaviour
 {
-    public List<Animation> animations = new();
+    public List<AnimationInstance> animations = new();
     public ulong id;
+
+    readonly Dictionary<string, IAgentAction> registry = new();
+
+    private void Awake()
+    {
+        BuildRegistry();
+    }
+
+    void BuildRegistry()
+    {
+        var actionTypes = UnityEngine.Assemblies.CurrentAssemblies.GetLoadedAssemblies().SelectMany(SafeGetTypes)
+            .Where(t => typeof(IAgentAction).IsAssignableFrom(t) && !t.IsAbstract && !t.IsInterface);
+
+        foreach (var type in actionTypes)
+        {
+            IAgentAction instance;
+            try
+            {
+                instance = (IAgentAction)Activator.CreateInstance(type);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Failed to create IAgentAction instance for {type.Name}: {e.Message}");
+                continue;
+            }
+
+            if (registry.TryGetValue(instance.Name, out var existing))
+            {
+                Debug.LogError($"Duplicate action name \"{instance.Name}\": {existing.GetType().Name} and {type.Name} both claim it. Keeping {existing.GetType().Name}.");
+                continue;
+            }
+
+            registry[instance.Name] = instance;
+        }
+
+        Debug.Log($"AnimationLibrary registered {registry.Count} actions: {string.Join(", ", registry.Keys)}");
+    }
+
+    static IEnumerable<Type> SafeGetTypes(System.Reflection.Assembly assembly)
+    {
+        try
+        {
+            return assembly.GetTypes();
+        }
+        catch (System.Reflection.ReflectionTypeLoadException e)
+        {
+            // Some assemblies (editor-only, third-party with missing refs) can fail to fully load types.
+            // Fall back to whatever did load successfully instead of losing the whole assembly's actions.
+            return e.Types.Where(t => t != null);
+        }
+    }
 
     private void Start()
     {
@@ -16,50 +67,23 @@ public class AnimationLibrary : MonoBehaviour
 
     public string PlayAnimation(AgentSystem context, ActionData action)
     {
-        var param = action.parameters;
-        NPC agent = context.contextLibrary.agents.First(x=> x.name == action.agent);
-        switch (action.name)
-        {
-            case "moveTo":
-                ContextItem obj = context.contextLibrary.spots.Find(x => x.GetName() == param[0]);
-                obj ??= context.contextLibrary.environment.Find(x => x.GetName() == param[0]);
-                if (obj == null) return $"Couldn't find spot with name {param[0]}";
+        if (!registry.TryGetValue(action.name, out var handler))
+            return $"Unknown action: {action.name}";
 
-                ExecuteAction(Actions.Move(agent, obj.transform.position, action));
-                break;
-            case "talk":
-                ExecuteAction(Actions.Talk(context.chatManager, param[0], action));
-                break;
-            case "moveToPoint":
-                if (param.Length < 3)
-                {
-                    return "moveToPoint requires 3 parameters: x, y, z";
-                }
-                ExecuteAction(Actions.Move(agent, ToVec3(param[0], param[1], param[2]), action));
-                break;
-            case "count": //for testing purposes
-                ExecuteAction(Actions.Count(context.chatManager, int.Parse(param[0]), action));
-                break;
-            case "grab":
-                obj = context.contextLibrary.environment.Find(x => x.GetName() == param[0]);
-                if (obj == null) return $"Couldn't find object with name {param[0]}";
-                
-                ExecuteAction(Actions.Grab(agent, obj, action));
-                break;
-            case "place":
-                if (param.Length != 1) return "moveToPoint requires 1 string parameter";
-                ExecuteAction(Actions.Place(agent, action, context.contextLibrary.environment));
-                break;
-            default:
-                return $"Unknown action: {action.name}";
-        }
+        NPC agent = context.GetAgent(action.agent);
+        if (agent == null) return $"Couldn't find agent with name {action.agent}";
 
-        return null;
+        string error = handler.TryBuild(action, context, agent, out AnimAction result);
+        if (error != null) return error;
+
+        return ExecuteAction(result);
     }
 
-    public void ExecuteAction(AnimAction exe)
+    public string ExecuteAction(AnimAction exe)
     {
-        PushAnimation(exe.data, exe.behavior, exe.start, exe.end);
+        return PushAnimation(exe.data, exe.behavior, exe.start, exe.end) != null
+            ? null
+            : $"Action with id {exe.data.id} already exists";
     }
 
     private IEnumerator AnimationManagerCoroutine()
@@ -106,7 +130,7 @@ public class AnimationLibrary : MonoBehaviour
         }
     }
 
-    private IEnumerator ExecuteAnimation(Animation anim)
+    private IEnumerator ExecuteAnimation(AnimationInstance anim)
     {
         if (anim.start != null)
         {
@@ -123,9 +147,9 @@ public class AnimationLibrary : MonoBehaviour
         anim.isFinished = true;
     }
 
-    public Animation PushAnimation(ActionData data, IEnumerator behavior, Action start = null, Action end = null)
+    public AnimationInstance PushAnimation(ActionData data, IEnumerator behavior, Action start = null, Action end = null)
     {
-        var anim = new Animation(data, behavior, start, end);
+        var anim = new AnimationInstance(data, behavior, start, end);
         if (animations.Exists(a => a.data.id == data.id))
         {
             Debug.LogWarning($"Animation with id {data.id} already exists. LLM might have hallucinated.");

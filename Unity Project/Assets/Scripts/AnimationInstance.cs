@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 
 [Serializable]
-public class Animation
+public class AnimationInstance
 {
     public ActionData data;
     public IEnumerator behavior;
@@ -12,7 +12,7 @@ public class Animation
     public bool isPlaying;
     public bool isFinished;
 
-    public Animation(ActionData data, IEnumerator behavior, Action start, Action end)
+    public AnimationInstance(ActionData data, IEnumerator behavior, Action start, Action end)
     {
         this.data = data;
         this.behavior = behavior;
@@ -22,7 +22,7 @@ public class Animation
         this.isFinished = false;
     }
 
-    private Animation() { }
+    private AnimationInstance() { }
 
     public override string ToString()
     {

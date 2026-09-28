@@ -1,23 +1,26 @@
-﻿
+﻿using UnityEngine;
 
-using UnityEngine;
-
-public static partial class Actions
+public class Talk : IAgentAction
 {
-    public static AnimAction Talk(ChatManager chat, string msg, ActionData action)
+    public string Name => "talk";
+
+    public string TryBuild(ActionData action, AgentSystem context, NPC agent, out AnimAction result)
     {
+        result = default;
+        if (action.parameters.Length < 1) return "talk requires 1 parameter: message";
+
+        string msg = action.parameters[0];
         void start()
         {
-            if (chat == null)
+            if (context.chatManager == null)
             {
                 Debug.LogWarning("Chat is null");
                 return;
             }
-
-            chat.AddChat($"{action.agent}: {msg}");
+            context.chatManager.AddChat($"{action.agent}: {msg}");
         }
 
-        return new AnimAction(action, start, null, null);
+        result = new AnimAction(action, start, null, null);
+        return null;
     }
-
 }

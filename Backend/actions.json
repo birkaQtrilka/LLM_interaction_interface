@@ -23,5 +23,10 @@
     "name": "place",
     "args": "objectNameToPlaceOnto: string",
     "doc": "the agent named in the action's 'agent' field places the item currently in its own itemInRightHand onto the named environment object. Precondition: that agent's itemInRightHand must be non-empty. If it is empty, there is nothing for that agent to place, use talk instead. Always do moveTo for this agent to get close to the target object first."
+  },
+  {
+    "name": "give",
+    "args": "agentToGive: string",
+    "doc": "the agent named in the action's 'agent' field gives the item currently in its own itemInRightHand to the agentToGive in parameters. Precondition: that agent's itemInRightHand must be non-empty. If it is empty, there is nothing for that agent to place, use talk instead. Always do moveTo for this agent to get close to agentToGive first."
   }
 ]

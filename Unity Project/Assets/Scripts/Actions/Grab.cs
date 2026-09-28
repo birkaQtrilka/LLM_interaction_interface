@@ -1,27 +1,16 @@
-using System;
-using System.Collections;
-
-public readonly struct AnimAction
+public class Grab : IAgentAction
 {
-    public readonly Action start;
-    public readonly IEnumerator behavior;
-    public readonly Action end;
-    public readonly ActionData data;
+    public string Name => "grab";
 
-    public AnimAction(ActionData data, Action start, IEnumerator behavior, Action end)
+    public string TryBuild(ActionData action, AgentSystem context, NPC agent, out AnimAction result)
     {
-        this.data = data;
-        this.start = start;
-        this.behavior = behavior;
-        this.end = end;
-    }
-}
+        result = default;
+        if (action.parameters.Length < 1) return "grab requires 1 parameter: object name";
 
-public static partial class Actions
-{
-    // now this is primitive, but it will do for now. We can improve this later with IK and other techniques.
-    public static AnimAction Grab(NPC agent, ContextItem item, ActionData action)
-    {
+        var item = context.GetObject(action.parameters[0]);
+        if (item == null) return $"Couldn't find object with name {action.parameters[0]}";
+        //if (agent.GetItem(right: true) != null) return "Hand is full";
+
         Flag grabbed = new();
         void start()
         {
@@ -40,6 +29,7 @@ public static partial class Actions
             agent.GrabReceiver.OnGrabPoint -= snapObjectToHand;
         }
 
-        return new AnimAction(action, start, Utils.MonitorFlag(grabbed), end);
+        result = new AnimAction(action, start, Utils.MonitorFlag(grabbed), end);
+        return null;
     }
 }

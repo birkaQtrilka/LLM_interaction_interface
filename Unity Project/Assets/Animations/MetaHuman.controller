@@ -101,7 +101,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: 1c35e9dd754c05145910fdec8f6660fe, type: 2}
+  m_Motion: {fileID: 8993902097722301239, guid: be9bd7b831c3bc8438e6fffc7dd8635a, type: 3}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -153,7 +153,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: 5adec2fa217b06e408162f62f329317c, type: 2}
+  m_Motion: {fileID: 8993902097722301239, guid: be9bd7b831c3bc8438e6fffc7dd8635a, type: 3}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -263,7 +263,7 @@ AnimatorController:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: NPC
+  m_Name: MetaHuman
   serializedVersion: 6
   m_AnimatorParameters:
   - m_Name: Walking
@@ -372,7 +372,7 @@ BlendTree:
   m_Name: Blend Tree
   m_Childs:
   - serializedVersion: 2
-    m_Motion: {fileID: 7400000, guid: 5243747991996104ca3fe5589dd9bb59, type: 2}
+    m_Motion: {fileID: 7400000, guid: e8173b4f359243148b780e531d3d80c5, type: 2}
     m_Threshold: 0
     m_Position: {x: 0, y: 0}
     m_TimeScale: 1
@@ -521,7 +521,7 @@ BlendTree:
   m_Name: Blend Tree
   m_Childs:
   - serializedVersion: 2
-    m_Motion: {fileID: 7400000, guid: 5243747991996104ca3fe5589dd9bb59, type: 2}
+    m_Motion: {fileID: 7400000, guid: e8173b4f359243148b780e531d3d80c5, type: 2}
     m_Threshold: 0
     m_Position: {x: 0, y: 0}
     m_TimeScale: 1
