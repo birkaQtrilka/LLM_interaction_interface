@@ -42363,12 +42363,12 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1410887226}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5625d577598b0c64b818c580f45871c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GrabTest
-  npc: {fileID: 0}
+  npc: {fileID: 1979109265}
   targetName: phone
   animationLibrary: {fileID: 2033616363}
   agentSystem: {fileID: 967212466}
@@ -42948,11 +42948,12 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1428820118}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6e285b68e3f53884abf99cd6a430d842, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AnimationQueueTest
+  testName: 1
   animationLibrary: {fileID: 2033616363}
   AgentSystem: {fileID: 967212466}
 --- !u!4 &1428820120
@@ -56089,6 +56090,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 316466657384447840, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_Radius
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 316466657384447840, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_StoppingDistance
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 316466657384447840, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_AutoTraverseOffMeshLink
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -56128,6 +56141,10 @@ PrefabInstance:
     - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6820787046503737912, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_Radius
+      value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 7143666008480823539, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: m_Name
