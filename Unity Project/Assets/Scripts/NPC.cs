@@ -7,6 +7,7 @@ public class NPC : MonoBehaviour
 {
     [field: SerializeField] public Transform RightHand { get; private set; }
     [field: SerializeField] public Transform LeftHand { get; private set; }
+    [field: SerializeField] public Transform Head { get; private set; }
     [field: SerializeField] public NavMeshAgent Nav { get; private set; }
     [field: SerializeField] public GrabReceiver GrabReceiver { get; private set; }
     [field: SerializeField] public Animator Anim { get; private set; }

@@ -45,7 +45,6 @@ public class GrabIK : MonoBehaviour
 
     private void Awake()
     {
-        // Measure total arm length
         armLength = Vector3.Distance(upperArm.position, forearm.position)
                   + Vector3.Distance(forearm.position, hand.position);
 

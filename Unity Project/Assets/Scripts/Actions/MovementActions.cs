@@ -9,26 +9,95 @@ static class MovementActions
 
     public static AnimAction Build(NPC agent, Vector3 pos, ActionData action)
     {
+        const float maxSightDistance = 6f;     // how far the agent can notice the item
+        const float checkInterval = 0.1f;      // seconds between raycasts
+        const float itemTolerance = 0.5f;      // a hit this close to pos counts as hitting the item
+        LayerMask sightMask = Physics.DefaultRaycastLayers; // set this to your obstruction layers
+
+        Coroutine lookRoutine = null;
+
+        void startLookAt()
+        {
+            if (lookRoutine != null) return;
+            lookRoutine = agent.StartCoroutine(LookAt(agent, pos));
+        }
+
+        void stopLookAt()
+        {
+            if (lookRoutine == null) return;
+            agent.StopCoroutine(lookRoutine);
+            lookRoutine = null;
+            StopLookAt(agent); // your graceful blend out
+        }
+
+        bool canSeeItem()
+        {
+            Vector3 origin = agent.Head.position;
+            Vector3 toItem = pos - origin;
+            float dist = toItem.magnitude;
+
+            if (dist > maxSightDistance) return false;
+            if (dist < 0.01f) return true;
+
+            if (Physics.Raycast(origin, toItem / dist, out RaycastHit hit, dist, sightMask, QueryTriggerInteraction.Ignore))
+            {
+                // Something was hit before reaching pos. Only counts as visible if it is basically the item itself
+                return hit.distance + itemTolerance >= dist;
+            }
+            return true;
+        }
+
+        IEnumerator watchForItem()
+        {
+            var wait = new WaitForSeconds(checkInterval);
+            while (true)
+            {
+                if (canSeeItem()) startLookAt();
+                else stopLookAt();
+                yield return wait;
+            }
+        }
+
         void start()
         {
             agent.Anim.SetBool("Walking", true);
             agent.Nav.SetDestination(Reserve(agent, pos, agent.Nav.radius + .2f));
         }
+
         IEnumerator behavior()
         {
+            Coroutine watcher = agent.StartCoroutine(watchForItem());
+
             yield return agent.StartCoroutine(Utils.MonitorMovement(agent.Nav));
-            agent.Anim.SetBool("Walking", false);
-            agent.Nav.ResetPath();
-            Release(agent);
-            agent.Nav.isStopped = false;
+
             yield return agent.StartCoroutine(TurnTowards(agent.transform, pos));
+            agent.StopCoroutine(watcher);
         }
+
         void end()
         {
-
+            Release(agent);
+            stopLookAt(); // covers the case where the action is interrupted mid walk
+            agent.Anim.SetBool("Walking", false);
+            agent.Nav.ResetPath();
+            agent.Nav.isStopped = false;
         }
 
         return new AnimAction(action, start, behavior(), end);
+    }
+
+    // Placeholders for your existing logic
+    static IEnumerator LookAt(NPC agent, Vector3 target)
+    {
+        // your look at logic here
+        LookAtIK lookAnim = agent.GetComponentInChildren<LookAtIK>();
+        yield return agent.StartCoroutine(lookAnim.LookAt(target));
+    }
+
+    static void StopLookAt(NPC agent)
+    {
+        LookAtIK lookAnim = agent.GetComponentInChildren<LookAtIK>();
+        agent.StartCoroutine(lookAnim.StopLooking());
     }
 
     static IEnumerator TurnTowards(Transform t, Vector3 target, float smoothing = 6f)
