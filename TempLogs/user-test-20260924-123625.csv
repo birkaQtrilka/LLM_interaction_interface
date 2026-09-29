@@ -1,0 +1,87 @@
+timestamp,user_message,backend_response
+"2026-09-24T12:36:35.7122501+02:00","place the phone and the brick on top of the table","{
+    ""getSpots"": false,
+    ""getObjects"": true,
+    ""objectFlags"": {
+        ""position"": true,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": true,
+        ""neighbours"": true
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 458,
+    ""completion_tokens"": 83
+}"
+"2026-09-24T12:36:39.3131436+02:00","place the phone and the brick on top of the table","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""moveTo"",
+            ""parameters"": [
+                ""phone""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 1,
+            ""name"": ""talk"",
+            ""parameters"": [
+                ""I cannot place the phone because it is not grabbable.""
+            ],
+            ""runAfter"": [
+                0
+            ],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 2,
+            ""name"": ""moveTo"",
+            ""parameters"": [
+                ""Brick""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 3,
+            ""name"": ""grab"",
+            ""parameters"": [
+                ""Brick""
+            ],
+            ""runAfter"": [
+                2
+            ],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 4,
+            ""name"": ""moveTo"",
+            ""parameters"": [
+                ""Table""
+            ],
+            ""runAfter"": [
+                3
+            ],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 5,
+            ""name"": ""place"",
+            ""parameters"": [
+                ""Table""
+            ],
+            ""runAfter"": [
+                4
+            ],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 2091,
+    ""completion_tokens"": 308
+}"

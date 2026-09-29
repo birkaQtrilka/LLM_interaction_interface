@@ -1,0 +1,100 @@
+timestamp,user_message,backend_response
+"2026-09-24T12:27:28.3009403+02:00","hi","{
+    ""getSpots"": false,
+    ""getObjects"": false,
+    ""objectFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": false,
+        ""neighbours"": false
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 448,
+    ""completion_tokens"": 83
+}"
+"2026-09-24T12:27:29.6423009+02:00","hi","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""talk"",
+            ""parameters"": [
+                ""Hello! How can I assist you today?""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1598,
+    ""completion_tokens"": 63
+}"
+"2026-09-24T12:27:32.0268210+02:00","hi","{
+    ""getSpots"": false,
+    ""getObjects"": false,
+    ""objectFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": false,
+        ""neighbours"": false
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 448,
+    ""completion_tokens"": 83
+}"
+"2026-09-24T12:27:33.5715114+02:00","hi","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""talk"",
+            ""parameters"": [
+                ""hello! How can I assist you today?""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1609,
+    ""completion_tokens"": 63
+}"
+"2026-09-24T12:27:41.1937769+02:00","im good and you?","{
+    ""getSpots"": false,
+    ""getObjects"": false,
+    ""objectFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": false,
+        ""neighbours"": false
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 452,
+    ""completion_tokens"": 83
+}"
+"2026-09-24T12:27:42.2653242+02:00","im good and you?","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""talk"",
+            ""parameters"": [
+                ""I'm good, thank you!""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1616,
+    ""completion_tokens"": 60
+}"

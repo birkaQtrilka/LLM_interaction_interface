@@ -1,0 +1,19 @@
+timestamp,user_message,backend_response
+"2026-09-24T12:21:40.8186009+02:00","hi","{
+    ""getSpots"": false,
+    ""getObjects"": false,
+    ""objectFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": false,
+        ""neighbours"": false
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 448,
+    ""completion_tokens"": 83
+}"

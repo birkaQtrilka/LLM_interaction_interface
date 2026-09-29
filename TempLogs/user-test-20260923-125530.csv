@@ -1,0 +1,16 @@
+timestamp,user_message,backend_response
+"2026-09-23T12:55:33.2159233+02:00","Fly off into space ang give me a rock","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""talk"",
+            ""parameters"": [
+                ""I cannot fly off into space or give you a rock.""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1644,
+    ""completion_tokens"": 59
+}"

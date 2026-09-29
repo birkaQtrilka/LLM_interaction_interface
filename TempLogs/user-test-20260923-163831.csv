@@ -1,0 +1,117 @@
+timestamp,user_message,backend_response
+"2026-09-23T16:38:35.3534533+02:00","place the phone and the brick on top of the table using both npcs","{
+    ""getSpots"": false,
+    ""getObjects"": true,
+    ""objectFlags"": {
+        ""position"": true,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": true,
+        ""neighbours"": true
+    },
+    ""userFlags"": {
+        ""position"": true,
+        ""rotation"": false,
+        ""neighbours"": true
+    },
+    ""prompt_tokens"": 462,
+    ""completion_tokens"": 83
+}"
+"2026-09-23T16:38:38.7623272+02:00","place the phone and the brick on top of the table using both npcs","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""moveTo"",
+            ""agent"": ""NPC1"",
+            ""parameters"": [
+                ""phone""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 1,
+            ""name"": ""grab"",
+            ""agent"": ""NPC1"",
+            ""parameters"": [
+                ""phone""
+            ],
+            ""runAfter"": [
+                0
+            ],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 2,
+            ""name"": ""moveTo"",
+            ""agent"": ""NPC1"",
+            ""parameters"": [
+                ""Table""
+            ],
+            ""runAfter"": [
+                1
+            ],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 3,
+            ""name"": ""place"",
+            ""agent"": ""NPC1"",
+            ""parameters"": [
+                ""Table""
+            ],
+            ""runAfter"": [
+                2
+            ],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 4,
+            ""name"": ""moveTo"",
+            ""agent"": ""NPC2"",
+            ""parameters"": [
+                ""Brick""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 5,
+            ""name"": ""grab"",
+            ""agent"": ""NPC2"",
+            ""parameters"": [
+                ""Brick""
+            ],
+            ""runAfter"": [
+                4
+            ],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 6,
+            ""name"": ""moveTo"",
+            ""agent"": ""NPC2"",
+            ""parameters"": [
+                ""Table""
+            ],
+            ""runAfter"": [
+                5
+            ],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 7,
+            ""name"": ""place"",
+            ""agent"": ""NPC2"",
+            ""parameters"": [
+                ""Table""
+            ],
+            ""runAfter"": [
+                6
+            ],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 2180,
+    ""completion_tokens"": 401
+}"

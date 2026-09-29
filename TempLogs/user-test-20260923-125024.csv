@@ -1,0 +1,46 @@
+timestamp,user_message,backend_response
+"2026-09-23T12:50:27.6273155+02:00","hi","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""talk"",
+            ""parameters"": [
+                ""Hello! How can I assist you today?""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1636,
+    ""completion_tokens"": 56
+}"
+"2026-09-23T12:50:29.9507180+02:00","hi","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""talk"",
+            ""parameters"": [
+                ""Hi! How can I help you today?""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1636,
+    ""completion_tokens"": 56
+}"
+"2026-09-23T12:50:38.4273423+02:00","hi, how are you?","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""talk"",
+            ""parameters"": [
+                ""I'm just a program, but I'm here to assist you!""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1641,
+    ""completion_tokens"": 59
+}"

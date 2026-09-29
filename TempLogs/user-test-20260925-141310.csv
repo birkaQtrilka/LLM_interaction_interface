@@ -1,0 +1,35 @@
+timestamp,user_message,backend_response
+"2026-09-25T14:13:15.9161293+02:00","dddd","{
+    ""getSpots"": false,
+    ""getObjects"": false,
+    ""objectFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": false,
+        ""neighbours"": false
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 448,
+    ""completion_tokens"": 83
+}"
+"2026-09-25T14:13:17.0096462+02:00","dddd","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""talk"",
+            ""agent"": ""NPC1"",
+            ""parameters"": [
+                ""I'm unable to process the request.""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1770,
+    ""completion_tokens"": 62
+}"

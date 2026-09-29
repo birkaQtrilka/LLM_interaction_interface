@@ -1,0 +1,119 @@
+timestamp,user_message,backend_response
+"2026-09-29T14:50:52.9514230+02:00","Move to spotA then to SpotB and say what you are doing at each step","{
+    ""getSpots"": true,
+    ""getObjects"": false,
+    ""objectFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": false,
+        ""neighbours"": false
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 464,
+    ""completion_tokens"": 83
+}"
+"2026-09-29T14:50:55.3754314+02:00","Move to spotA then to SpotB and say what you are doing at each step","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""moveTo"",
+            ""agent"": ""NPC"",
+            ""parameters"": [
+                ""SpotA""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 1,
+            ""name"": ""talk"",
+            ""agent"": ""NPC"",
+            ""parameters"": [
+                ""I am moving to SpotA.""
+            ],
+            ""runAfter"": [
+                0
+            ],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 2,
+            ""name"": ""moveTo"",
+            ""agent"": ""NPC"",
+            ""parameters"": [
+                ""SpotB""
+            ],
+            ""runAfter"": [
+                1
+            ],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 3,
+            ""name"": ""talk"",
+            ""agent"": ""NPC"",
+            ""parameters"": [
+                ""I am moving to SpotB.""
+            ],
+            ""runAfter"": [
+                2
+            ],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1775,
+    ""completion_tokens"": 215
+}"
+"2026-09-29T14:51:24.0467124+02:00","Move to the middle point between SpotA and SpotB","{
+    ""getSpots"": true,
+    ""getObjects"": false,
+    ""objectFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": false,
+        ""neighbours"": false
+    },
+    ""userFlags"": {
+        ""position"": true,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 458,
+    ""completion_tokens"": 83
+}"
+"2026-09-29T14:51:25.5665678+02:00","Move to the middle point between SpotA and SpotB","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""moveToPoint"",
+            ""agent"": ""NPC"",
+            ""parameters"": [
+                ""7.0"",
+                ""0.93"",
+                ""-7.69""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 1,
+            ""name"": ""talk"",
+            ""agent"": ""NPC"",
+            ""parameters"": [
+                ""I am moving to the middle point between SpotA and SpotB.""
+            ],
+            ""runAfter"": [
+                0
+            ],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1796,
+    ""completion_tokens"": 130
+}"

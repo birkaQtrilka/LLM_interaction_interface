@@ -1,0 +1,70 @@
+timestamp,user_message,backend_response
+"2026-09-23T14:32:32.3320405+02:00","Move towards the closest spot to you","{
+    ""getSpots"": true,
+    ""getObjects"": false,
+    ""objectFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": false,
+        ""neighbours"": false
+    },
+    ""userFlags"": {
+        ""position"": true,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 454,
+    ""completion_tokens"": 83
+}"
+"2026-09-23T14:32:33.4571349+02:00","Move towards the closest spot to you","{
+    ""actions"": [],
+    ""prompt_tokens"": 1598,
+    ""completion_tokens"": 7
+}"
+"2026-09-23T14:32:53.8423909+02:00","Move NPC towards the closest spot to you","{
+    ""getSpots"": true,
+    ""getObjects"": false,
+    ""objectFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": false,
+        ""neighbours"": false
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 455,
+    ""completion_tokens"": 83
+}"
+"2026-09-23T14:32:54.4477556+02:00","Move NPC towards the closest spot to you","{
+    ""actions"": [],
+    ""prompt_tokens"": 1616,
+    ""completion_tokens"": 7
+}"
+"2026-09-23T14:33:25.5088414+02:00","Move NPC towards the closest spot to them","{
+    ""getSpots"": true,
+    ""getObjects"": false,
+    ""objectFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": false,
+        ""neighbours"": false
+    },
+    ""userFlags"": {
+        ""position"": true,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 455,
+    ""completion_tokens"": 83
+}"
+"2026-09-23T14:33:26.4603671+02:00","Move NPC towards the closest spot to them","{
+    ""actions"": [],
+    ""prompt_tokens"": 1626,
+    ""completion_tokens"": 7
+}"

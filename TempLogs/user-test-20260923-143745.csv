@@ -1,0 +1,93 @@
+timestamp,user_message,backend_response
+"2026-09-23T14:37:50.4173932+02:00","place the phone and the brick on top of the table","{
+    ""getSpots"": false,
+    ""getObjects"": true,
+    ""objectFlags"": {
+        ""position"": true,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": true,
+        ""neighbours"": true
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 458,
+    ""completion_tokens"": 83
+}"
+"2026-09-23T14:37:53.4841941+02:00","place the phone and the brick on top of the table","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""moveTo"",
+            ""agent"": """",
+            ""parameters"": [
+                ""phone""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 1,
+            ""name"": ""talk"",
+            ""agent"": """",
+            ""parameters"": [
+                ""I cannot grab the phone because it is not grabbable.""
+            ],
+            ""runAfter"": [
+                0
+            ],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 2,
+            ""name"": ""moveTo"",
+            ""agent"": """",
+            ""parameters"": [
+                ""Brick""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 3,
+            ""name"": ""grab"",
+            ""agent"": """",
+            ""parameters"": [
+                ""Brick""
+            ],
+            ""runAfter"": [
+                2
+            ],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 4,
+            ""name"": ""moveTo"",
+            ""agent"": """",
+            ""parameters"": [
+                ""Table""
+            ],
+            ""runAfter"": [
+                3
+            ],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 5,
+            ""name"": ""place"",
+            ""agent"": """",
+            ""parameters"": [
+                ""Table""
+            ],
+            ""runAfter"": [
+                4
+            ],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 2093,
+    ""completion_tokens"": 320
+}"

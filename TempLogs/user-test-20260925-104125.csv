@@ -1,0 +1,71 @@
+timestamp,user_message,backend_response
+"2026-09-25T10:41:33.5447690+02:00","NPC1 give the phone to NPC2","{
+    ""getSpots"": false,
+    ""getObjects"": true,
+    ""objectFlags"": {
+        ""position"": true,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": false,
+        ""neighbours"": false
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": true
+    },
+    ""prompt_tokens"": 455,
+    ""completion_tokens"": 83
+}"
+"2026-09-25T10:41:35.5897786+02:00","NPC1 give the phone to NPC2","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""moveTo"",
+            ""agent"": ""NPC1"",
+            ""parameters"": [
+                ""phone""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 1,
+            ""name"": ""grab"",
+            ""agent"": ""NPC1"",
+            ""parameters"": [
+                ""phone""
+            ],
+            ""runAfter"": [
+                0
+            ],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 2,
+            ""name"": ""moveTo"",
+            ""agent"": ""NPC1"",
+            ""parameters"": [
+                ""NPC2""
+            ],
+            ""runAfter"": [
+                1
+            ],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 3,
+            ""name"": ""give"",
+            ""agent"": ""NPC1"",
+            ""parameters"": [
+                ""NPC2""
+            ],
+            ""runAfter"": [
+                2
+            ],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1977,
+    ""completion_tokens"": 213
+}"

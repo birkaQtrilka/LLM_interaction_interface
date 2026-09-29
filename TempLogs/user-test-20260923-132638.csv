@@ -1,0 +1,111 @@
+timestamp,user_message,backend_response
+"2026-09-23T13:26:43.9819096+02:00","place all the items scattered around on top of the drawer","{
+    ""getSpots"": false,
+    ""getObjects"": true,
+    ""objectFlags"": {
+        ""position"": true,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": true,
+        ""neighbours"": true
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 456,
+    ""completion_tokens"": 83
+}"
+"2026-09-23T13:26:47.1525915+02:00","place all the items scattered around on top of the drawer","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""moveTo"",
+            ""parameters"": [
+                ""Brick""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 1,
+            ""name"": ""grab"",
+            ""parameters"": [
+                ""Brick""
+            ],
+            ""runAfter"": [
+                0
+            ],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 2,
+            ""name"": ""moveTo"",
+            ""parameters"": [
+                ""Drawer""
+            ],
+            ""runAfter"": [
+                1
+            ],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 3,
+            ""name"": ""place"",
+            ""parameters"": [
+                ""Drawer""
+            ],
+            ""runAfter"": [
+                2
+            ],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 4,
+            ""name"": ""moveTo"",
+            ""parameters"": [
+                ""phone""
+            ],
+            ""runAfter"": [
+                3
+            ],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 5,
+            ""name"": ""grab"",
+            ""parameters"": [
+                ""phone""
+            ],
+            ""runAfter"": [
+                4
+            ],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 6,
+            ""name"": ""moveTo"",
+            ""parameters"": [
+                ""Drawer""
+            ],
+            ""runAfter"": [
+                5
+            ],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 7,
+            ""name"": ""place"",
+            ""parameters"": [
+                ""Drawer""
+            ],
+            ""runAfter"": [
+                6
+            ],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1511,
+    ""completion_tokens"": 339
+}"

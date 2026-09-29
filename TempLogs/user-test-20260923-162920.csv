@@ -1,0 +1,71 @@
+timestamp,user_message,backend_response
+"2026-09-23T16:29:29.6576369+02:00","Move NPC2 towards the closest spot to them","{
+    ""getSpots"": true,
+    ""getObjects"": false,
+    ""objectFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": false,
+        ""neighbours"": false
+    },
+    ""userFlags"": {
+        ""position"": true,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 456,
+    ""completion_tokens"": 83
+}"
+"2026-09-23T16:29:30.8843693+02:00","Move NPC2 towards the closest spot to them","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""moveTo"",
+            ""agent"": ""NPC2"",
+            ""parameters"": [
+                ""SpotA""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1765,
+    ""completion_tokens"": 58
+}"
+"2026-09-23T16:29:47.6551830+02:00","Move NPC2 towards the farthest spot to them","{
+    ""getSpots"": true,
+    ""getObjects"": false,
+    ""objectFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": false,
+        ""neighbours"": false
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 457,
+    ""completion_tokens"": 83
+}"
+"2026-09-23T16:29:48.8413033+02:00","Move NPC2 towards the farthest spot to them","{
+    ""actions"": [
+        {
+            ""id"": 1,
+            ""name"": ""moveTo"",
+            ""agent"": ""NPC2"",
+            ""parameters"": [
+                ""SpotB""
+            ],
+            ""runAfter"": [
+                0
+            ],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1817,
+    ""completion_tokens"": 60
+}"

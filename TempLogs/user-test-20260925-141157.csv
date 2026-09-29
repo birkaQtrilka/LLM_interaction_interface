@@ -1,0 +1,68 @@
+timestamp,user_message,backend_response
+"2026-09-25T14:12:00.9836814+02:00","af","{
+    ""getSpots"": false,
+    ""getObjects"": false,
+    ""objectFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": false,
+        ""neighbours"": false
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 448,
+    ""completion_tokens"": 83
+}"
+"2026-09-25T14:12:02.5539329+02:00","af","{
+    ""actions"": [],
+    ""prompt_tokens"": 1769,
+    ""completion_tokens"": 7
+}"
+"2026-09-25T14:12:06.5872497+02:00","tgtt","{
+    ""getSpots"": false,
+    ""getObjects"": false,
+    ""objectFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": false,
+        ""neighbours"": false
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 449,
+    ""completion_tokens"": 83
+}"
+"2026-09-25T14:12:08.0099302+02:00","tgtt","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""talk"",
+            ""agent"": ""NPC1"",
+            ""parameters"": [
+                ""af""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 1,
+            ""name"": ""talk"",
+            ""agent"": ""NPC2"",
+            ""parameters"": [
+                ""af""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1781,
+    ""completion_tokens"": 103
+}"

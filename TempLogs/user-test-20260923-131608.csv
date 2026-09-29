@@ -1,0 +1,91 @@
+timestamp,user_message,backend_response
+"2026-09-23T13:16:12.3357609+02:00","Go and grab the phone","{
+    ""getSpots"": false,
+    ""getObjects"": true,
+    ""objectFlags"": {
+        ""position"": true,
+        ""rotation"": false,
+        ""description"": true,
+        ""bounds"": false,
+        ""neighbours"": false
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 450,
+    ""completion_tokens"": 83
+}"
+"2026-09-23T13:16:14.1353444+02:00","Go and grab the phone","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""moveToPoint"",
+            ""parameters"": [
+                ""0.46"",
+                ""0.24"",
+                ""2.22""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 1,
+            ""name"": ""grab"",
+            ""parameters"": [
+                ""phone""
+            ],
+            ""runAfter"": [
+                0
+            ],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1191,
+    ""completion_tokens"": 103
+}"
+"2026-09-23T13:16:32.7582549+02:00","Place the item on the closest object","{
+    ""getSpots"": false,
+    ""getObjects"": true,
+    ""objectFlags"": {
+        ""position"": true,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": true,
+        ""neighbours"": true
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": true
+    },
+    ""prompt_tokens"": 452,
+    ""completion_tokens"": 83
+}"
+"2026-09-23T13:16:34.3518844+02:00","Place the item on the closest object","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""moveTo"",
+            ""parameters"": [
+                ""Chair""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 1,
+            ""name"": ""place"",
+            ""parameters"": [
+                ""Chair""
+            ],
+            ""runAfter"": [
+                0
+            ],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1492,
+    ""completion_tokens"": 92
+}"

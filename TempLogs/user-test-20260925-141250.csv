@@ -1,0 +1,45 @@
+timestamp,user_message,backend_response
+"2026-09-25T14:12:53.9031206+02:00","dd","{
+    ""getSpots"": false,
+    ""getObjects"": false,
+    ""objectFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": false,
+        ""neighbours"": false
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 448,
+    ""completion_tokens"": 83
+}"
+"2026-09-25T14:12:55.2077432+02:00","dd","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""talk"",
+            ""agent"": ""NPC1"",
+            ""parameters"": [
+                ""I'm not sure what to do with 'dd'.""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 1,
+            ""name"": ""talk"",
+            ""agent"": ""NPC2"",
+            ""parameters"": [
+                ""Could you clarify what 'dd' means?""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1769,
+    ""completion_tokens"": 121
+}"

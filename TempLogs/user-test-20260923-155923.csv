@@ -1,0 +1,69 @@
+timestamp,user_message,backend_response
+"2026-09-23T15:59:29.0159543+02:00","Move towards the closest spot to you","{
+    ""getSpots"": true,
+    ""getObjects"": false,
+    ""objectFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": false,
+        ""neighbours"": false
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 454,
+    ""completion_tokens"": 83
+}"
+"2026-09-23T15:59:30.8105031+02:00","Move towards the closest spot to you","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""moveTo"",
+            ""agent"": """",
+            ""parameters"": [
+                ""SpotA""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1680,
+    ""completion_tokens"": 58
+}"
+"2026-09-23T16:02:26.0951657+02:00","Move towards the closest spot to you","{
+    ""getSpots"": true,
+    ""getObjects"": false,
+    ""objectFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": false,
+        ""neighbours"": false
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 454,
+    ""completion_tokens"": 83
+}"
+"2026-09-23T16:05:43.2477777+02:00","Move towards the closest spot to you","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""moveTo"",
+            ""agent"": """",
+            ""parameters"": [
+                ""SpotA""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1680,
+    ""completion_tokens"": 58
+}"

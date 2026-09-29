@@ -17,20 +17,21 @@ static class MovementActions
         IEnumerator behavior()
         {
             yield return agent.StartCoroutine(Utils.MonitorMovement(agent.Nav));
+            agent.Anim.SetBool("Walking", false);
+            agent.Nav.ResetPath();
+            Release(agent);
+            agent.Nav.isStopped = false;
             yield return agent.StartCoroutine(TurnTowards(agent.transform, pos));
         }
         void end()
         {
-            Release(agent);
-            agent.Anim.SetBool("Walking", false);
-            agent.Nav.ResetPath();
-            agent.Nav.isStopped = false;
+
         }
 
         return new AnimAction(action, start, behavior(), end);
     }
 
-    static IEnumerator TurnTowards(Transform t, Vector3 target, float smoothing = 3f)
+    static IEnumerator TurnTowards(Transform t, Vector3 target, float smoothing = 6f)
     {
         // Local space offset avoids needing a subtraction, then flatten so only Y rotates
         Vector3 local = t.InverseTransformPoint(target);
@@ -42,7 +43,7 @@ static class MovementActions
 
         while (Quaternion.Angle(t.rotation, goal) > 0.5f)
         {
-            t.rotation = Quaternion.Slerp(t.rotation, goal, Time.deltaTime * smoothing);
+            t.rotation = Quaternion.Lerp(t.rotation, goal, Time.deltaTime * smoothing);
             yield return null;
         }
         t.rotation = goal;

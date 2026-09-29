@@ -1,0 +1,254 @@
+timestamp,user_message,backend_response
+"2026-09-23T13:01:02.9856497+02:00","Go and grab the phone","{
+    ""getSpots"": false,
+    ""getObjects"": true,
+    ""objectFlags"": {
+        ""position"": true,
+        ""rotation"": false,
+        ""description"": true,
+        ""bounds"": false,
+        ""neighbours"": false
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 449,
+    ""completion_tokens"": 83
+}"
+"2026-09-23T13:01:04.6172441+02:00","Go and grab the phone","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""moveTo"",
+            ""parameters"": [
+                ""phone""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 1,
+            ""name"": ""grab"",
+            ""parameters"": [
+                ""phone""
+            ],
+            ""runAfter"": [
+                0
+            ],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1155,
+    ""completion_tokens"": 90
+}"
+"2026-09-23T13:01:14.7113551+02:00","Place the item the closest object","{
+    ""getSpots"": false,
+    ""getObjects"": true,
+    ""objectFlags"": {
+        ""position"": true,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": false,
+        ""neighbours"": true
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 450,
+    ""completion_tokens"": 83
+}"
+"2026-09-23T13:01:16.4738896+02:00","Place the item the closest object","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""talk"",
+            ""parameters"": [
+                ""I cannot place the phone, as I am currently holding it.""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1203,
+    ""completion_tokens"": 59
+}"
+"2026-09-23T13:01:24.1727933+02:00","Place the item  you grabbed on the closest object","{
+    ""getSpots"": false,
+    ""getObjects"": true,
+    ""objectFlags"": {
+        ""position"": true,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": true,
+        ""neighbours"": true
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": true
+    },
+    ""prompt_tokens"": 454,
+    ""completion_tokens"": 83
+}"
+"2026-09-23T13:01:25.4181227+02:00","Place the item  you grabbed on the closest object","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""talk"",
+            ""parameters"": [
+                ""I cannot place the phone since it is currently in my right hand.""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1467,
+    ""completion_tokens"": 61
+}"
+"2026-09-23T13:02:01.0908421+02:00","Place the item  from your hand on the closest object","{
+    ""getSpots"": false,
+    ""getObjects"": true,
+    ""objectFlags"": {
+        ""position"": true,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": true,
+        ""neighbours"": true
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 455,
+    ""completion_tokens"": 83
+}"
+"2026-09-23T13:02:02.1426406+02:00","Place the item  from your hand on the closest object","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""place"",
+            ""parameters"": [
+                ""Chair""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1480,
+    ""completion_tokens"": 48
+}"
+"2026-09-23T13:02:22.3346357+02:00","now grab it again","{
+    ""getSpots"": false,
+    ""getObjects"": true,
+    ""objectFlags"": {
+        ""position"": true,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": false,
+        ""neighbours"": false
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 448,
+    ""completion_tokens"": 83
+}"
+"2026-09-23T13:02:23.8235237+02:00","now grab it again","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""moveTo"",
+            ""parameters"": [
+                ""phone""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 1,
+            ""name"": ""grab"",
+            ""parameters"": [
+                ""phone""
+            ],
+            ""runAfter"": [
+                0
+            ],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1202,
+    ""completion_tokens"": 90
+}"
+"2026-09-23T13:02:36.7746867+02:00","now place it on the farthest object","{
+    ""getSpots"": false,
+    ""getObjects"": true,
+    ""objectFlags"": {
+        ""position"": true,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": true,
+        ""neighbours"": true
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 452,
+    ""completion_tokens"": 83
+}"
+"2026-09-23T13:02:37.7302474+02:00","now place it on the farthest object","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""talk"",
+            ""parameters"": [
+                ""I cannot place the phone because I am currently holding it.""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1496,
+    ""completion_tokens"": 44
+}"
+"2026-09-23T13:02:57.1945605+02:00","place the phone you're holding on the farthest object","{
+    ""getSpots"": false,
+    ""getObjects"": true,
+    ""objectFlags"": {
+        ""position"": true,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": false,
+        ""neighbours"": true
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 454,
+    ""completion_tokens"": 83
+}"
+"2026-09-23T13:02:58.7805451+02:00","place the phone you're holding on the farthest object","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""talk"",
+            ""parameters"": [
+                ""I cannot place the phone as I already have it in my right hand.""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1256,
+    ""completion_tokens"": 62
+}"

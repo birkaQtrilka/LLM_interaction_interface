@@ -332,8 +332,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 663317180}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.014422702, y: 0.97025996, z: 0.059427336, w: -0.23421344}
-  m_LocalPosition: {x: 17.789318, y: 1.415129, z: 19.108053}
+  m_LocalRotation: {x: 0.003457686, y: -0.97046435, z: 0.013368566, w: 0.2408493}
+  m_LocalPosition: {x: 18.288338, y: 1.0659142, z: 21.069891}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -431,9 +431,61 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3895167069603121484, guid: 44c2cc357be4036498801b5739548bd5, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.75497174
+      objectReference: {fileID: 0}
+    - target: {fileID: 3895167069603121484, guid: 44c2cc357be4036498801b5739548bd5, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.33714524
+      objectReference: {fileID: 0}
+    - target: {fileID: 5961954856163709097, guid: 44c2cc357be4036498801b5739548bd5, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.6379221
+      objectReference: {fileID: 0}
+    - target: {fileID: 5961954856163709097, guid: 44c2cc357be4036498801b5739548bd5, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.0070363344
+      objectReference: {fileID: 0}
+    - target: {fileID: 6203905247923734027, guid: 44c2cc357be4036498801b5739548bd5, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.72789925
+      objectReference: {fileID: 0}
+    - target: {fileID: 6203905247923734027, guid: 44c2cc357be4036498801b5739548bd5, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.020380832
+      objectReference: {fileID: 0}
+    - target: {fileID: 7449743560700912631, guid: 44c2cc357be4036498801b5739548bd5, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: e119ce2641d181e498bdc7a7ad804b92, type: 2}
+    - target: {fileID: 7807629412851153114, guid: 44c2cc357be4036498801b5739548bd5, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.026038185
+      objectReference: {fileID: 0}
+    - target: {fileID: 7807629412851153114, guid: 44c2cc357be4036498801b5739548bd5, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.011170431
+      objectReference: {fileID: 0}
     - target: {fileID: 8200959794472111100, guid: 44c2cc357be4036498801b5739548bd5, type: 3}
       propertyPath: m_Name
       value: AnneFleur
+      objectReference: {fileID: 0}
+    - target: {fileID: 8594475818526538908, guid: 44c2cc357be4036498801b5739548bd5, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.63792205
+      objectReference: {fileID: 0}
+    - target: {fileID: 8594475818526538908, guid: 44c2cc357be4036498801b5739548bd5, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.7696462
+      objectReference: {fileID: 0}
+    - target: {fileID: 8594475818526538908, guid: 44c2cc357be4036498801b5739548bd5, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.007036349
+      objectReference: {fileID: 0}
+    - target: {fileID: 8594475818526538908, guid: 44c2cc357be4036498801b5739548bd5, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.025508268
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

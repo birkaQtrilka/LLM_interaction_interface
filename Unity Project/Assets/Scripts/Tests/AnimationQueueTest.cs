@@ -2,10 +2,51 @@ using UnityEngine;
 
 public class AnimationQueueTest : MonoBehaviour
 {
+    [SerializeField] TestNames testName;
     [SerializeField] AnimationLibrary animationLibrary;
     [SerializeField] AgentSystem AgentSystem;
+    public enum TestNames
+    {
+        OrderTest,
+        GoGrabPhone,
+    }
 
     void Start()
+    {
+        switch (testName)
+        {
+            case TestNames.OrderTest:
+                OrderTest();
+                break;
+            case TestNames.GoGrabPhone:
+                GrabPhone();
+                break;
+        }
+    }
+
+    public void GrabPhone()
+    {
+        animationLibrary.PlayAnimation(AgentSystem, new ActionData
+        {
+            id = 1,
+            name = "moveTo",
+            agent = "NPC",
+            parameters = new string[] { "phone" },
+            runAfter = new int[] { },
+            delayBefore = 0
+        });
+        animationLibrary.PlayAnimation(AgentSystem, new ActionData
+        {
+            id = 2,
+            name = "grab",
+            agent = "NPC",
+            parameters = new string[] { "phone" },
+            runAfter = new int[1] { 1 },
+            delayBefore = 0
+        });
+    }
+
+    public void OrderTest()
     {
         animationLibrary.PlayAnimation(AgentSystem, new ActionData
         {
@@ -36,7 +77,7 @@ public class AnimationQueueTest : MonoBehaviour
             id = 4,
             name = "talk",
             parameters = new string[] { "I should be talking While going to Spot A" },
-            runAfter = new int[] {  },
+            runAfter = new int[] { },
             delayBefore = 0
         });
         animationLibrary.PlayAnimation(AgentSystem, new ActionData
@@ -64,5 +105,4 @@ public class AnimationQueueTest : MonoBehaviour
             delayBefore = 0
         });
     }
-
 }

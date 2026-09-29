@@ -1,0 +1,83 @@
+timestamp,user_message,backend_response
+"2026-09-25T13:17:56.3921820+02:00","move npc1 to furthest spot","{
+    ""getSpots"": true,
+    ""getObjects"": false,
+    ""objectFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""description"": false,
+        ""bounds"": false,
+        ""neighbours"": false
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 454,
+    ""completion_tokens"": 83
+}"
+"2026-09-25T13:17:57.7479265+02:00","move npc1 to furthest spot","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""moveTo"",
+            ""agent"": ""NPC1"",
+            ""parameters"": [
+                ""SpotC""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1849,
+    ""completion_tokens"": 58
+}"
+"2026-09-25T13:18:16.4257847+02:00","make npc1 grab phone","{
+    ""getSpots"": false,
+    ""getObjects"": true,
+    ""objectFlags"": {
+        ""position"": true,
+        ""rotation"": false,
+        ""description"": true,
+        ""bounds"": false,
+        ""neighbours"": false
+    },
+    ""userFlags"": {
+        ""position"": false,
+        ""rotation"": false,
+        ""neighbours"": false
+    },
+    ""prompt_tokens"": 452,
+    ""completion_tokens"": 83
+}"
+"2026-09-25T13:18:18.1048746+02:00","make npc1 grab phone","{
+    ""actions"": [
+        {
+            ""id"": 0,
+            ""name"": ""moveToPoint"",
+            ""agent"": ""NPC1"",
+            ""parameters"": [
+                ""0.46"",
+                ""0.24"",
+                ""2.22""
+            ],
+            ""runAfter"": [],
+            ""delayBefore"": 0.0
+        },
+        {
+            ""id"": 1,
+            ""name"": ""grab"",
+            ""agent"": ""NPC1"",
+            ""parameters"": [
+                ""phone""
+            ],
+            ""runAfter"": [
+                0
+            ],
+            ""delayBefore"": 0.0
+        }
+    ],
+    ""prompt_tokens"": 1991,
+    ""completion_tokens"": 119
+}"

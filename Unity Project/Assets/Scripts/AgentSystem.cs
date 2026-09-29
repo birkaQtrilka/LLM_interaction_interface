@@ -8,7 +8,6 @@ public class AgentSystem : MonoBehaviour
 {
     [SerializeField] LLMBackend llm;
     [SerializeField] AnimationLibrary animationLibrary;
-    [SerializeField] UserTestLogger logger;
     public bool sendAllContext = false;
     [field: SerializeField] public ContextLibrary contextLibrary { get; private set; }
     [field: SerializeField] public ChatManager chatManager { get; private set; }
@@ -104,13 +103,11 @@ public class AgentSystem : MonoBehaviour
                 string backendResponse = JsonUtility.ToJson(res.Response, true);
                 Debug.Log($"Backend context: {backendResponse}");
                 Debug.Log($"completion tokens: {res.Response.completion_tokens}\nprompt tokens: {res.Response.prompt_tokens}");
-                logger?.LogTurn(userPrompt, backendResponse);
             }
             else
             {
                 Debug.LogError($"Error getting context: {res.Error}");
                 AddChat($"System: Error getting context: {res.Error}");
-                logger?.LogTurn(userPrompt, res.Error);
             }
         }
     }
@@ -131,7 +128,6 @@ public class AgentSystem : MonoBehaviour
                 Debug.Log($"completion tokens: {res.Response.completion_tokens}\nprompt tokens: {res.Response.prompt_tokens}");
                 string backendJson = JsonUtility.ToJson(res.Response, true);
                 Debug.Log($"Backend actions: {backendJson}");
-                logger?.LogTurn(userPrompt, backendJson);
                 LastActions = res.Response;
                 ActionsSuccess(res.Response);
             }
@@ -139,7 +135,6 @@ public class AgentSystem : MonoBehaviour
             {
                 Debug.LogError($"Error getting context: {res.Error}");
                 AddChat("System: " + res.Error);
-                logger?.LogTurn(userPrompt, res.Error);
             }
         }
     }
