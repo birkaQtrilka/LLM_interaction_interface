@@ -21,6 +21,7 @@ public class Grab : IAgentAction
         void snapObjectToHand()
         {
             agent.GrabItem(item.transform, true);
+            agent.Anim.SetTrigger("Grab");
             grabbed.value = true;
         }
 
