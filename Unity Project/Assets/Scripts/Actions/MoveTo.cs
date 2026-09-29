@@ -1,4 +1,3 @@
-// MoveToAction.cs
 using UnityEngine;
 
 public class MoveTo : IAgentAction

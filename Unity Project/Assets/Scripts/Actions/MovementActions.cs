@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
@@ -13,7 +14,11 @@ static class MovementActions
             agent.Anim.SetBool("Walking", true);
             agent.Nav.SetDestination(Reserve(agent, pos, agent.Nav.radius + .2f));
         }
-
+        IEnumerator behavior()
+        {
+            yield return agent.StartCoroutine(Utils.MonitorMovement(agent.Nav));
+            yield return agent.StartCoroutine(TurnTowards(agent.transform, pos));
+        }
         void end()
         {
             Release(agent);
@@ -22,7 +27,25 @@ static class MovementActions
             agent.Nav.isStopped = false;
         }
 
-        return new AnimAction(action, start, Utils.MonitorMovement(agent.Nav), end);
+        return new AnimAction(action, start, behavior(), end);
+    }
+
+    static IEnumerator TurnTowards(Transform t, Vector3 target, float smoothing = 3f)
+    {
+        // Local space offset avoids needing a subtraction, then flatten so only Y rotates
+        Vector3 local = t.InverseTransformPoint(target);
+        local.y = 0f;
+        if (local.sqrMagnitude < 0.0001f) yield break;
+
+        Vector3 flatDir = t.TransformDirection(local);
+        Quaternion goal = Quaternion.LookRotation(flatDir, Vector3.up);
+
+        while (Quaternion.Angle(t.rotation, goal) > 0.5f)
+        {
+            t.rotation = Quaternion.Slerp(t.rotation, goal, Time.deltaTime * smoothing);
+            yield return null;
+        }
+        t.rotation = goal;
     }
 
     static Vector3 Reserve(NPC npc, Vector3 target, float spacing = 1f)

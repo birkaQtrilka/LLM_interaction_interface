@@ -6341,6 +6341,7 @@ GameObject:
   m_Component:
   - component: {fileID: 356619321}
   - component: {fileID: 356619320}
+  - component: {fileID: 356619325}
   - component: {fileID: 356619324}
   - component: {fileID: 356619323}
   - component: {fileID: 356619319}
@@ -6435,10 +6436,10 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 356619317}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: -0.993, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 1382696010}
   - {fileID: 1787754301}
@@ -6446,7 +6447,7 @@ Transform:
   - {fileID: 1427376009}
   - {fileID: 1295333294}
   - {fileID: 867735021}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 843068157}
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
 --- !u!114 &356619322
 MonoBehaviour:
@@ -6896,7 +6897,34 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   holdPoint: {fileID: 877173752}
-  testTarget: {fileID: 1382132428}
+  <UnityEvent>k__BackingField:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 356619325}
+        m_TargetAssemblyTypeName: GrabReceiver, Scripts
+        m_MethodName: GrabPoint
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  gizmos: 0
+--- !u!114 &356619325
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 356619317}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac814793abd12924ab3d522d9b7da6af, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GrabReceiver
 --- !u!1 &356731943
 GameObject:
   m_ObjectHideFlags: 0
@@ -20465,7 +20493,7 @@ GameObject:
   - component: {fileID: 703347823}
   - component: {fileID: 703347824}
   m_Layer: 0
-  m_Name: HeadTrack
+  m_Name: HeadTrack_Y
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -20482,7 +20510,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 867735021}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -20500,7 +20528,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Animation.Rigging::UnityEngine.Animations.Rigging.MultiAimConstraint
   m_Weight: 1
   m_Data:
-    m_ConstrainedObject: {fileID: 808349354}
+    m_ConstrainedObject: {fileID: 1036388894}
     m_SourceObjects:
       m_Length: 1
       m_Item0:
@@ -20528,8 +20556,8 @@ MonoBehaviour:
         transform: {fileID: 0}
         weight: 0
     m_Offset: {x: 0, y: 0, z: 0}
-    m_MinLimit: -80
-    m_MaxLimit: 80
+    m_MinLimit: -75
+    m_MaxLimit: 75
     m_AimAxis: 3
     m_UpAxis: 1
     m_WorldUpType: 0
@@ -20538,8 +20566,8 @@ MonoBehaviour:
     m_MaintainOffset: 0
     m_ConstrainedAxes:
       x: 1
-      y: 1
-      z: 1
+      y: 0
+      z: 0
 --- !u!1 &707678361
 GameObject:
   m_ObjectHideFlags: 0
@@ -27197,6 +27225,85 @@ Transform:
   m_Children: []
   m_Father: {fileID: 566512434}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &843068156
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.993
+      objectReference: {fileID: 0}
+    - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7143666008480823539, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_Name
+      value: NPC
+      objectReference: {fileID: 0}
+    - target: {fileID: 7329515217725834280, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: <Anim>k__BackingField
+      value: 
+      objectReference: {fileID: 356619320}
+    - target: {fileID: 7329515217725834280, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: <RightHand>k__BackingField
+      value: 
+      objectReference: {fileID: 877173752}
+    - target: {fileID: 7329515217725834280, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: <GrabReceiver>k__BackingField
+      value: 
+      objectReference: {fileID: 356619325}
+    m_RemovedComponents:
+    - {fileID: 8174427257390694361, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+    m_RemovedGameObjects:
+    - {fileID: 7889407056588139841, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 356619321}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+--- !u!4 &843068157 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+  m_PrefabInstance: {fileID: 843068156}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &843737481
 GameObject:
   m_ObjectHideFlags: 0
@@ -27661,7 +27768,7 @@ GameObject:
   - component: {fileID: 867735021}
   - component: {fileID: 867735020}
   m_Layer: 0
-  m_Name: Rig
+  m_Name: Rig_head
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -27694,6 +27801,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1634429290}
   - {fileID: 703347823}
   m_Father: {fileID: 356619321}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -42578,6 +42686,92 @@ Transform:
   m_Children: []
   m_Father: {fileID: 566512434}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1634429289
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1634429290}
+  - component: {fileID: 1634429291}
+  m_Layer: 0
+  m_Name: HeadTrack_X
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1634429290
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1634429289}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 867735021}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1634429291
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1634429289}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3c430f382484144e925c097c2d33cfe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Animation.Rigging::UnityEngine.Animations.Rigging.MultiAimConstraint
+  m_Weight: 1
+  m_Data:
+    m_ConstrainedObject: {fileID: 808349354}
+    m_SourceObjects:
+      m_Length: 1
+      m_Item0:
+        transform: {fileID: 151723550}
+        weight: 1
+      m_Item1:
+        transform: {fileID: 0}
+        weight: 0
+      m_Item2:
+        transform: {fileID: 0}
+        weight: 0
+      m_Item3:
+        transform: {fileID: 0}
+        weight: 0
+      m_Item4:
+        transform: {fileID: 0}
+        weight: 0
+      m_Item5:
+        transform: {fileID: 0}
+        weight: 0
+      m_Item6:
+        transform: {fileID: 0}
+        weight: 0
+      m_Item7:
+        transform: {fileID: 0}
+        weight: 0
+    m_Offset: {x: 0, y: 0, z: 0}
+    m_MinLimit: -25
+    m_MaxLimit: 25
+    m_AimAxis: 3
+    m_UpAxis: 1
+    m_WorldUpType: 0
+    m_WorldUpObject: {fileID: 0}
+    m_WorldUpAxis: 2
+    m_MaintainOffset: 0
+    m_ConstrainedAxes:
+      x: 0
+      y: 0
+      z: 1
 --- !u!1 &1636853274
 GameObject:
   m_ObjectHideFlags: 0
@@ -56412,4 +56606,4 @@ SceneRoots:
   - {fileID: 151723550}
   - {fileID: 1382132428}
   - {fileID: 566672534}
-  - {fileID: 356619321}
+  - {fileID: 843068156}

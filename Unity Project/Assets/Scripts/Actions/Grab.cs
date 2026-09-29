@@ -9,12 +9,12 @@ public class Grab : IAgentAction
 
         var item = context.GetObject(action.parameters[0]);
         if (item == null) return $"Couldn't find object with name {action.parameters[0]}";
-        //if (agent.GetItem(right: true) != null) return "Hand is full";
+        var grabAnimator = agent.GetComponentInChildren<GrabIK>();
 
         Flag grabbed = new();
         void start()
         {
-            agent.Anim.SetTrigger("Grab");
+            grabAnimator.TriggerGrab(item.transform);
             agent.GrabReceiver.OnGrabPoint += snapObjectToHand;
         }
 

@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Animations.Rigging;
+using UnityEngine.Events;
 
 public class GrabIK : MonoBehaviour
 {
@@ -34,12 +35,13 @@ public class GrabIK : MonoBehaviour
     [Header("Attachment")]
     [SerializeField] private Transform holdPoint;
 
+    [field: SerializeField] public UnityEvent OnGrab { get; private set; }
+
+    [Header("Debug")]
+    [SerializeField] private bool gizmos;
+
     private float armLength;
     private bool isGrabbing;
-
-    [Header("Testing")]
-    [SerializeField] Transform testTarget;
-    Vector3 testTargetInitPos;
 
     private void Awake()
     {
@@ -50,29 +52,8 @@ public class GrabIK : MonoBehaviour
         if (armRig != null) armRig.weight = 0f;
         if (spineAimConstraint != null) spineAimConstraint.weight = 0f;
 
-        SetTestPosition();
     }
     
-    [ContextMenu("Grab")]
-    public void TestGrab()
-    {
-        ResetTestPosition();
-        TriggerGrab(testTarget);
-    }
-
-    [ContextMenu("Set test position")]
-    public void SetTestPosition()
-    {
-        testTargetInitPos = testTarget.position;
-    }
-
-    [ContextMenu("Reset test position")]
-    public void ResetTestPosition()
-    {
-        testTarget.SetParent(null);
-        testTarget.position = testTargetInitPos;
-    }
-
     public void TriggerGrab(Transform targetItem)
     {
         if (!isGrabbing && targetItem != null)
@@ -81,7 +62,7 @@ public class GrabIK : MonoBehaviour
         }
     }
 
-    private IEnumerator GrabRoutine(Transform item)
+    public IEnumerator GrabRoutine(Transform item)
     {
         isGrabbing = true;
 
@@ -134,13 +115,10 @@ public class GrabIK : MonoBehaviour
         {
             rb.isKinematic = true;
         }
-
-        Transform attachParent = holdPoint != null ? holdPoint : handTarget;
-        item.SetParent(attachParent, true); // Keep relative offset so it doesn't pop
+        OnGrab.Invoke();
 
         // ================= RETURN PHASE =================
-        Vector3 reachEndPos = handTarget.position;
-        Quaternion reachEndRot = handTarget.rotation;
+        handTarget.GetPositionAndRotation(out Vector3 reachEndPos, out Quaternion reachEndRot);
         float finalLeanWeight = spineAimConstraint != null ? spineAimConstraint.weight : 0f;
 
         elapsed = 0f;
@@ -169,7 +147,7 @@ public class GrabIK : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        if (upperArm == null || forearm == null || hand == null) return;
+        if (!gizmos || upperArm == null || forearm == null || hand == null) return;
 
         float length = Vector3.Distance(upperArm.position, forearm.position)
                      + Vector3.Distance(forearm.position, hand.position);
