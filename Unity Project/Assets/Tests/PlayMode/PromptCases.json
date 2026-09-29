@@ -53,6 +53,142 @@
         "Say hi",
         "Greet me"
       ]
+    },
+    {
+      "action": "moveTo",
+      "label": "which table",
+      "prompts": [
+        "Go to the table",
+        "Walk over to a table"
+      ]
+    },
+    {
+      "action": "moveTo",
+      "label": "missing spot",
+      "prompts": [
+        "Go to SpotD",
+        "Walk to spot z"
+      ]
+    },
+    {
+      "action": "moveTo",
+      "label": "three spots in order",
+      "prompts": [
+        "Go to SpotC, then SpotA, then SpotB",
+        "Visit SpotC first, SpotA second, and SpotB last"
+      ]
+    },
+    {
+      "action": "moveTo",
+      "label": "stay put",
+      "prompts": [
+        "Stay where you are",
+        "Do not go to SpotA"
+      ]
+    },
+    {
+      "action": "grab",
+      "label": "not grabbable",
+      "prompts": [
+        "Pick up the chair",
+        "Grab the table"
+      ]
+    },
+    {
+      "action": "grab",
+      "label": "two items one hand",
+      "prompts": [
+        "Pick up the phone and the brick",
+        "Hold the phone and the brick at the same time"
+      ]
+    },
+    {
+      "action": "grab",
+      "label": "object is not in the room",
+      "prompts": [
+        "Pick up the scalpel",
+        "Grab the tray"
+      ]
+    },
+    {
+      "action": "grab",
+      "label": "do not grab",
+      "prompts": [
+        "Don't touch the phone",
+        "Leave the brick where it is"
+      ]
+    },
+    {
+      "action": "grab",
+      "label": "grab without walking",
+      "prompts": [
+        "Pick up the phone but don't walk anywhere",
+        "Grab the brick from where you are"
+      ]
+    },
+    {
+      "action": "place",
+      "label": "hand is empty",
+      "prompts": [
+        "Put down what you are holding",
+        "Place it on the table"
+      ]
+    },
+    {
+      "action": "place",
+      "label": "not a surface",
+      "prompts": [
+        "Put the phone on the brick",
+        "Set the brick on the phone"
+      ]
+    },
+    {
+      "action": "place",
+      "label": "place without picking up",
+      "prompts": [
+        "Place the phone on the table without picking it up",
+        "Set the brick on the drawer, but leave it where it is"
+      ]
+    },
+    {
+      "action": "place",
+      "label": "place the chair",
+      "prompts": [
+        "Put the chair on the table",
+        "Place the chair onto Table2"
+      ]
+    },
+    {
+      "action": "talk",
+      "label": "ask, don't act",
+      "prompts": [
+        "Where is the phone?",
+        "What can you pick up?"
+      ]
+    },
+    {
+      "action": "talk",
+      "label": "why not the chair",
+      "prompts": [
+        "Explain why you cannot pick up the chair",
+        "Tell me if the table can be picked up"
+      ]
+    },
+    {
+      "action": "moveToPoint",
+      "label": "a raw point",
+      "prompts": [
+        "Go to x 1, y 0, z 2",
+        "Move to the point (1, 0, 2)"
+      ]
+    },
+    {
+      "action": "give",
+      "label": "no second person",
+      "prompts": [
+        "Give the phone to the other nurse",
+        "Hand the brick to someone else"
+      ]
     }
   ]
 }
