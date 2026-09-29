@@ -1,138 +1,182 @@
-using NUnit.Framework.Constraints;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Animations.Rigging;
-using UnityEngine.XR;
 
 public class GrabIK : MonoBehaviour
 {
-    [SerializeField] Transform test;
-    Vector3 testInitPos;
-    [SerializeField] Transform handTarget;
-    [SerializeField] Transform holdPoint;
-    [SerializeField] Rig grabRig;
-    public float targetSpeed = 2f;
-    public float weightSpeed = 2f;
-    public float rotateSpeed = 360f;
-    public float reachThreshold = 0.02f;
+    [Header("Rig References")]
+    [Tooltip("Rig containing the Hand TwoBoneIKConstraint")]
+    [SerializeField] private Rig armRig;
+    [Tooltip("Target transform driving the TwoBoneIKConstraint")]
+    [SerializeField] private Transform handTarget;
+    [Tooltip("Hint transform for the elbow pole vector")]
+    [SerializeField] private Transform elbowHint;
 
-    bool isGrabbing;
+    [Header("Bones")]
+    [SerializeField] private Transform upperArm;
+    [SerializeField] private Transform forearm;
+    [SerializeField] private Transform hand;
 
-    [Header("Body lean")]
-    [SerializeField] Transform characterRoot;
-    [SerializeField] ChainIKConstraint leanConstraint;
-    [SerializeField] Transform leanTarget;
-    [SerializeField] Transform upperArm;
-    [SerializeField] Transform forearm;
-    [SerializeField] Transform hand;
-    [SerializeField, Range(0.3f, 1f)] float leanStartRatio = 0.7f;
-    [SerializeField] float maxLeanDistance = 0.35f;
-    [SerializeField] float leanSpeed = 3f;
-    [SerializeField, Range(0f, 1f)] float verticalLeanScale = 0.5f;
-    float armLength;
-    float currentLean;
+    [Header("Spine Lean / Aim")]
+    [Tooltip("MultiAimConstraint configured on Spine/Chest bones")]
+    [SerializeField] private MultiAimConstraint spineAimConstraint;
+    [Tooltip("Transform the spine aims toward")]
+    [SerializeField] private Transform spineAimTarget;
+    [SerializeField, Range(0.5f, 1f)] private float leanStartRatio = 0.75f;
+    [SerializeField, Range(0.1f, 1f)] private float maxLeanWeight = 0.85f;
 
-    Vector3 restShoulderLocal;
-    void Awake()
+    [Header("Motion Settings")]
+    [SerializeField] private float reachDuration = 0.6f;
+    [SerializeField] private float returnDuration = 0.5f;
+    [SerializeField] private AnimationCurve reachCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+    [SerializeField] private AnimationCurve returnCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+
+    [Header("Attachment")]
+    [SerializeField] private Transform holdPoint;
+
+    private float armLength;
+    private bool isGrabbing;
+
+    [Header("Testing")]
+    [SerializeField] Transform testTarget;
+    Vector3 testTargetInitPos;
+
+    private void Awake()
     {
-        testInitPos = test.position;
+        // Measure total arm length
         armLength = Vector3.Distance(upperArm.position, forearm.position)
                   + Vector3.Distance(forearm.position, hand.position);
-        leanConstraint.weight = 0f;
+
+        if (armRig != null) armRig.weight = 0f;
+        if (spineAimConstraint != null) spineAimConstraint.weight = 0f;
+
+        SetTestPosition();
+    }
+    
+    [ContextMenu("Grab")]
+    public void TestGrab()
+    {
+        ResetTestPosition();
+        TriggerGrab(testTarget);
     }
 
-    [ContextMenu("Grab Test")]
-    public void GrabTest()
+    [ContextMenu("Set test position")]
+    public void SetTestPosition()
     {
-        Resett();
-        StartCoroutine(Grab(test));
+        testTargetInitPos = testTarget.position;
     }
 
-    [ContextMenu("Reset Item")]
-
-    public void Resett()
+    [ContextMenu("Reset test position")]
+    public void ResetTestPosition()
     {
-        test.parent = null;
-        test.position = testInitPos;
+        testTarget.SetParent(null);
+        testTarget.position = testTargetInitPos;
     }
 
-    public IEnumerator Grab(Transform t)
+    public void TriggerGrab(Transform targetItem)
     {
-        if (isGrabbing || t == null) yield break;
+        if (!isGrabbing && targetItem != null)
+        {
+            StartCoroutine(GrabRoutine(targetItem));
+        }
+    }
+
+    private IEnumerator GrabRoutine(Transform item)
+    {
         isGrabbing = true;
 
-        // Capture the shoulder in its current, real pose
-        restShoulderLocal = characterRoot.InverseTransformPoint(upperArm.position);
-        currentLean = 0f;
+        hand.GetPositionAndRotation(out Vector3 initialHandPos, out Quaternion initialHandRot);
+        handTarget.SetPositionAndRotation(initialHandPos, initialHandRot);
+        item.GetPositionAndRotation(out Vector3 targetItemPos, out Quaternion targetItemRot);
 
-        handTarget.GetPositionAndRotation(out Vector3 startPos, out Quaternion startRot);
-        //grabRig.weight = 0f;
+        float distanceToTarget = Vector3.Distance(upperArm.position, targetItemPos);
+        float comfortableReach = armLength * leanStartRatio;
 
-        while (Vector3.Distance(handTarget.position, t.position) > reachThreshold || grabRig.weight < 1.0f)
+        // Calculate lean weight proportional to overextension
+        float targetLeanWeight = 0f;
+        if (distanceToTarget > comfortableReach)
         {
-            float dt = Time.deltaTime;
-            handTarget.SetPositionAndRotation(
-                Vector3.MoveTowards(handTarget.position, t.position, targetSpeed * dt), 
-                Quaternion.RotateTowards(handTarget.rotation, t.rotation, rotateSpeed * dt));
-            grabRig.weight = Mathf.MoveTowards(grabRig.weight, 1f, weightSpeed * dt);
-            UpdateLean(t.position, true);
+            float overReach = distanceToTarget - comfortableReach;
+            float maxOverReach = armLength * (1f - leanStartRatio) + 0.3f;
+            targetLeanWeight = Mathf.Clamp01(overReach / maxOverReach) * maxLeanWeight;
+        }
+
+        if (spineAimTarget != null)
+        {
+            spineAimTarget.position = targetItemPos;
+        }
+
+        // ================= REACH PHASE =================
+        float elapsed = 0f;
+        while (elapsed < reachDuration)
+        {
+            elapsed += Time.deltaTime;
+            float rawT = Mathf.Clamp01(elapsed / reachDuration);
+            float curvedT = reachCurve.Evaluate(rawT);
+
+            handTarget.SetPositionAndRotation(Vector3.Lerp(initialHandPos, targetItemPos, curvedT), Quaternion.Slerp(initialHandRot, targetItemRot, curvedT));
+
+            armRig.weight = curvedT;
+            if (spineAimConstraint != null)
+            {
+                spineAimConstraint.weight = Mathf.Lerp(0f, targetLeanWeight, curvedT);
+            }
+
             yield return null;
         }
-        grabRig.weight = 1f;
 
-        // Attach the item to the hand
-        if (t.TryGetComponent(out Rigidbody rb))
+        handTarget.position = targetItemPos;
+        armRig.weight = 1f;
+        if (spineAimConstraint != null) spineAimConstraint.weight = targetLeanWeight;
+
+        // ================= ATTACH ITEM =================
+        if (item.TryGetComponent(out Rigidbody rb))
         {
             rb.isKinematic = true;
         }
-        t.SetParent(holdPoint != null ? holdPoint : handTarget, true);
-        t.localPosition = Vector3.zero;
 
-        // Bring the hand back to where it started while blending the rig off
-        while (Vector3.Distance(handTarget.position, startPos) > reachThreshold || currentLean > 0.001f)
+        Transform attachParent = holdPoint != null ? holdPoint : handTarget;
+        item.SetParent(attachParent, true); // Keep relative offset so it doesn't pop
+
+        // ================= RETURN PHASE =================
+        Vector3 reachEndPos = handTarget.position;
+        Quaternion reachEndRot = handTarget.rotation;
+        float finalLeanWeight = spineAimConstraint != null ? spineAimConstraint.weight : 0f;
+
+        elapsed = 0f;
+        while (elapsed < returnDuration)
         {
-            float dt = Time.deltaTime;
-            handTarget.SetPositionAndRotation(
-                Vector3.MoveTowards(handTarget.position, startPos, targetSpeed * dt),
-                Quaternion.RotateTowards(handTarget.rotation, startRot, rotateSpeed * dt)
-            );
-            grabRig.weight = Mathf.MoveTowards(grabRig.weight, 0f, weightSpeed * dt);
-            UpdateLean(t.position, false);
+            elapsed += Time.deltaTime;
+            float rawT = Mathf.Clamp01(elapsed / returnDuration);
+            float curvedT = returnCurve.Evaluate(rawT);
+
+            handTarget.SetPositionAndRotation(Vector3.Lerp(reachEndPos, initialHandPos, curvedT), Quaternion.Slerp(reachEndRot, initialHandRot, curvedT));
+            armRig.weight = 1f - curvedT;
+            if (spineAimConstraint != null)
+            {
+                spineAimConstraint.weight = Mathf.Lerp(finalLeanWeight, 0f, curvedT);
+            }
+
             yield return null;
         }
 
-        handTarget.SetPositionAndRotation(startPos, startRot);
-        currentLean = 0f;
-        //grabRig.weight = 0f;
+        // Reset state
+        armRig.weight = 0f;
+        if (spineAimConstraint != null) spineAimConstraint.weight = 0f;
+        handTarget.SetPositionAndRotation(initialHandPos, initialHandRot);
         isGrabbing = false;
     }
 
-    void UpdateLean(Vector3 itemPos, bool active)
+    private void OnDrawGizmosSelected()
     {
-        Vector3 shoulderRest = characterRoot.TransformPoint(restShoulderLocal);
-        Vector3 toItem = itemPos - shoulderRest;
-        float dist = toItem.magnitude;
+        if (upperArm == null || forearm == null || hand == null) return;
 
-        // Lean only by the distance the arm cannot reach comfortably
-        float comfortable = armLength * leanStartRatio;
-        float desiredLean = active ? Mathf.Clamp(dist - comfortable, 0f, maxLeanDistance) : 0f;
+        float length = Vector3.Distance(upperArm.position, forearm.position)
+                     + Vector3.Distance(forearm.position, hand.position);
 
-        currentLean = Mathf.MoveTowards(currentLean, desiredLean, leanSpeed * Time.deltaTime);
-
-        Vector3 dir = toItem / Mathf.Max(dist, 0.0001f);
-        dir.y *= verticalLeanScale;
-
-        leanTarget.position = shoulderRest + dir * currentLean;
-        leanConstraint.weight = Mathf.Clamp01(currentLean / 0.05f); // fades in and out with the lean
-    }
-    void OnDrawGizmos()
-    {
-        if (leanTarget == null || characterRoot == null) return;
-        Vector3 rest = characterRoot.TransformPoint(restShoulderLocal);
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(rest, 0.03f);
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(leanTarget.position, 0.05f);
-        Gizmos.DrawLine(rest, leanTarget.position);
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawWireSphere(upperArm.position, length * leanStartRatio);
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(upperArm.position, length);
     }
 }
