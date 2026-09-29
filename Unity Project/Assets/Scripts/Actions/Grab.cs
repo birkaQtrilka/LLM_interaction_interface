@@ -16,12 +16,12 @@ public class Grab : IAgentAction
         {
             grabAnimator.TriggerGrab(item.transform);
             agent.GrabReceiver.OnGrabPoint += snapObjectToHand;
+            agent.Anim.SetTrigger("Grab");
         }
 
         void snapObjectToHand()
         {
             agent.GrabItem(item.transform, true);
-            agent.Anim.SetTrigger("Grab");
             grabbed.value = true;
         }
 
