@@ -55,14 +55,24 @@ public class GrabIK : MonoBehaviour
     
     public void TriggerGrab(Transform targetItem)
     {
+        StartCoroutine( TriggerGrabRoutine(targetItem));
+    }
+
+    public IEnumerator TriggerGrabRoutine(Transform targetItem)
+    {
         if (!isGrabbing && targetItem != null)
         {
-            StartCoroutine(GrabRoutine(targetItem));
+            yield return StartCoroutine(GrabRoutine(targetItem));
+        }
+        else
+        {
+            Debug.LogWarning($"Cannot start GrabIK. isGrabbing: {isGrabbing}, targetItem: {targetItem}");
         }
     }
 
-    public IEnumerator GrabRoutine(Transform item)
+    private IEnumerator GrabRoutine(Transform item)
     {
+        Debug.Log("Grab start");
         isGrabbing = true;
 
         hand.GetPositionAndRotation(out Vector3 initialHandPos, out Quaternion initialHandRot);
@@ -115,7 +125,7 @@ public class GrabIK : MonoBehaviour
             rb.isKinematic = true;
         }
         OnGrab.Invoke();
-
+        if (Vector3.Distance(hand.position, targetItemPos) > .2f) Debug.LogWarning("Item is too far, telleportation will be visible");
         // ================= RETURN PHASE =================
         handTarget.GetPositionAndRotation(out Vector3 reachEndPos, out Quaternion reachEndRot);
         float finalLeanWeight = spineAimConstraint != null ? spineAimConstraint.weight : 0f;
@@ -142,6 +152,8 @@ public class GrabIK : MonoBehaviour
         if (spineAimConstraint != null) spineAimConstraint.weight = 0f;
         handTarget.SetPositionAndRotation(initialHandPos, initialHandRot);
         isGrabbing = false;
+        Debug.Log("Grab end");
+
     }
 
     private void OnDrawGizmosSelected()

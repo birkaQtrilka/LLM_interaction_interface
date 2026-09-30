@@ -9,6 +9,7 @@ public class AnimationQueueTest : MonoBehaviour
     {
         OrderTest,
         GoGrabPhone,
+        GoGrabAndPlacePhone,
     }
 
     void Start()
@@ -20,6 +21,9 @@ public class AnimationQueueTest : MonoBehaviour
                 break;
             case TestNames.GoGrabPhone:
                 GrabPhone();
+                break;
+            case TestNames.GoGrabAndPlacePhone:
+                GrabAndPlacePhone();
                 break;
         }
     }
@@ -42,6 +46,40 @@ public class AnimationQueueTest : MonoBehaviour
             agent = "NPC",
             parameters = new string[] { "phone" },
             runAfter = new int[1] { 1 },
+            delayBefore = 0
+        });
+    }
+    
+    public void GrabAndPlacePhone()
+    {
+        // used to activate boundary update, so phone can be placed
+        AgentSystem.contextLibrary.GetContext(ContextQuery.GetFullContext(), animationLibrary.animations);
+
+        animationLibrary.PlayAnimation(AgentSystem, new ActionData
+        {
+            id = 1,
+            name = "moveTo",
+            agent = "NPC",
+            parameters = new string[] { "phone" },
+            runAfter = new int[] { },
+            delayBefore = 0
+        });
+        animationLibrary.PlayAnimation(AgentSystem, new ActionData
+        {
+            id = 2,
+            name = "grab",
+            agent = "NPC",
+            parameters = new string[] { "phone" },
+            runAfter = new int[1] { 1 },
+            delayBefore = 0
+        });
+        animationLibrary.PlayAnimation(AgentSystem, new ActionData
+        {
+            id = 3,
+            name = "place",
+            agent = "NPC",
+            parameters = new string[] { "Chair" },
+            runAfter = new int[1] { 2 },
             delayBefore = 0
         });
     }

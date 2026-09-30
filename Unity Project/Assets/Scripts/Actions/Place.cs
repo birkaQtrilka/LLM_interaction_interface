@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -5,41 +6,53 @@ public class Place : IAgentAction
 {
     public string Name => "place";
 
+    // builds the action to later be added in a queue
     public string TryBuild(ActionData action, AgentSystem context, NPC agent, out AnimAction result)
     {
         result = default;
         if (action.parameters.Length != 1) return "place requires 1 string parameter: target object name";
 
-        var environment = context.contextLibrary.environment;
-        var obj = environment.Find(x => x.GetName() == action.parameters[0]);
+        List<ContextItem> environment = context.contextLibrary.environment;
+        ContextItem obj = context.GetObject(action.parameters[0]);
         if (obj == null) return $"Couldn't find object with name {action.parameters[0]}";
-        //if( agent.GetItem(right: true) == null) return "Hand is empty";
 
+        Vector3 placePos = Vector3.zero;
+        Transform tempTransf = new GameObject("Temp").transform;
         Flag hasReleased = new();
-
         void start()
         {
-            agent.Anim.SetTrigger("Place");
             agent.GrabReceiver.OnGrabPoint += releaseItem;
-        }
-
-        void releaseItem()
-        {
-            Transform itemTr = agent.ReleaseItem(right: true);
+            Transform itemTr = agent.GetItem(right: true);
             if (itemTr == null)
             {
                 Debug.LogWarning("Agent tried to place an item but wasn't holding anything!");
                 hasReleased.value = true;
                 return;
             }
-            var item = environment.Find(x => x.GetName() == itemTr.name);
+            ContextItem item = context.GetObject(itemTr.name);
 
             if (item != null)
-                PlaceOnTop(item, obj, environment);
+            {
+                placePos = PlaceOnTop(item, obj, context);
+                tempTransf.position = placePos;
+            }
             else
-                Debug.LogWarning("Agent tried to place an item but wasn't holding anything!");
-
+                Debug.LogWarning("Agent tried to place an item but it wasn't in the environment list!");
             hasReleased.value = true;
+            Debug.Log("Start ended");
+        }
+
+        IEnumerator afterSuccessStart()
+        {
+            GrabIK grabAnimator = agent.GetComponentInChildren<GrabIK>();
+            return grabAnimator.TriggerGrabRoutine(tempTransf);
+        }
+
+        void releaseItem()
+        {
+            Transform itemTr = agent.ReleaseItem(right: true);
+            itemTr.SetPositionAndRotation(placePos, Quaternion.identity);
+            //GameObject.Destroy(tempTransf.gameObject);
         }
 
         void end()
@@ -47,15 +60,20 @@ public class Place : IAgentAction
             agent.GrabReceiver.OnGrabPoint -= releaseItem;
         }
 
-        result = new AnimAction(action, start, Utils.MonitorFlag(hasReleased), end);
+        result = new AnimAction(action, start, Utils.MonitorFlag(hasReleased).OnCrEnd(afterSuccessStart()), end);
         return null;
     }
 
     /// <summary>
     /// Places an item on the top surface of a target context object, avoiding its neighbors.
     /// </summary>
-    static void PlaceOnTop(ContextItem item, ContextItem targetObj, List<ContextItem> environment)
+    static Vector3 PlaceOnTop(ContextItem item, ContextItem targetObj, AgentSystem context)
     {
+        if (targetObj.boundingBox == new Bounds())
+        {
+            Debug.LogError("Target object has no bounding box to place an item on");
+            return new();
+        }
         float topY = targetObj.boundingBox.max.y;
         float itemRadius = Mathf.Max(item.boundingBox.extents.x, item.boundingBox.extents.z);
         float itemHeightOffset = item.boundingBox.extents.y;
@@ -76,7 +94,7 @@ public class Place : IAgentAction
             {
                 foreach (Transform neighborRef in targetObj.neighbors)
                 {
-                    ContextItem neighbor = environment.Find(x => x.transform == neighborRef);
+                    ContextItem neighbor = context.GetObject(neighborRef.name);
                     if (neighbor == null) continue; // neighbor no longer tracked in environment
 
                     Vector2 neighborPos = new(neighbor.boundingBox.center.x, neighbor.boundingBox.center.z);
@@ -103,13 +121,13 @@ public class Place : IAgentAction
             Debug.LogWarning($"Surface of {targetObj.GetName()} is too crowded! Forcing placement at center.");
             finalPlacementPos = new Vector3(targetObj.boundingBox.center.x, topY, targetObj.boundingBox.center.z);
         }
-
-        item.transform.SetPositionAndRotation(new Vector3(finalPlacementPos.x, topY + itemHeightOffset, finalPlacementPos.z), Quaternion.identity);
+        Vector3 finalPos = new (finalPlacementPos.x, topY + itemHeightOffset, finalPlacementPos.z);
 
         if (item.transform.TryGetComponent<Rigidbody>(out var rb))
         {
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
         }
+        return finalPos;
     }
 }

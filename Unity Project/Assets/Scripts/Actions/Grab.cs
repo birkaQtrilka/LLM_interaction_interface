@@ -11,10 +11,8 @@ public class Grab : IAgentAction
         if (item == null) return $"Couldn't find object with name {action.parameters[0]}";
         var grabAnimator = agent.GetComponentInChildren<GrabIK>();
 
-        Flag grabbed = new();
         void start()
         {
-            grabAnimator.TriggerGrab(item.transform);
             agent.GrabReceiver.OnGrabPoint += snapObjectToHand;
             agent.Anim.SetTrigger("Grab");
         }
@@ -22,7 +20,6 @@ public class Grab : IAgentAction
         void snapObjectToHand()
         {
             agent.GrabItem(item.transform, true);
-            grabbed.value = true;
         }
 
         void end()
@@ -30,7 +27,7 @@ public class Grab : IAgentAction
             agent.GrabReceiver.OnGrabPoint -= snapObjectToHand;
         }
 
-        result = new AnimAction(action, start, Utils.MonitorFlag(grabbed), end);
+        result = new AnimAction(action, start, grabAnimator.TriggerGrabRoutine(item.transform), end);
         return null;
     }
 }

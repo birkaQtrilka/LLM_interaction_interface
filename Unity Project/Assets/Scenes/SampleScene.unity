@@ -2660,7 +2660,7 @@ Transform:
   m_GameObject: {fileID: 1074326909}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.46, y: 0.24, z: 2.22}
+  m_LocalPosition: {x: 0.602, y: 0.105, z: 2.269}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3132,7 +3132,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e285b68e3f53884abf99cd6a430d842, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AnimationQueueTest
-  testName: 1
+  testName: 2
   animationLibrary: {fileID: 2033616363}
   AgentSystem: {fileID: 967212466}
 --- !u!4 &1428820120
@@ -3565,6 +3565,14 @@ PrefabInstance:
       propertyPath: m_Data.m_SourceObjects.m_Item0.transform
       value: 
       objectReference: {fileID: 514392858}
+    - target: {fileID: 4870631558001936908, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_Weight
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4870631558001936908, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7143666008480823539, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: m_Name
       value: NPC

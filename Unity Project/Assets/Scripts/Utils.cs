@@ -104,4 +104,20 @@ public static class Utils
         }
         Debug.Assert(timeout > 0);
     }
+
+    public static IEnumerator OnCrEnd(this IEnumerator cr, Action callback)
+    {
+        if (cr != null)
+        {
+            yield return cr;
+        }
+
+        callback?.Invoke();
+    }
+
+    public static IEnumerator OnCrEnd(this IEnumerator cr, IEnumerator chain)
+    {
+        if (cr != null) yield return cr;
+        if(chain != null) yield return chain;
+    }
 }
