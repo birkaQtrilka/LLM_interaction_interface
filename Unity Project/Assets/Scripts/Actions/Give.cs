@@ -12,21 +12,25 @@ public class Give : IAgentAction
 
         NPC otherAgent = context.GetAgent(action.parameters[0]);
         if (otherAgent == null) return $"Couldn't find agent with name {action.parameters[0]}";
-        Transform tempTransf = new GameObject("Temp").transform;
+        Transform tempTransf = new GameObject("Temp1").transform;
 
         Flag interchanged = new();
         void start()
         {
             agent.Anim.SetBool("Give", true);
-            otherAgent.GrabReceiver.OnGrabPoint += snapObjectToHand;
         }
 
         IEnumerator onRaise()
         {
+            yield return null;
+            otherAgent.GrabReceiver.OnGrabPoint += snapObjectToHand;
+
             Debug.Log("Raised arm");
+            Transform item = agent.GetItem(right: true);
+            tempTransf.position = item.position;
 
             GrabIK grabAnimator = otherAgent.GetComponentInChildren<GrabIK>();
-            return grabAnimator.TriggerGrabRoutine(tempTransf);
+            yield return otherAgent.StartCoroutine(grabAnimator.TriggerGrabRoutine(tempTransf));
         }
 
         void snapObjectToHand()
@@ -35,11 +39,13 @@ public class Give : IAgentAction
             otherAgent.GrabItem(item, right: true);
             agent.Anim.SetBool("Give", false);
             interchanged.value = true;
+            otherAgent.GrabReceiver.OnGrabPoint -= snapObjectToHand;
         }
 
         void end()
         {
             otherAgent.GrabReceiver.OnGrabPoint -= snapObjectToHand;
+            GameObject.Destroy(tempTransf.gameObject);
         }
         IEnumerator animationChain =
             Utils.MonitorAnimatorState(agent.Anim, "Give_Raise", 1)

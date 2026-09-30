@@ -52,7 +52,7 @@ public class Place : IAgentAction
         {
             Transform itemTr = agent.ReleaseItem(right: true);
             itemTr.SetPositionAndRotation(placePos, Quaternion.identity);
-            //GameObject.Destroy(tempTransf.gameObject);
+            GameObject.Destroy(tempTransf.gameObject);
         }
 
         void end()

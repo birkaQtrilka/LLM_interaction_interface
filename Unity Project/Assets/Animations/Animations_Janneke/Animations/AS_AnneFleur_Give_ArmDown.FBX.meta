@@ -35,8 +35,8 @@ ModelImporter:
       name: AS_AnneFleur_Give_ArmDown
       takeName: Unreal Take
       internalID: 8993902097722301239
-      firstFrame: 0
-      lastFrame: 45
+      firstFrame: 5
+      lastFrame: 44
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
