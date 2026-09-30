@@ -15,9 +15,8 @@ using UnityEditor.SceneManagement;
 // Live model survey: filter the Test Runner to the PromptEval category, with the backend running
 public class PromptConsistencyTests
 {
-    // Variance prompts use this repeat count, and 10 repeats make a 9-to-1 split read as about 0.11
-
-    const int Repeats = 3;
+    // Each prompt is sent this many times, and a 9-to-1 split reads as about 0.11
+    const int Repeats = 10;
     const string scenePath = "Assets/Tests/PlayMode/Scenes/Proto_1_Scene.unity";
 
     AgentSystem system;
@@ -137,30 +136,28 @@ public class PromptConsistencyTests
 
         foreach (string prompt in family.prompts)
         {
-            CoroutineResult<ActionsResponse> result = new();
-            yield return backend.GetActions(prompt, world, result);
-
-            if (result.Status != ContextStatus.Success)
-            {
-                string error = result.Error ?? "request failed";
-                report.AppendLine($"  {prompt}");
-                report.AppendLine($"    ERROR {error}");
-                failures.Add($"{title} / {prompt}: {error}");
-                continue;
-            }
-
-            string chain = FormatChain(result.Response.actions);
-            string mismatch = Meaning(result.Response.actions, family.expect, agentName);
             report.AppendLine($"  {prompt}");
-            report.AppendLine($"    {chain}");
-            if (mismatch == null)
+            for (int i = 1; i <= Repeats; i++)
             {
-                report.AppendLine("    ok");
-            }
-            else
-            {
-                report.AppendLine($"    {mismatch}");
-                failures.Add($"{title} / {prompt}: {mismatch}");
+                CoroutineResult<ActionsResponse> result = new();
+                yield return backend.GetActions(prompt, world, result);
+
+                if (result.Status != ContextStatus.Success)
+                {
+                    string error = result.Error ?? "request failed";
+                    report.AppendLine($"    {i}  ERROR {error}");
+                    failures.Add($"{title} / {prompt} trial {i}: {error}");
+                    continue;
+                }
+
+                string chain = FormatChain(result.Response.actions);
+                string mismatch = Meaning(result.Response.actions, family.expect, agentName);
+                report.AppendLine($"    {i}  {chain}");
+                if (mismatch != null)
+                {
+                    report.AppendLine($"       {mismatch}");
+                    failures.Add($"{title} / {prompt} trial {i}: {mismatch}");
+                }
             }
         }
 
@@ -349,6 +346,7 @@ public class PromptConsistencyTests
     // A way of acting is the action names in runAfter order
     // Parameters stay on the trial line, so two fetches of different items are one way
     // Talk next to a real plan is a comment, and talk alone is its own way
+    // The spoken sentence stays on that way, so two different replies are not collapsed
     static string Behavior(ActionData[] actions)
     {
         List<Step> steps = Order(actions);
@@ -359,9 +357,9 @@ public class PromptConsistencyTests
         {
             if (step.action.name != "talk") hasWork = true;
         }
-        if (!hasWork) return "talk";
+        if (!hasWork) return Join(steps, dropTalk: false, withParameters: true, talkText: true);
 
-        return Join(steps, dropTalk: true, withParameters: false);
+        return Join(steps, dropTalk: true, withParameters: false, talkText: false);
     }
 
     // runAfter decides order. An arrow means the step lists a runAfter. A bar means it starts on its own
@@ -369,7 +367,17 @@ public class PromptConsistencyTests
     {
         List<Step> steps = Order(actions);
         if (steps.Count == 0) return "(no actions)";
-        return Join(steps, dropTalk: false, withParameters: true);
+        return Join(steps, dropTalk: false, withParameters: true, talkText: OnlyTalk(steps));
+    }
+
+    static bool OnlyTalk(List<Step> steps)
+    {
+        if (steps.Count == 0) return false;
+        foreach (Step step in steps)
+        {
+            if (step.action.name != "talk") return false;
+        }
+        return true;
     }
 
     struct Step
@@ -401,13 +409,13 @@ public class PromptConsistencyTests
         return steps;
     }
 
-    static string Join(List<Step> steps, bool dropTalk, bool withParameters)
+    static string Join(List<Step> steps, bool dropTalk, bool withParameters, bool talkText)
     {
         var parts = new List<string>();
         foreach (Step step in steps)
         {
             if (dropTalk && step.action.name == "talk") continue;
-            string piece = withParameters ? Label(step.action) : step.action.name;
+            string piece = withParameters ? Label(step.action, talkText) : step.action.name;
             if (parts.Count == 0) parts.Add(piece);
             else if (step.sequenced) parts.Add("-> " + piece);
             else parts.Add("| " + piece);
@@ -425,10 +433,14 @@ public class PromptConsistencyTests
         return true;
     }
 
-    // Spoken text changes between trials, so talk is only the action name
-    static string Label(ActionData action)
+    // A talk beside other actions stays the name, and a reply that is only talk keeps the sentence
+    static string Label(ActionData action, bool talkText)
     {
-        if (action.name == "talk") return "talk";
+        if (action.name == "talk")
+        {
+            if (!talkText || action.parameters == null || action.parameters.Length == 0) return "talk";
+            return $"talk({string.Join(", ", action.parameters)})";
+        }
         if (action.parameters == null || action.parameters.Length == 0) return action.name;
         return $"{action.name}({string.Join(", ", action.parameters)})";
     }
