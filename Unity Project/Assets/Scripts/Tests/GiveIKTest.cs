@@ -27,7 +27,7 @@ public class GiveIKTest : MonoBehaviour
         {
             id = 1,
             name = "moveTo",
-            agent = "NPC",
+            agent = "NPC1",
             parameters = new string[] { "phone" },
             runAfter = new int[] { },
         });
@@ -35,7 +35,7 @@ public class GiveIKTest : MonoBehaviour
         {
             id = 2,
             name = "grab",
-            agent = "NPC",
+            agent = "NPC1",
             parameters = new string[] { "phone" },
             runAfter = new int[1] { 1 },
         });

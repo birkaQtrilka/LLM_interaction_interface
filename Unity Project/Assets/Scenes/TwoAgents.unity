@@ -1458,6 +1458,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 637763068}
+  - component: {fileID: 637763069}
   m_Layer: 0
   m_Name: GiveIKTest
   m_TagString: Untagged
@@ -1480,6 +1481,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 737304171}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &637763069
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 637763067}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03ace02339a8cc74fa80a08f5dd1fb2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::GiveIKTest
+  testName: 0
+  animationLibrary: {fileID: 2033616363}
+  AgentSystem: {fileID: 967212466}
 --- !u!1 &669004384
 GameObject:
   m_ObjectHideFlags: 0
@@ -3468,7 +3484,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 2.49
+      value: 1.439
       objectReference: {fileID: 0}
     - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: m_LocalPosition.y
@@ -3476,7 +3492,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.73
+      value: 0.64
       objectReference: {fileID: 0}
     - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: m_LocalRotation.w
