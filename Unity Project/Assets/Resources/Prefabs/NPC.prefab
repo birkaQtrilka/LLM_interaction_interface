@@ -4632,7 +4632,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70b342d8ce5c2fd48b8fa3147d48d1d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Animation.Rigging::UnityEngine.Animations.Rigging.Rig
-  m_Weight: 1
+  m_Weight: 0
   m_Effectors: []
 --- !u!1 &898764047683433979
 GameObject:
@@ -12752,6 +12752,7 @@ GameObject:
   - component: {fileID: 3854178532271015279}
   - component: {fileID: 1791667219092404932}
   - component: {fileID: 454478651428193399}
+  - component: {fileID: 6911411674770464373}
   - component: {fileID: 212027983533435923}
   - component: {fileID: 1423542241601838547}
   - component: {fileID: 7618907976410539552}
@@ -13268,6 +13269,45 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
   gizmos: 0
+--- !u!114 &6911411674770464373
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2551724450184021691}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 632ea727c0d655c4ab610737f4d80f66, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::LookAtIK
+  aimConstraint: {fileID: 8532754819157914126}
+  lookCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  floater: {fileID: 0}
+  turnDuration: 0.2
 --- !u!114 &212027983533435923
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -43183,6 +43223,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NPC
   <RightHand>k__BackingField: {fileID: 5281620571387641971}
   <LeftHand>k__BackingField: {fileID: 0}
+  <Head>k__BackingField: {fileID: 3884437543034509990}
   <Nav>k__BackingField: {fileID: 316466657384447840}
   <GrabReceiver>k__BackingField: {fileID: 3854178532271015279}
   <Anim>k__BackingField: {fileID: 6824446517921876096}

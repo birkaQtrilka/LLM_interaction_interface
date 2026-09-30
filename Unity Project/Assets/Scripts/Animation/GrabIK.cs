@@ -16,7 +16,7 @@ public class GrabIK : MonoBehaviour
     [Header("Bones")]
     [SerializeField] private Transform upperArm;
     [SerializeField] private Transform forearm;
-    [SerializeField] private Transform hand;
+    [SerializeField] public Transform hand;
 
     [Header("Spine Lean / Aim")]
     [Tooltip("MultiAimConstraint configured on Spine/Chest bones")]
@@ -31,6 +31,7 @@ public class GrabIK : MonoBehaviour
     [SerializeField] private float returnDuration = 0.5f;
     [SerializeField] private AnimationCurve reachCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
     [SerializeField] private AnimationCurve returnCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+    [SerializeField] Quaternion grabOffset;
 
     [Header("Attachment")]
     [SerializeField] private Transform holdPoint;
@@ -72,12 +73,13 @@ public class GrabIK : MonoBehaviour
 
     private IEnumerator GrabRoutine(Transform item)
     {
-        Debug.Log("Grab start");
         isGrabbing = true;
 
         hand.GetPositionAndRotation(out Vector3 initialHandPos, out Quaternion initialHandRot);
         handTarget.SetPositionAndRotation(initialHandPos, initialHandRot);
         item.GetPositionAndRotation(out Vector3 targetItemPos, out Quaternion targetItemRot);
+
+        Quaternion finalTargetRot = targetItemRot;
 
         float distanceToTarget = Vector3.Distance(upperArm.position, targetItemPos);
         float comfortableReach = armLength * leanStartRatio;
@@ -104,7 +106,10 @@ public class GrabIK : MonoBehaviour
             float rawT = Mathf.Clamp01(elapsed / reachDuration);
             float curvedT = reachCurve.Evaluate(rawT);
 
-            handTarget.SetPositionAndRotation(Vector3.Lerp(initialHandPos, targetItemPos, curvedT), Quaternion.Slerp(initialHandRot, targetItemRot, curvedT));
+            handTarget.SetPositionAndRotation(
+                Vector3.Lerp(initialHandPos, targetItemPos, curvedT),
+                Quaternion.Slerp(initialHandRot, finalTargetRot, curvedT)
+            );
 
             armRig.weight = curvedT;
             if (spineAimConstraint != null)
@@ -115,17 +120,18 @@ public class GrabIK : MonoBehaviour
             yield return null;
         }
 
-        handTarget.position = targetItemPos;
+        handTarget.SetPositionAndRotation(targetItemPos, finalTargetRot);
         armRig.weight = 1f;
         if (spineAimConstraint != null) spineAimConstraint.weight = targetLeanWeight;
 
-        // ================= ATTACH ITEM =================
-        if (item.TryGetComponent(out Rigidbody rb))
-        {
-            rb.isKinematic = true;
-        }
+        yield return null;
+
         OnGrab.Invoke();
-        if (Vector3.Distance(hand.position, targetItemPos) > .2f) Debug.LogWarning("Item is too far, telleportation will be visible");
+        if (Vector3.Distance(hand.position, targetItemPos) > 0.2f)
+        {
+            Debug.LogWarning("Item is too far, teleportation will be visible");
+        }
+
         // ================= RETURN PHASE =================
         handTarget.GetPositionAndRotation(out Vector3 reachEndPos, out Quaternion reachEndRot);
         float finalLeanWeight = spineAimConstraint != null ? spineAimConstraint.weight : 0f;
@@ -137,7 +143,11 @@ public class GrabIK : MonoBehaviour
             float rawT = Mathf.Clamp01(elapsed / returnDuration);
             float curvedT = returnCurve.Evaluate(rawT);
 
-            handTarget.SetPositionAndRotation(Vector3.Lerp(reachEndPos, initialHandPos, curvedT), Quaternion.Slerp(reachEndRot, initialHandRot, curvedT));
+            handTarget.SetPositionAndRotation(
+                Vector3.Lerp(reachEndPos, initialHandPos, curvedT),
+                Quaternion.Slerp(reachEndRot, initialHandRot, curvedT)
+            );
+
             armRig.weight = 1f - curvedT;
             if (spineAimConstraint != null)
             {
@@ -152,8 +162,6 @@ public class GrabIK : MonoBehaviour
         if (spineAimConstraint != null) spineAimConstraint.weight = 0f;
         handTarget.SetPositionAndRotation(initialHandPos, initialHandRot);
         isGrabbing = false;
-        Debug.Log("Grab end");
-
     }
 
     private void OnDrawGizmosSelected()

@@ -8,8 +8,16 @@ public class GrabIKTest : MonoBehaviour
 
     private void Awake()
     {
+        grab.OnGrab.AddListener(OnGrab);
         SetTestPosition();
     }
+
+    void OnGrab()
+    {
+        testTarget.SetParent( grab.hand);
+        testTarget.localPosition = Vector3.zero;
+        testTarget.localEulerAngles = Vector3.zero;
+    }                                           
 
     [ContextMenu("Grab")]
     public void TestGrab()
