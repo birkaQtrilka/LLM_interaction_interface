@@ -3564,14 +3564,6 @@ PrefabInstance:
       propertyPath: m_Data.m_SourceObjects.m_Item0.transform
       value: 
       objectReference: {fileID: 514392858}
-    - target: {fileID: 4870631558001936908, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
-      propertyPath: m_Data.m_Offset.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4870631558001936908, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
-      propertyPath: m_Data.m_Offset.z
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 6911411674770464373, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: floater
       value: 
@@ -3580,8 +3572,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: NPC
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 4870631558001936908, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+    - target: {fileID: 8839951065712957184, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_Data.m_TargetRotationWeight
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []

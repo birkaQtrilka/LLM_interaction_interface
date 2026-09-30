@@ -7,8 +7,13 @@ public class LookAtIK : MonoBehaviour
 {
     [SerializeField] private Rig aimConstraint;
     [SerializeField] private AnimationCurve lookCurve;
-    [SerializeField] private Transform floater;
+    private Transform floater;
     public float turnDuration = .2f;
+
+    private void Awake()
+    {
+        floater = new GameObject("LookAtFloater").transform;
+    }
 
     public IEnumerator LookAt(Vector3 pos)
     {
