@@ -15,6 +15,8 @@ using UnityEditor.SceneManagement;
 // Live model survey: filter the Test Runner to the PromptEval category, with the backend running
 public class PromptConsistencyTests
 {
+    // Variance prompts use this repeat count, and 10 repeats make a 9-to-1 split read as about 0.11
+
     const int Repeats = 3;
     const string scenePath = "Assets/Tests/PlayMode/Scenes/Proto_1_Scene.unity";
 
@@ -29,9 +31,18 @@ public class PromptConsistencyTests
     [Serializable]
     class PromptFamily
     {
-        public string action;
+        public string mode;
         public string label;
         public string[] prompts;
+        public ExpectedStep[] expect;
+    }
+
+    [Serializable]
+    class ExpectedStep
+    {
+        public string name;
+        public string[] parameters;
+        public int[] after;
     }
 
     [UnitySetUp]
@@ -66,42 +77,28 @@ public class PromptConsistencyTests
     [UnityTest]
     [Category("PromptEval")]
     [Timeout(600000)]
-    public IEnumerator MoveTo()
+    public IEnumerator Expect()
     {
-        yield return Run("moveTo");
+        yield return Run("expect");
     }
 
     [UnityTest]
     [Category("PromptEval")]
     [Timeout(600000)]
-    public IEnumerator Grab()
+    public IEnumerator Variance()
     {
-        yield return Run("grab");
+        yield return Run("variance");
     }
 
-    [UnityTest]
-    [Category("PromptEval")]
-    [Timeout(600000)]
-    public IEnumerator Place()
-    {
-        yield return Run("place");
-    }
-
-    [UnityTest]
-    [Category("PromptEval")]
-    [Timeout(600000)]
-    public IEnumerator Talk()
-    {
-        yield return Run("talk");
-    }
-
-    IEnumerator Run(string actionName)
+    IEnumerator Run(string mode)
     {
         Assert.IsNotNull(system, "AgentSystem was not found in the test scene.");
         LLMBackend backend = UnityEngine.Object.FindAnyObjectByType<LLMBackend>();
         Assert.IsNotNull(backend, "LLMBackend was not found in the test scene.");
 
+        Assert.IsNotEmpty(system.contextLibrary.agents, "The test scene has no NPC.");
         string world = system.contextLibrary.GetContext(ContextQuery.GetFullContext(), null);
+        string agentName = system.contextLibrary.agents[0].name;
         PromptCaseFile file = LoadCases();
         Assert.IsNotNull(file.families, "PromptCases.json has no families.");
 
@@ -111,12 +108,13 @@ public class PromptConsistencyTests
 
         foreach (PromptFamily family in file.families)
         {
-            if (family.action != actionName) continue;
+            if (family.mode != mode) continue;
             any = true;
-            yield return RunFamily(backend, world, family, report, failures);
+            if (mode == "expect") yield return RunExpect(backend, world, agentName, family, report, failures);
+            else yield return RunVariance(backend, world, family, report, failures);
         }
 
-        Assert.IsTrue(any, $"No prompt families for {actionName}.");
+        Assert.IsTrue(any, $"No prompt families with mode {mode}.");
 
         string text = report.ToString();
         Debug.Log(text);
@@ -126,13 +124,53 @@ public class PromptConsistencyTests
         }
     }
 
-    IEnumerator RunFamily(LLMBackend backend, string world, PromptFamily family, StringBuilder report, List<string> failures)
+    IEnumerator RunExpect(LLMBackend backend, string world, string agentName, PromptFamily family, StringBuilder report, List<string> failures)
     {
-        string title = string.IsNullOrEmpty(family.label) ? family.action : family.label;
+        string title = string.IsNullOrEmpty(family.label) ? "expect" : family.label;
         report.AppendLine(title);
 
-        int hits = 0;
-        int trials = 0;
+        if (family.prompts == null || family.prompts.Length == 0)
+        {
+            failures.Add($"{title}: no prompts");
+            yield break;
+        }
+
+        foreach (string prompt in family.prompts)
+        {
+            CoroutineResult<ActionsResponse> result = new();
+            yield return backend.GetActions(prompt, world, result);
+
+            if (result.Status != ContextStatus.Success)
+            {
+                string error = result.Error ?? "request failed";
+                report.AppendLine($"  {prompt}");
+                report.AppendLine($"    ERROR {error}");
+                failures.Add($"{title} / {prompt}: {error}");
+                continue;
+            }
+
+            string chain = FormatChain(result.Response.actions);
+            string mismatch = Meaning(result.Response.actions, family.expect, agentName);
+            report.AppendLine($"  {prompt}");
+            report.AppendLine($"    {chain}");
+            if (mismatch == null)
+            {
+                report.AppendLine("    ok");
+            }
+            else
+            {
+                report.AppendLine($"    {mismatch}");
+                failures.Add($"{title} / {prompt}: {mismatch}");
+            }
+        }
+
+        report.AppendLine();
+    }
+
+    IEnumerator RunVariance(LLMBackend backend, string world, PromptFamily family, StringBuilder report, List<string> failures)
+    {
+        string title = string.IsNullOrEmpty(family.label) ? "variance" : family.label;
+        report.AppendLine(title);
 
         if (family.prompts == null || family.prompts.Length == 0)
         {
@@ -143,6 +181,9 @@ public class PromptConsistencyTests
         foreach (string prompt in family.prompts)
         {
             report.AppendLine($"  {prompt}");
+            int trials = 0;
+            var counts = new Dictionary<string, int>();
+
             for (int i = 1; i <= Repeats; i++)
             {
                 CoroutineResult<ActionsResponse> result = new();
@@ -157,33 +198,193 @@ public class PromptConsistencyTests
                 }
 
                 trials++;
-                if (HasAction(result.Response, family.action)) hits++;
+                string way = Behavior(result.Response.actions);
+                counts[way] = counts.TryGetValue(way, out int n) ? n + 1 : 1;
                 report.AppendLine($"    {i}  {FormatChain(result.Response.actions)}");
+            }
+
+            if (trials == 0)
+            {
+                report.AppendLine("  no successful trials");
+                report.AppendLine();
+                continue;
+            }
+
+            var ranked = new List<KeyValuePair<string, int>>(counts);
+            ranked.Sort((a, b) => b.Value.CompareTo(a.Value));
+            foreach (KeyValuePair<string, int> pair in ranked)
+            {
+                report.AppendLine($"    {pair.Key} × {pair.Value}");
+            }
+
+            // (trials - most common) / most common: 0 is one way, 1 is two ways split evenly
+            int most = ranked[0].Value;
+            float variance = most == trials ? 0f : (trials - most) / (float)most;
+            report.AppendLine($"  variance {variance.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}");
+            report.AppendLine();
+        }
+    }
+
+    // Match names and targets, and ignore ids, talk wording, and a comment beside the plan
+    static string Meaning(ActionData[] actions, ExpectedStep[] expect, string agentName)
+    {
+        if (expect == null || expect.Length == 0) return "no expected actions";
+
+        List<Step> steps = Order(actions);
+        var work = new List<ActionData>();
+        bool talked = false;
+        foreach (Step step in steps)
+        {
+            if (step.action.name == "talk") talked = true;
+            else work.Add(step.action);
+        }
+
+        bool talkOnly = true;
+        foreach (ExpectedStep step in expect)
+        {
+            if (!string.Equals(step.name, "talk", StringComparison.OrdinalIgnoreCase)) talkOnly = false;
+        }
+
+        if (talkOnly)
+        {
+            if (work.Count > 0) return "expected only talk, got " + FormatChain(actions);
+            if (!talked) return "expected talk";
+            foreach (Step step in steps)
+            {
+                if (step.action.name == "talk" && !string.Equals(step.action.agent, agentName, StringComparison.Ordinal))
+                {
+                    return $"talk is assigned to {step.action.agent}";
+                }
+            }
+            return null;
+        }
+
+        var matched = new ActionData[expect.Length];
+        var used = new HashSet<int>();
+        for (int i = 0; i < expect.Length; i++)
+        {
+            int found = -1;
+            for (int p = 0; p < work.Count; p++)
+            {
+                if (used.Contains(p)) continue;
+                if (SameStep(expect[i], work[p]))
+                {
+                    found = p;
+                    break;
+                }
+            }
+            if (found < 0) return "missing " + ExpectLabel(expect[i]);
+            used.Add(found);
+            matched[i] = work[found];
+            if (!string.Equals(matched[i].agent, agentName, StringComparison.Ordinal))
+            {
+                return $"{matched[i].name} is assigned to {matched[i].agent}";
             }
         }
 
-        report.AppendLine($"  {family.action} appeared in {hits}/{trials}");
-        report.AppendLine();
+        if (used.Count != work.Count) return "extra actions: " + FormatChain(actions);
+
+        for (int i = 0; i < expect.Length; i++)
+        {
+            if (expect[i].after == null) continue;
+            foreach (int prev in expect[i].after)
+            {
+                if (prev < 0 || prev >= matched.Length) return "bad after index";
+                if (!WaitsFor(matched[i], matched[prev].id))
+                {
+                    return $"{expect[i].name} does not wait for {expect[prev].name}";
+                }
+            }
+        }
+
+        return null;
     }
 
-    static bool HasAction(ActionsResponse response, string actionName)
+    static bool SameStep(ExpectedStep expect, ActionData actual)
     {
-        if (response?.actions == null) return false;
-        foreach (ActionData action in response.actions)
+        if (!string.Equals(expect.name, actual.name, StringComparison.OrdinalIgnoreCase)) return false;
+        if (expect.parameters == null || expect.parameters.Length == 0) return true;
+        if (actual.parameters == null || actual.parameters.Length != expect.parameters.Length) return false;
+        for (int i = 0; i < expect.parameters.Length; i++)
         {
-            if (action.name == actionName) return true;
+            if (!SameToken(expect.parameters[i], actual.parameters[i])) return false;
+        }
+        return true;
+    }
+
+    // SpotA and "spot a" are the same target, and 1 and 1.0 are the same coordinate
+    static bool SameToken(string expected, string actual)
+    {
+        if (string.Equals(Fold(expected), Fold(actual), StringComparison.Ordinal)) return true;
+        if (float.TryParse(expected, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float e)
+            && float.TryParse(actual, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float a))
+        {
+            return Mathf.Abs(e - a) < 0.01f;
         }
         return false;
+    }
+
+    static string Fold(string value)
+    {
+        if (value == null) return "";
+        return value.Replace(" ", "").ToLowerInvariant();
+    }
+
+    static bool WaitsFor(ActionData action, int id)
+    {
+        if (action.runAfter == null) return false;
+        foreach (int prior in action.runAfter)
+        {
+            if (prior == id) return true;
+        }
+        return false;
+    }
+
+    static string ExpectLabel(ExpectedStep step)
+    {
+        if (step.parameters == null || step.parameters.Length == 0) return step.name;
+        return $"{step.name}({string.Join(", ", step.parameters)})";
+    }
+
+    // A way of acting is the action names in runAfter order
+    // Parameters stay on the trial line, so two fetches of different items are one way
+    // Talk next to a real plan is a comment, and talk alone is its own way
+    static string Behavior(ActionData[] actions)
+    {
+        List<Step> steps = Order(actions);
+        if (steps.Count == 0) return "(no actions)";
+
+        bool hasWork = false;
+        foreach (Step step in steps)
+        {
+            if (step.action.name != "talk") hasWork = true;
+        }
+        if (!hasWork) return "talk";
+
+        return Join(steps, dropTalk: true, withParameters: false);
     }
 
     // runAfter decides order. An arrow means the step lists a runAfter. A bar means it starts on its own
     static string FormatChain(ActionData[] actions)
     {
-        if (actions == null || actions.Length == 0) return "(no actions)";
+        List<Step> steps = Order(actions);
+        if (steps.Count == 0) return "(no actions)";
+        return Join(steps, dropTalk: false, withParameters: true);
+    }
+
+    struct Step
+    {
+        public bool sequenced;
+        public ActionData action;
+    }
+
+    static List<Step> Order(ActionData[] actions)
+    {
+        var steps = new List<Step>();
+        if (actions == null || actions.Length == 0) return steps;
 
         var pending = new List<ActionData>(actions);
         var printed = new List<int>();
-        var parts = new List<string>();
 
         while (pending.Count > 0)
         {
@@ -192,16 +393,25 @@ public class PromptConsistencyTests
 
             ActionData action = pending[index];
             pending.RemoveAt(index);
-
             bool sequenced = action.runAfter != null && action.runAfter.Length > 0;
-            string piece = Label(action);
-            if (parts.Count == 0) parts.Add(piece);
-            else if (sequenced) parts.Add("-> " + piece);
-            else parts.Add("| " + piece);
-
+            steps.Add(new Step { sequenced = sequenced, action = action });
             printed.Add(action.id);
         }
 
+        return steps;
+    }
+
+    static string Join(List<Step> steps, bool dropTalk, bool withParameters)
+    {
+        var parts = new List<string>();
+        foreach (Step step in steps)
+        {
+            if (dropTalk && step.action.name == "talk") continue;
+            string piece = withParameters ? Label(step.action) : step.action.name;
+            if (parts.Count == 0) parts.Add(piece);
+            else if (step.sequenced) parts.Add("-> " + piece);
+            else parts.Add("| " + piece);
+        }
         return string.Join(" ", parts);
     }
 

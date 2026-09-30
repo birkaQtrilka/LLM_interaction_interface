@@ -1,61 +1,130 @@
 {
   "families": [
     {
-      "action": "moveTo",
+      "mode": "expect",
       "label": "go to SpotA",
       "prompts": [
         "Go to SpotA",
         "Walk to spot a",
         "Move to SpotA"
+      ],
+      "expect": [
+        { "name": "moveTo", "parameters": ["SpotA"] }
       ]
     },
     {
-      "action": "moveTo",
+      "mode": "expect",
       "label": "go to the chair",
       "prompts": [
         "Go to the chair",
         "Walk to the chair",
         "Move to the chair"
+      ],
+      "expect": [
+        { "name": "moveTo", "parameters": ["Chair"] }
       ]
     },
     {
-      "action": "grab",
+      "mode": "expect",
       "label": "grab the phone",
       "prompts": [
         "pick up the phone",
         "bring the phone",
         "grab the phone"
+      ],
+      "expect": [
+        { "name": "moveTo", "parameters": ["phone"] },
+        { "name": "grab", "parameters": ["phone"], "after": [0] }
       ]
     },
     {
-      "action": "grab",
+      "mode": "expect",
       "label": "grab the brick",
       "prompts": [
         "pick up the brick",
         "bring the brick",
         "grab the brick"
+      ],
+      "expect": [
+        { "name": "moveTo", "parameters": ["Brick"] },
+        { "name": "grab", "parameters": ["Brick"], "after": [0] }
       ]
     },
     {
-      "action": "place",
-      "label": "phone on the table",
+      "mode": "expect",
+      "label": "phone on Table",
       "prompts": [
-        "place the phone on the table",
-        "put the phone on the table",
-        "set the phone down on the table"
+        "place the phone on Table",
+        "put the phone on Table",
+        "set the phone down on Table"
+      ],
+      "expect": [
+        { "name": "moveTo", "parameters": ["phone"] },
+        { "name": "grab", "parameters": ["phone"], "after": [0] },
+        { "name": "moveTo", "parameters": ["Table"], "after": [1] },
+        { "name": "place", "parameters": ["Table"], "after": [2] }
       ]
     },
     {
-      "action": "talk",
+      "mode": "expect",
       "label": "greet",
       "prompts": [
         "Say hello",
         "Say hi",
         "Greet me"
+      ],
+      "expect": [
+        { "name": "talk" }
       ]
     },
     {
-      "action": "moveTo",
+      "mode": "expect",
+      "label": "three spots in order",
+      "prompts": [
+        "Go to SpotC, then SpotA, then SpotB",
+        "Visit SpotC first, SpotA second, and SpotB last"
+      ],
+      "expect": [
+        { "name": "moveTo", "parameters": ["SpotC"] },
+        { "name": "moveTo", "parameters": ["SpotA"], "after": [0] },
+        { "name": "moveTo", "parameters": ["SpotB"], "after": [1] }
+      ]
+    },
+    {
+      "mode": "expect",
+      "label": "ask, don't act",
+      "prompts": [
+        "Where is the phone?",
+        "What can you pick up?"
+      ],
+      "expect": [
+        { "name": "talk" }
+      ]
+    },
+    {
+      "mode": "expect",
+      "label": "why not the chair",
+      "prompts": [
+        "Explain why you cannot pick up the chair",
+        "Tell me if the table can be picked up"
+      ],
+      "expect": [
+        { "name": "talk" }
+      ]
+    },
+    {
+      "mode": "expect",
+      "label": "a raw point",
+      "prompts": [
+        "Go to x 1, y 0, z 2",
+        "Move to the point (1, 0, 2)"
+      ],
+      "expect": [
+        { "name": "moveToPoint", "parameters": ["1", "0", "2"] }
+      ]
+    },
+    {
+      "mode": "variance",
       "label": "which table",
       "prompts": [
         "Go to the table",
@@ -63,7 +132,7 @@
       ]
     },
     {
-      "action": "moveTo",
+      "mode": "variance",
       "label": "missing spot",
       "prompts": [
         "Go to SpotD",
@@ -71,15 +140,7 @@
       ]
     },
     {
-      "action": "moveTo",
-      "label": "three spots in order",
-      "prompts": [
-        "Go to SpotC, then SpotA, then SpotB",
-        "Visit SpotC first, SpotA second, and SpotB last"
-      ]
-    },
-    {
-      "action": "moveTo",
+      "mode": "variance",
       "label": "stay put",
       "prompts": [
         "Stay where you are",
@@ -87,7 +148,7 @@
       ]
     },
     {
-      "action": "grab",
+      "mode": "variance",
       "label": "not grabbable",
       "prompts": [
         "Pick up the chair",
@@ -95,7 +156,7 @@
       ]
     },
     {
-      "action": "grab",
+      "mode": "variance",
       "label": "two items one hand",
       "prompts": [
         "Pick up the phone and the brick",
@@ -103,7 +164,7 @@
       ]
     },
     {
-      "action": "grab",
+      "mode": "variance",
       "label": "object is not in the room",
       "prompts": [
         "Pick up the scalpel",
@@ -111,7 +172,7 @@
       ]
     },
     {
-      "action": "grab",
+      "mode": "variance",
       "label": "do not grab",
       "prompts": [
         "Don't touch the phone",
@@ -119,7 +180,7 @@
       ]
     },
     {
-      "action": "grab",
+      "mode": "variance",
       "label": "grab without walking",
       "prompts": [
         "Pick up the phone but don't walk anywhere",
@@ -127,7 +188,7 @@
       ]
     },
     {
-      "action": "place",
+      "mode": "variance",
       "label": "hand is empty",
       "prompts": [
         "Put down what you are holding",
@@ -135,7 +196,7 @@
       ]
     },
     {
-      "action": "place",
+      "mode": "variance",
       "label": "not a surface",
       "prompts": [
         "Put the phone on the brick",
@@ -143,7 +204,7 @@
       ]
     },
     {
-      "action": "place",
+      "mode": "variance",
       "label": "place without picking up",
       "prompts": [
         "Place the phone on the table without picking it up",
@@ -151,7 +212,7 @@
       ]
     },
     {
-      "action": "place",
+      "mode": "variance",
       "label": "place the chair",
       "prompts": [
         "Put the chair on the table",
@@ -159,35 +220,19 @@
       ]
     },
     {
-      "action": "talk",
-      "label": "ask, don't act",
-      "prompts": [
-        "Where is the phone?",
-        "What can you pick up?"
-      ]
-    },
-    {
-      "action": "talk",
-      "label": "why not the chair",
-      "prompts": [
-        "Explain why you cannot pick up the chair",
-        "Tell me if the table can be picked up"
-      ]
-    },
-    {
-      "action": "moveToPoint",
-      "label": "a raw point",
-      "prompts": [
-        "Go to x 1, y 0, z 2",
-        "Move to the point (1, 0, 2)"
-      ]
-    },
-    {
-      "action": "give",
+      "mode": "variance",
       "label": "no second person",
       "prompts": [
         "Give the phone to the other nurse",
         "Hand the brick to someone else"
+      ]
+    },
+    {
+      "mode": "variance",
+      "label": "bring me something",
+      "prompts": [
+        "Bring me something",
+        "Get me something"
       ]
     }
   ]
