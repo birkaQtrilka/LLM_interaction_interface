@@ -2,12 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-
 static class MovementActions
 {
-    static readonly Dictionary<NPC, Vector3> reserved = new();
+    public static readonly Dictionary<NPC, Vector3> reserved = new();
 
-    public static AnimAction Build(NPC agent, Vector3 pos, ActionData action)
+    public static AnimAction Build(NPC agent, TransOrPos pos, ActionData action)
     {
         const float maxSightDistance = 6f;     // how far the agent can notice the item
         const float checkInterval = 0.1f;      // seconds between raycasts
@@ -19,7 +18,7 @@ static class MovementActions
         void startLookAt()
         {
             if (lookRoutine != null) return;
-            lookRoutine = agent.StartCoroutine(LookAt(agent, pos));
+            lookRoutine = agent.StartCoroutine(LookAt(agent, pos.position));
         }
 
         void stopLookAt()
@@ -33,7 +32,7 @@ static class MovementActions
         bool canSeeItem()
         {
             Vector3 origin = agent.Head.position;
-            Vector3 toItem = pos - origin;
+            Vector3 toItem = pos.position - origin;
             float dist = toItem.magnitude;
 
             if (dist > maxSightDistance) return false;
@@ -61,17 +60,49 @@ static class MovementActions
         void start()
         {
             agent.Anim.SetBool("Walking", true);
-            agent.Nav.SetDestination(Reserve(agent, pos, agent.Nav.radius + .2f));
+
+            float standoff = agent.Nav.radius + 0.5f;
+            if (pos.IsTransform && pos.transform.TryGetComponent(out NavMeshAgent other))
+                standoff += other.radius;
+
+            float startRadius = pos.IsTransform ? standoff : 0f;
+
+            if (TryReserve(agent, pos.position, out Vector3 spot, agent.Nav.radius + 0.5f, startRadius))
+                agent.Nav.SetDestination(spot);
+            else
+                agent.Nav.SetDestination(ApproachPoint(agent, pos.transform)); // last resort, still off the target
+        }
+
+        IEnumerator walkAndFace(float faceDistance = 2f, float turnSpeed = 360f)
+        {
+            var nav = agent.Nav;
+            nav.updateRotation = false;
+
+            while (nav.pathPending || nav.remainingDistance > nav.stoppingDistance + 0.05f)
+            {
+                Vector3 dir = nav.remainingDistance < faceDistance
+                    ? pos.position - agent.transform.position   // face the item when close
+                    : nav.desiredVelocity;             // otherwise face where we walk
+                dir.y = 0f;
+
+                if (dir.sqrMagnitude > 0.001f)
+                {
+                    Quaternion goal = Quaternion.LookRotation(dir, Vector3.up);
+                    agent.transform.rotation = Quaternion.RotateTowards(
+                        agent.transform.rotation, goal, turnSpeed * Time.deltaTime);
+                }
+                yield return null;
+            }
         }
 
         IEnumerator behavior()
         {
-            Coroutine watcher = agent.StartCoroutine(watchForItem());
-
+            //Coroutine watcher = agent.StartCoroutine(watchForItem());
+            Coroutine w2 = agent.StartCoroutine(walkAndFace());
             yield return agent.StartCoroutine(Utils.MonitorMovement(agent.Nav));
-
-            yield return agent.StartCoroutine(TurnTowards(agent.transform, pos));
-            agent.StopCoroutine(watcher);
+            agent.StopCoroutine(w2);
+            //yield return agent.StartCoroutine(TurnTowards(agent.transform, pos.position));
+            //agent.StopCoroutine(watcher);
         }
 
         void end()
@@ -84,6 +115,19 @@ static class MovementActions
         }
 
         return new AnimAction(action, start, behavior(), end);
+    }
+
+    static Vector3 ApproachPoint(NPC agent, Transform target, float gap = 0.3f)
+    {
+        float targetRadius = target.TryGetComponent(out NavMeshAgent other) ? other.radius : 0f;
+        float standoff = agent.Nav.radius + targetRadius + gap;
+
+        Vector3 dir = agent.transform.position - target.position;
+        dir.y = 0f;
+        dir = dir.sqrMagnitude < 0.001f ? target.forward : dir.normalized;
+
+        Vector3 p = target.position + dir * standoff;
+        return NavMesh.SamplePosition(p, out var hit, 1f, NavMesh.AllAreas) ? hit.position : target.position;
     }
 
     // Placeholders for your existing logic
@@ -100,7 +144,7 @@ static class MovementActions
         agent.StartCoroutine(lookAnim.StopLooking());
     }
 
-    static IEnumerator TurnTowards(Transform t, Vector3 target, float smoothing = 6f)
+    public static IEnumerator TurnTowards(Transform t, Vector3 target, float smoothing = 6f)
     {
         // Local space offset avoids needing a subtraction, then flatten so only Y rotates
         Vector3 local = t.InverseTransformPoint(target);
@@ -118,25 +162,50 @@ static class MovementActions
         t.rotation = goal;
     }
 
-    static Vector3 Reserve(NPC npc, Vector3 target, float spacing = 1f)
+    static bool TryReserve(NPC npc, Vector3 target, out Vector3 spot,
+                       float spacing = 1f, float startRadius = 0f)
     {
         Release(npc);
+        spot = default;
+
+        // Project the target onto the NavMesh so a raised pivot does not break every sample
+        if (NavMesh.SamplePosition(target, out var baseHit, 3f, NavMesh.AllAreas))
+            target = baseHit.position;
+
+        Vector3 from = npc.transform.position - target;
+        from.y = 0f;
+        float baseAngle = Mathf.Atan2(from.z, from.x);
+
         for (int ring = 0; ring < 4; ring++)
         {
-            int count = ring == 0 ? 1 : ring * 6;
-            float radius = ring * spacing;
+            float radius = startRadius + ring * spacing;
+            int count = Mathf.Max(6, ring * 6);
+
             for (int i = 0; i < count; i++)
             {
-                float angle = i * Mathf.PI * 2f / count;
+                float angle = baseAngle + i * Mathf.PI * 2f / count;
                 var candidate = target + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * radius;
-                if (!NavMesh.SamplePosition(candidate, out var hit, spacing, NavMesh.AllAreas)) continue;
-                if (IsTaken(npc, hit.position, spacing * 0.9f)) continue;
 
+                if (!NavMesh.SamplePosition(candidate, out var hit, spacing, NavMesh.AllAreas))
+                {
+                    Debug.DrawRay(candidate, Vector3.up, Color.red, 2f);   // failed sample
+                    continue;
+                }
+                if (IsTaken(npc, hit.position, spacing * 0.9f))
+                {
+                    Debug.DrawRay(hit.position, Vector3.up, Color.yellow, 2f); // taken
+                    continue;
+                }
+
+                Debug.DrawRay(hit.position, Vector3.up, Color.green, 2f);   // chosen
                 reserved[npc] = hit.position;
-                return hit.position;
+                spot = hit.position;
+                return true;
             }
         }
-        return target;
+
+        Debug.LogWarning($"{npc.name}: no free spot around {target}");
+        return false;
     }
 
     static bool IsTaken(NPC self, Vector3 p, float minDist)

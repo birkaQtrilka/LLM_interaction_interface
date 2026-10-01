@@ -15,7 +15,7 @@ public class MoveTo : IAgentAction
             ?? context.GetAgent(name)?.transform;
         if (obj == null) return $"Couldn't find spot with name {name}";
 
-        result = MovementActions.Build(agent, obj.position, action);
+        result = MovementActions.Build(agent, new TransOrPos(obj), action);
         return null;
     }
 }

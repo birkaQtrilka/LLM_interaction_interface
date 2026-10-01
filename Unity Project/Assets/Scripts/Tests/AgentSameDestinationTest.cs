@@ -8,7 +8,7 @@ public class AgentSameDestinationTest : MonoBehaviour
         TwoAgents
     }
     public TestType test;
-
+    [SerializeField] private string targetObjectName = "Chair";
     private void Start()
     {
         switch (test)
@@ -33,7 +33,7 @@ public class AgentSameDestinationTest : MonoBehaviour
                 id = 0,
                 name = "moveTo",
                 agent = agent.name,
-                parameters = new string[] { "Chair" }
+                parameters = new string[] { targetObjectName }
             }
         );
     }
@@ -51,7 +51,7 @@ public class AgentSameDestinationTest : MonoBehaviour
                     id = id++,
                     name = "moveTo",
                     agent = agent.name,
-                    parameters = new string[] { "Chair" }
+                    parameters = new string[] { targetObjectName }
                 }
 
             );

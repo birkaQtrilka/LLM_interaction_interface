@@ -15,7 +15,7 @@ public class MoveToPoint : IAgentAction
             !float.TryParse(param[2], out float z))
             return $"moveToPoint requires 3 numeric parameters, got: {param[0]}, {param[1]}, {param[2]}";
 
-        result = MovementActions.Build(agent, new Vector3(x, y, z), action);
+        result = MovementActions.Build(agent, new TransOrPos( new Vector3(x, y, z) ), action);
         return null;
     }
 }

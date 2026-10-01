@@ -18,6 +18,7 @@ public class Give : IAgentAction
         void start()
         {
             agent.Anim.SetBool("Give", true);
+            otherAgent.StartCoroutine(MovementActions.TurnTowards(otherAgent.transform, agent.transform.position));
         }
 
         IEnumerator onRaise()
@@ -25,7 +26,6 @@ public class Give : IAgentAction
             yield return null;
             otherAgent.GrabReceiver.OnGrabPoint += snapObjectToHand;
 
-            Debug.Log("Raised arm");
             Transform item = agent.GetItem(right: true);
             tempTransf.position = item.position;
 
@@ -47,6 +47,7 @@ public class Give : IAgentAction
             otherAgent.GrabReceiver.OnGrabPoint -= snapObjectToHand;
             GameObject.Destroy(tempTransf.gameObject);
         }
+
         IEnumerator animationChain =
             Utils.MonitorAnimatorState(agent.Anim, "Give_Raise", 1)
             .OnCrEnd(onRaise())
