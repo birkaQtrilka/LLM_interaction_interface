@@ -6,10 +6,13 @@ public class FlyCamera : MonoBehaviour
 {
     [SerializeField] float moveSpeed = 8f;
     [SerializeField] float lookSensitivity = 0.15f;
+    // Seconds of glide after the move keys are released. 0 stops at once
+    [SerializeField] float moveMomentum = 0.12f;
 
     float yaw;
     float pitch;
     bool looking;
+    Vector3 velocity;
 
     void Start()
     {
@@ -34,7 +37,11 @@ public class FlyCamera : MonoBehaviour
             looking = false;
         }
 
-        if (!looking) return;
+        if (!looking)
+        {
+            velocity = Vector3.zero;
+            return;
+        }
 
         Vector2 delta = mouse.delta.ReadValue();
         yaw += delta.x * lookSensitivity;
@@ -42,14 +49,19 @@ public class FlyCamera : MonoBehaviour
         pitch = Mathf.Clamp(pitch, -89f, 89f);
         transform.rotation = Quaternion.Euler(pitch, yaw, 0f);
 
-        Vector3 move = Vector3.zero;
-        if (keyboard.wKey.isPressed) move += Vector3.forward;
-        if (keyboard.sKey.isPressed) move += Vector3.back;
-        if (keyboard.aKey.isPressed) move += Vector3.left;
-        if (keyboard.dKey.isPressed) move += Vector3.right;
-        if (move.sqrMagnitude == 0f) return;
+        Vector3 wish = Vector3.zero;
+        if (keyboard.wKey.isPressed) wish += Vector3.forward;
+        if (keyboard.sKey.isPressed) wish += Vector3.back;
+        if (keyboard.aKey.isPressed) wish += Vector3.left;
+        if (keyboard.dKey.isPressed) wish += Vector3.right;
+        if (wish.sqrMagnitude > 1f) wish.Normalize();
+        wish *= moveSpeed;
 
-        transform.Translate(move.normalized * moveSpeed * Time.deltaTime, Space.Self);
+        float blend = moveMomentum <= 0f ? 1f : 1f - Mathf.Exp(-Time.deltaTime / moveMomentum);
+        velocity = Vector3.Lerp(velocity, wish, blend);
+        if (velocity.sqrMagnitude < 0.0001f) return;
+
+        transform.Translate(velocity * Time.deltaTime, Space.Self);
     }
 
     static bool PointerOverUi()

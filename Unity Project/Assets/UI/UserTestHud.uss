@@ -56,3 +56,14 @@
 .hidden {
     display: none;
 }
+
+.camera-hint {
+    position: absolute;
+    right: 16px;
+    bottom: 12px;
+    font-size: 11px;
+    color: rgba(245, 248, 252, 0.75);
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgba(0, 0, 0, 0.55);
+    -unity-text-align: middle-right;
+}

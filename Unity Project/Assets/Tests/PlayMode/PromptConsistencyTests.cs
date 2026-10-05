@@ -17,6 +17,8 @@ public class PromptConsistencyTests
 {
     // Each prompt is sent this many times, and a 9-to-1 split reads as about 0.11
     const int Repeats = 10;
+    // NUnit reads this in milliseconds, so this is twenty minutes
+    const int SurveyTimeoutMs = 1200000;
     const string scenePath = "Assets/Tests/PlayMode/Scenes/Proto_1_Scene.unity";
 
     AgentSystem system;
@@ -75,7 +77,7 @@ public class PromptConsistencyTests
 
     [UnityTest]
     [Category("PromptEval")]
-    [Timeout(600000)]
+    [Timeout(SurveyTimeoutMs)]
     public IEnumerator Expect()
     {
         yield return Run("expect");
@@ -83,7 +85,7 @@ public class PromptConsistencyTests
 
     [UnityTest]
     [Category("PromptEval")]
-    [Timeout(600000)]
+    [Timeout(SurveyTimeoutMs)]
     public IEnumerator Variance()
     {
         yield return Run("variance");

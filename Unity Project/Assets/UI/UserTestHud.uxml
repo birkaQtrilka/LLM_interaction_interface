@@ -1,13 +1,14 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
-    <ui:Style src="UserTestHud.uss" />
-    <ui:VisualElement name="root" class="root" picking-mode="Ignore">
+    <Style src="project://database/Assets/UI/UserTestHud.uss?fileID=7433441132597879392&amp;guid=5e0a3c9d1f2b4a6c8d0e1f2a3b4c5d6e&amp;type=3#UserTestHud"/>
+    <ui:VisualElement name="root" picking-mode="Ignore" class="root">
         <ui:VisualElement name="hud" class="hud">
-            <ui:Label name="step-label" text="1 / 7" class="step" />
-            <ui:Label name="instruction" text="Say hi to the nurse" class="instruction" />
-            <ui:Label name="status" text="" class="status" />
+            <ui:Label name="step-label" text="1 / 7" class="step"/>
+            <ui:Label name="instruction" text="Say hi to the nurse" class="instruction"/>
+            <ui:Label name="status" text="" class="status"/>
         </ui:VisualElement>
         <ui:VisualElement name="complete" class="complete hidden">
-            <ui:Label name="complete-label" text="Tutorial complete" class="complete-label" />
+            <ui:Label name="complete-label" text="Tutorial complete" class="complete-label"/>
         </ui:VisualElement>
+        <ui:Label name="camera-hint" text="Hold left mouse to look, WASD to move" picking-mode="Ignore" class="camera-hint" style="font-size: 30px;"/>
     </ui:VisualElement>
 </ui:UXML>

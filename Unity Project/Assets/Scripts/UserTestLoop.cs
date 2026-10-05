@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -10,7 +11,11 @@ public class UserTestLoop : MonoBehaviour
         Talk,
         Grab,
         PlaceOn,
-        MoveToSpot
+        MoveToSpot,
+        // The item must leave the hand that held it when the message was sent
+        HandOff,
+        // Some agent must be on a marked spot they were not on when the message was sent
+        ArriveAtSpot,
     }
 
     [Serializable]
@@ -28,6 +33,10 @@ public class UserTestLoop : MonoBehaviour
 
     int current;
     bool waiting;
+    // Who held the handoff item when this message was sent
+    NPC holderAtSend;
+    // Spot each agent occupied when this message was sent. Null means none
+    readonly List<(NPC agent, string spot)> placesAtSend = new();
     Label stepLabel;
     Label instructionLabel;
     Label statusLabel;
@@ -74,7 +83,12 @@ public class UserTestLoop : MonoBehaviour
     IEnumerator AfterTurn()
     {
         waiting = true;
-        statusLabel.text = "Waiting for the nurse...";
+        Step step = steps[current];
+        if (step.goal == StepGoal.HandOff)
+            holderAtSend = FindHolder(step.targetName);
+        if (step.goal == StepGoal.ArriveAtSpot)
+            SnapshotPlaces();
+        statusLabel.text = "Waiting...";
 
         yield return null;
         yield return new WaitUntil(() => !agentSystem.IsBusy);
@@ -117,11 +131,19 @@ public class UserTestLoop : MonoBehaviour
         return step.goal switch
         {
             StepGoal.Talk => LastHas("talk", null),
-            StepGoal.Grab => IsHolding(step.targetName) || LastHas("grab", step.targetName),
+            StepGoal.Grab => FindHolder(step.targetName) != null,
             StepGoal.PlaceOn => IsOnSurface(agentSystem.contextLibrary, step.targetName, step.surfaceName),
-            StepGoal.MoveToSpot => IsNearSpot(agentSystem.contextLibrary, agentSystem.contextLibrary.agents[0], step.targetName),
+            StepGoal.MoveToSpot => SomeAgentNear(step.targetName),
+            StepGoal.HandOff => HandedOff(step.targetName),
+            StepGoal.ArriveAtSpot => SomeAgentChangedSpot(),
             _ => false,
         };
+    }
+
+    bool HandedOff(string itemName)
+    {
+        NPC now = FindHolder(itemName);
+        return holderAtSend != null && now != null && now != holderAtSend;
     }
 
     public bool IsOnSurface(ContextLibrary ctx, string itemName, string surfaceName)
@@ -152,7 +174,10 @@ public class UserTestLoop : MonoBehaviour
             && p.z >= box.min.z && p.z <= box.max.z;
     }
 
-    public bool IsNearSpot(ContextLibrary ctx, NPC agent, string spotName, float maxDistance = 0.1f)
+    // A finished moveTo reserves a ring at the body radius plus half a metre, then may sample that far again
+    const float SpotReach = 1.6f;
+
+    public bool IsNearSpot(ContextLibrary ctx, NPC agent, string spotName, float maxDistance = SpotReach)
     {
         ContextItem spot = ctx.spots.Find(x => x.GetName() == spotName);
         if (spot == null || agent == null) return false;
@@ -182,10 +207,73 @@ public class UserTestLoop : MonoBehaviour
         return false;
     }
 
-    bool IsHolding(string itemName)
+    NPC FindHolder(string itemName)
     {
-        NPC npc = agentSystem.contextLibrary.agents[0];
-        Transform item = npc.GetItem(true);
+        foreach (NPC npc in agentSystem.contextLibrary.agents)
+        {
+            if (IsHolding(itemName, npc)) return npc;
+        }
+        return null;
+    }
+
+    bool IsHolding(string itemName, NPC npc)
+    {
+        if (npc == null) return false;
+        Transform right = npc.GetItem(true);
+        return NameIs(right, itemName);
+    }
+
+    static bool NameIs(Transform item, string itemName)
+    {
         return item != null && item.name == itemName;
+    }
+
+    bool SomeAgentNear(string spotName)
+    {
+        foreach (NPC agent in agentSystem.contextLibrary.agents)
+        {
+            if (string.IsNullOrEmpty(spotName))
+            {
+                if (SpotOf(agent) != null) return true;
+            }
+            else if (IsNearSpot(agentSystem.contextLibrary, agent, spotName))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void SnapshotPlaces()
+    {
+        placesAtSend.Clear();
+        foreach (NPC agent in agentSystem.contextLibrary.agents)
+            placesAtSend.Add((agent, SpotOf(agent)));
+    }
+
+    bool SomeAgentChangedSpot()
+    {
+        foreach (NPC agent in agentSystem.contextLibrary.agents)
+        {
+            string now = SpotOf(agent);
+            if (now == null) continue;
+            string before = null;
+            foreach ((NPC who, string spot) in placesAtSend)
+            {
+                if (who == agent) before = spot;
+            }
+            if (now != before) return true;
+        }
+        return false;
+    }
+
+    string SpotOf(NPC agent)
+    {
+        ContextLibrary ctx = agentSystem.contextLibrary;
+        foreach (ContextItem spot in ctx.spots)
+        {
+            if (IsNearSpot(ctx, agent, spot.GetName())) return spot.GetName();
+        }
+        return null;
     }
 }
