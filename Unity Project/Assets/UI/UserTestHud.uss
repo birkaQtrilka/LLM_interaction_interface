@@ -40,11 +40,83 @@
 
 .complete {
     margin-top: 28px;
-    padding: 20px 36px;
+    padding: 20px 28px;
+    width: 520px;
     border-radius: 16px;
-    background-color: rgba(10, 16, 28, 0.28);
+    background-color: rgba(10, 16, 28, 0.82);
     backdrop-filter: blur(14px) tint(rgba(160, 230, 190, 0.2));
     filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.4));
+}
+
+.scale-hint {
+    margin-top: 4px;
+    font-size: 13px;
+    color: rgb(170, 205, 230);
+}
+
+.question {
+    margin-top: 14px;
+    margin-bottom: 6px;
+    font-size: 16px;
+    color: rgb(245, 248, 252);
+    white-space: normal;
+}
+
+.score {
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.score-choice {
+    width: 48px;
+    min-width: 48px;
+    max-width: 48px;
+    height: 36px;
+    margin-left: 0;
+    margin-right: 0;
+    padding: 0;
+    font-size: 16px;
+    color: rgb(245, 248, 252);
+    background-color: rgba(255, 255, 255, 0.08);
+    border-width: 1px;
+    border-color: rgba(245, 248, 252, 0.4);
+    border-radius: 8px;
+    -unity-text-align: middle-center;
+}
+
+.score-choice.selected {
+    color: rgb(10, 16, 28);
+    background-color: rgb(170, 205, 230);
+    border-color: rgb(170, 205, 230);
+}
+
+.optional {
+    font-size: 12px;
+    color: rgb(170, 205, 230);
+    margin-bottom: 4px;
+}
+
+.note {
+    min-height: 52px;
+    margin-bottom: 4px;
+}
+
+.confirm {
+    margin-top: 12px;
+    align-self: center;
+    font-size: 16px;
+    padding: 6px 28px;
+}
+
+.form-status {
+    margin-top: 8px;
+    min-height: 18px;
+    font-size: 14px;
+    color: rgb(235, 200, 130);
+    white-space: normal;
+    -unity-text-align: upper-center;
 }
 
 .complete-label {

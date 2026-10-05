@@ -7,7 +7,30 @@
             <ui:Label name="status" text="" class="status"/>
         </ui:VisualElement>
         <ui:VisualElement name="complete" class="complete hidden">
-            <ui:Label name="complete-label" text="Tutorial complete" class="complete-label"/>
+            <ui:Label name="complete-label" text="Finished" class="complete-label"/>
+            <ui:Label text="1 is low, 5 is high" class="scale-hint"/>
+            <ui:Label text="How natural does communication feel?" class="question"/>
+            <ui:VisualElement name="natural-score" class="score">
+                <ui:Button name="natural-score-1" text="1" class="score-choice"/>
+                <ui:Button name="natural-score-2" text="2" class="score-choice"/>
+                <ui:Button name="natural-score-3" text="3" class="score-choice"/>
+                <ui:Button name="natural-score-4" text="4" class="score-choice"/>
+                <ui:Button name="natural-score-5" text="5" class="score-choice"/>
+            </ui:VisualElement>
+            <ui:Label text="Optional" class="optional"/>
+            <ui:TextField name="natural-note" multiline="true" class="note"/>
+            <ui:Label text="How accurate were the outcomes of the requests?" class="question"/>
+            <ui:VisualElement name="accurate-score" class="score">
+                <ui:Button name="accurate-score-1" text="1" class="score-choice"/>
+                <ui:Button name="accurate-score-2" text="2" class="score-choice"/>
+                <ui:Button name="accurate-score-3" text="3" class="score-choice"/>
+                <ui:Button name="accurate-score-4" text="4" class="score-choice"/>
+                <ui:Button name="accurate-score-5" text="5" class="score-choice"/>
+            </ui:VisualElement>
+            <ui:Label text="Optional" class="optional"/>
+            <ui:TextField name="accurate-note" multiline="true" class="note"/>
+            <ui:Button name="confirm" text="Confirm" class="confirm"/>
+            <ui:Label name="form-status" text="" class="form-status"/>
         </ui:VisualElement>
         <ui:Label name="camera-hint" text="Hold left mouse to look, WASD to move" picking-mode="Ignore" class="camera-hint" style="font-size: 30px;"/>
     </ui:VisualElement>

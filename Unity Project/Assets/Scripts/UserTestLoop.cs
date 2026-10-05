@@ -29,6 +29,7 @@ public class UserTestLoop : MonoBehaviour
 
     [SerializeField] AgentSystem agentSystem;
     [SerializeField] PanelRenderer panelRenderer;
+    [SerializeField] LLMBackend llmBackend;
     [SerializeField] Step[] steps;
 
     int current;
@@ -40,8 +41,18 @@ public class UserTestLoop : MonoBehaviour
     Label stepLabel;
     Label instructionLabel;
     Label statusLabel;
+    Label formStatus;
     VisualElement hud;
     VisualElement complete;
+    readonly Button[] naturalChoices = new Button[5];
+    readonly Button[] accurateChoices = new Button[5];
+    readonly Action[] naturalClicks = new Action[5];
+    readonly Action[] accurateClicks = new Action[5];
+    int naturalValue = -1;
+    int accurateValue = -1;
+    TextField naturalNote;
+    TextField accurateNote;
+    Button confirmButton;
 
     void OnEnable()
     {
@@ -62,16 +73,133 @@ public class UserTestLoop : MonoBehaviour
         {
             agentSystem.chatManager.OnTextSent.RemoveListener(OnUserMessage);
         }
+        if (confirmButton != null)
+        {
+            confirmButton.clicked -= OnConfirm;
+        }
+        UnbindScores();
+    }
+
+    [ContextMenu("Show end form")]
+    void ShowEndForm()
+    {
+        if (steps == null) return;
+        current = steps.Length;
+        waiting = false;
+        ShowCurrent();
     }
 
     void OnUIReload(PanelRenderer renderer, VisualElement root, int version)
     {
+        if (confirmButton != null)
+        {
+            confirmButton.clicked -= OnConfirm;
+        }
+        UnbindScores();
+
         hud = root.Q("hud");
         complete = root.Q("complete");
         stepLabel = root.Q<Label>("step-label");
         instructionLabel = root.Q<Label>("instruction");
         statusLabel = root.Q<Label>("status");
+        formStatus = root.Q<Label>("form-status");
+        naturalNote = root.Q<TextField>("natural-note");
+        accurateNote = root.Q<TextField>("accurate-note");
+        confirmButton = root.Q<Button>("confirm");
+        naturalValue = -1;
+        accurateValue = -1;
+        BindScores(root, "natural-score", naturalChoices, naturalClicks, PickNatural);
+        BindScores(root, "accurate-score", accurateChoices, accurateClicks, PickAccurate);
+        if (confirmButton != null) confirmButton.clicked += OnConfirm;
         ShowCurrent();
+    }
+
+    void BindScores(VisualElement root, string groupName, Button[] choices, Action[] clicks, Action<int> pick)
+    {
+        for (int i = 0; i < choices.Length; i++)
+        {
+            int score = i + 1;
+            Button button = root.Q<Button>(groupName + "-" + score);
+            choices[i] = button;
+            if (button == null) continue;
+            button.RemoveFromClassList("selected");
+            clicks[i] = () => pick(score);
+            button.clicked += clicks[i];
+        }
+    }
+
+    void UnbindScores()
+    {
+        UnbindRow(naturalChoices, naturalClicks);
+        UnbindRow(accurateChoices, accurateClicks);
+    }
+
+    static void UnbindRow(Button[] choices, Action[] clicks)
+    {
+        for (int i = 0; i < choices.Length; i++)
+        {
+            if (choices[i] != null && clicks[i] != null)
+                choices[i].clicked -= clicks[i];
+        }
+    }
+
+    void PickNatural(int score) => Pick(naturalChoices, ref naturalValue, score);
+
+    void PickAccurate(int score) => Pick(accurateChoices, ref accurateValue, score);
+
+    static void Pick(Button[] choices, ref int value, int score)
+    {
+        value = score;
+        for (int i = 0; i < choices.Length; i++)
+        {
+            if (choices[i] == null) continue;
+            if (i == score - 1) choices[i].AddToClassList("selected");
+            else choices[i].RemoveFromClassList("selected");
+        }
+    }
+
+    static void SetRowEnabled(Button[] choices, bool enabled)
+    {
+        foreach (Button choice in choices)
+        {
+            if (choice != null) choice.SetEnabled(enabled);
+        }
+    }
+
+    void OnConfirm()
+    {
+        if (llmBackend == null)
+        {
+            if (formStatus != null) formStatus.text = "The form is not set up";
+            return;
+        }
+        if (naturalValue < 1 || accurateValue < 1)
+        {
+            formStatus.text = "Choose a score from 1 to 5 for both questions";
+            return;
+        }
+
+        confirmButton.SetEnabled(false);
+        formStatus.text = "Saving...";
+        string error = llmBackend.SubmitFeedback(
+            naturalValue,
+            naturalNote != null ? naturalNote.value : "",
+            accurateValue,
+            accurateNote != null ? accurateNote.value : ""
+        );
+        if (error != null)
+        {
+            Debug.LogError(error);
+            confirmButton.SetEnabled(true);
+            formStatus.text = "Could not save. Try again";
+            return;
+        }
+
+        SetRowEnabled(naturalChoices, false);
+        SetRowEnabled(accurateChoices, false);
+        if (naturalNote != null) naturalNote.SetEnabled(false);
+        if (accurateNote != null) accurateNote.SetEnabled(false);
+        formStatus.text = "Saved";
     }
 
     void OnUserMessage(string message)

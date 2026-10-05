@@ -14,6 +14,18 @@ class ContextRequestBody(BaseModel):
 class SessionRequestBody(BaseModel):
     session_id: str
 
+class FeedbackRequestBody(BaseModel):
+    session_id: str
+    natural: int
+    natural_note: str = ""
+    accurate: int
+    accurate_note: str = ""
+
+class ErrorRequestBody(BaseModel):
+    session_id: str
+    message: str
+    stack: str = ""
+
 class UserFlags(BaseModel):
     position: bool = False
     rotation: bool = False

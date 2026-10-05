@@ -28,8 +28,56 @@ public class LLMBackend : MonoBehaviour
         public string session_id;
     }
 
+    [Serializable]
+    class FeedbackRequestBody
+    {
+        public string session_id;
+        public int natural;
+        public string natural_note;
+        public int accurate;
+        public string accurate_note;
+    }
+
+    [Serializable]
+    class ErrorRequestBody
+    {
+        public string session_id;
+        public string message;
+        public string stack;
+    }
+
     public string baseUrl = "http://127.0.0.1:8000";
     string sessionId;
+    bool reportingError;
+
+    void OnEnable()
+    {
+        Application.logMessageReceived += OnUnityLog;
+    }
+
+    void OnDisable()
+    {
+        Application.logMessageReceived -= OnUnityLog;
+    }
+
+    void OnUnityLog(string condition, string stackTrace, LogType type)
+    {
+        if (!Application.isPlaying) return;
+        if (type != LogType.Error && type != LogType.Exception) return;
+        if (string.IsNullOrEmpty(sessionId) || reportingError) return;
+
+        reportingError = true;
+        try
+        {
+            string error = PostError(condition, stackTrace);
+            if (error != null)
+                Debug.LogWarning("Could not write the error to the session log: " + error);
+        }
+        finally
+        {
+            reportingError = false;
+        }
+    }
 
     void Start()
     {
@@ -59,6 +107,73 @@ public class LLMBackend : MonoBehaviour
         }
     }
     
+    // Runs to completion on the click, so stopping Play just after Confirm still keeps the form
+    public string SubmitFeedback(int natural, string naturalNote, int accurate, string accurateNote)
+    {
+        try
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                client.Timeout = TimeSpan.FromSeconds(5);
+                var body = new FeedbackRequestBody
+                {
+                    session_id = sessionId ?? "",
+                    natural = natural,
+                    natural_note = naturalNote ?? "",
+                    accurate = accurate,
+                    accurate_note = accurateNote ?? "",
+                };
+                string json = JsonUtility.ToJson(body);
+                using (StringContent content = new StringContent(json, Encoding.UTF8, "application/json"))
+                {
+                    HttpResponseMessage response = client.PostAsync(baseUrl.TrimEnd('/') + "/v1/session/feedback", content).GetAwaiter().GetResult();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        string detail = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                        return $"Backend error: {(int)response.StatusCode} {detail}";
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            return ex.Message;
+        }
+        return null;
+    }
+
+    string PostError(string message, string stack)
+    {
+        try
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                client.Timeout = TimeSpan.FromSeconds(2);
+                var body = new ErrorRequestBody
+                {
+                    session_id = sessionId ?? "",
+                    message = message ?? "",
+                    stack = stack ?? "",
+                };
+                string json = JsonUtility.ToJson(body);
+                using (StringContent content = new StringContent(json, Encoding.UTF8, "application/json"))
+                {
+                    HttpResponseMessage response = client.PostAsync(baseUrl.TrimEnd('/') + "/v1/session/error", content).GetAwaiter().GetResult();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        string detail = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                        return $"Backend error: {(int)response.StatusCode} {detail}";
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            return ex.Message;
+        }
+        return null;
+    }
+
     public void GetContext(string message, Action<ContextQuery> onSuccess, Action<string> onError = null)
     {
         string json = JsonUtility.ToJson(new ContextRequestBody { message = message, session_id = sessionId ?? "" });

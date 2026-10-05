@@ -11,7 +11,8 @@ from fastapi import FastAPI, HTTPException
 
 from schemas import (
     ActionsRequestBody, ContextRequestBody, ContextQuery, 
-    ActionsResponse, ActionData, ObjectFlags, UserFlags, SessionRequestBody
+    ActionsResponse, ActionData, ObjectFlags, UserFlags, SessionRequestBody,
+    FeedbackRequestBody, ErrorRequestBody,
 )
 from prompts import PERSONA, CONTEXT_CATALOG, get_system_prompt
 BASE_DIR = Path(__file__).resolve().parent
@@ -224,6 +225,47 @@ def session_start(body: SessionRequestBody) -> dict:
         "ended_at": None,
         "turns": [],
     })
+    return {"session_id": path.stem}
+
+
+@app.post("/v1/session/error")
+def session_error(body: ErrorRequestBody) -> dict:
+    path = session_path(body.session_id)
+    if path.exists():
+        data = json.loads(path.read_text())
+    else:
+        # Start may not have arrived yet, so create the file and keep this error
+        data = {
+            "session_id": path.stem,
+            "started_at": datetime.now().isoformat(timespec="seconds"),
+            "ended_at": None,
+            "turns": [],
+        }
+    errors = data.setdefault("errors", [])
+    errors.append({
+        "at": datetime.now().isoformat(timespec="seconds"),
+        "message": body.message,
+        "stack": body.stack,
+    })
+    write_session(path, data)
+    return {"session_id": path.stem}
+
+
+@app.post("/v1/session/feedback")
+def session_feedback(body: FeedbackRequestBody) -> dict:
+    if body.natural < 1 or body.natural > 5 or body.accurate < 1 or body.accurate > 5:
+        raise HTTPException(status_code=400, detail="Scores must be from 1 to 5")
+    path = session_path(body.session_id)
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Session log was not found")
+    data = json.loads(path.read_text())
+    data["feedback"] = {
+        "natural": body.natural,
+        "natural_note": body.natural_note,
+        "accurate": body.accurate,
+        "accurate_note": body.accurate_note,
+    }
+    write_session(path, data)
     return {"session_id": path.stem}
 
 

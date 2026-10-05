@@ -2133,16 +2133,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UserTestLoop
   agentSystem: {fileID: 967212466}
   panelRenderer: {fileID: 920100003}
+  llmBackend: {fileID: 522124488}
   steps:
-  - instruction: Greet the people in the room
+  - instruction: Greet the assistants in the room
     goal: 0
     targetName: 
     surfaceName: 
-  - instruction: A scalpel needs to be in a hand
+  - instruction: A scalpel needs to be in someone's hand
     goal: 1
     targetName: Scalpel
     surfaceName: 
-  - instruction: Pass the scalpel to the other person
+  - instruction: Pass the scalpel to the other assistant
     goal: 4
     targetName: Scalpel
     surfaceName: 
@@ -2154,7 +2155,7 @@ MonoBehaviour:
     goal: 2
     targetName: phone
     surfaceName: Tray
-  - instruction: Have one of them go stand on a marked spot
+  - instruction: Have one of them go stand on one of the spot (spot A,B or C)
     goal: 5
     targetName: 
     surfaceName: 
