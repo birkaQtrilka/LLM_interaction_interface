@@ -100,7 +100,8 @@ static class MovementActions
             //Coroutine watcher = agent.StartCoroutine(watchForItem());
             Coroutine w2 = agent.StartCoroutine(walkAndFace());
             yield return agent.StartCoroutine(Utils.MonitorMovement(agent.Nav));
-            agent.StopCoroutine(w2);
+            // Already there: the walk finishes before it yields, so there is nothing to stop
+            if (w2 != null) agent.StopCoroutine(w2);
             //yield return agent.StartCoroutine(TurnTowards(agent.transform, pos.position));
             //agent.StopCoroutine(watcher);
         }

@@ -777,6 +777,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LLMBackend
   baseUrl: http://127.0.0.1:8000
+  sessionDescription: Real user tests. The model is 4o-mini
+  logDirectory: user-tests-r1
 --- !u!1 &571908490
 GameObject:
   m_ObjectHideFlags: 0
