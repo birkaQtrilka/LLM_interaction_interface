@@ -12,6 +12,8 @@ public class LLMBackend : MonoBehaviour
     {
         public string message;
         public string session_id;
+        public string log_directory;
+        public string description;
     }
 
     [Serializable]
@@ -20,12 +22,16 @@ public class LLMBackend : MonoBehaviour
         public string message;
         public string world;
         public string session_id;
+        public string log_directory;
+        public string description;
     }
 
     [Serializable]
     class SessionRequestBody
     {
         public string session_id;
+        public string log_directory;
+        public string description;
     }
 
     [Serializable]
@@ -36,6 +42,8 @@ public class LLMBackend : MonoBehaviour
         public string natural_note;
         public int accurate;
         public string accurate_note;
+        public string log_directory;
+        public string description;
     }
 
     [Serializable]
@@ -44,9 +52,15 @@ public class LLMBackend : MonoBehaviour
         public string session_id;
         public string message;
         public string stack;
+        public string log_directory;
+        public string description;
     }
 
     public string baseUrl = "http://127.0.0.1:8000";
+    // Stored in the session file
+    [SerializeField] string sessionDescription;
+    // Empty uses Backend/logs, a short name is created there, and a full path is used as written
+    [SerializeField] string logDirectory;
     string sessionId;
     bool reportingError;
 
@@ -82,7 +96,7 @@ public class LLMBackend : MonoBehaviour
     void Start()
     {
         sessionId = Guid.NewGuid().ToString();
-        string json = JsonUtility.ToJson(new SessionRequestBody { session_id = sessionId });
+        string json = JsonUtility.ToJson(SessionBody());
         StartCoroutine(PostJson("/v1/session/start", json, null, null));
     }
 
@@ -95,7 +109,7 @@ public class LLMBackend : MonoBehaviour
             using (HttpClient client = new HttpClient())
             {
                 client.Timeout = TimeSpan.FromSeconds(2);
-                string json = JsonUtility.ToJson(new SessionRequestBody { session_id = sessionId });
+                string json = JsonUtility.ToJson(SessionBody());
                 using (StringContent content = new StringContent(json, Encoding.UTF8, "application/json"))
                 {
                     client.PostAsync(baseUrl.TrimEnd('/') + "/v1/session/end", content).GetAwaiter().GetResult();
@@ -118,6 +132,8 @@ public class LLMBackend : MonoBehaviour
                 var body = new FeedbackRequestBody
                 {
                     session_id = sessionId ?? "",
+                    log_directory = logDirectory ?? "",
+                    description = sessionDescription ?? "",
                     natural = natural,
                     natural_note = naturalNote ?? "",
                     accurate = accurate,
@@ -152,6 +168,8 @@ public class LLMBackend : MonoBehaviour
                 var body = new ErrorRequestBody
                 {
                     session_id = sessionId ?? "",
+                    log_directory = logDirectory ?? "",
+                    description = sessionDescription ?? "",
                     message = message ?? "",
                     stack = stack ?? "",
                 };
@@ -176,7 +194,7 @@ public class LLMBackend : MonoBehaviour
 
     public void GetContext(string message, Action<ContextQuery> onSuccess, Action<string> onError = null)
     {
-        string json = JsonUtility.ToJson(new ContextRequestBody { message = message, session_id = sessionId ?? "" });
+        string json = JsonUtility.ToJson(new ContextRequestBody { message = message, session_id = sessionId ?? "", log_directory = logDirectory ?? "", description = sessionDescription ?? "" });
         StartCoroutine(PostJson("/v1/context", json, text =>
         {
             try
@@ -193,7 +211,7 @@ public class LLMBackend : MonoBehaviour
 
     public IEnumerator GetContext(string message, CoroutineResult<ContextQuery> res)
     {
-        string json = JsonUtility.ToJson(new ContextRequestBody { message = message, session_id = sessionId ?? "" });
+        string json = JsonUtility.ToJson(new ContextRequestBody { message = message, session_id = sessionId ?? "", log_directory = logDirectory ?? "", description = sessionDescription ?? "" });
         yield return StartCoroutine(PostJson("/v1/context", json, text =>
         {
             try
@@ -213,7 +231,7 @@ public class LLMBackend : MonoBehaviour
 
     public IEnumerator GetActions(string message, string world, CoroutineResult<ActionsResponse> res)
     {
-        string json = JsonUtility.ToJson(new ActionsRequestBody { message = message, world = world, session_id = sessionId ?? "" });
+        string json = JsonUtility.ToJson(new ActionsRequestBody { message = message, world = world, session_id = sessionId ?? "", log_directory = logDirectory ?? "", description = sessionDescription ?? "" });
         yield return StartCoroutine(PostJson("/v1/turn", json, text =>
         {
             ActionsResponse response = JsonUtility.FromJson<ActionsResponse>(text);
@@ -231,7 +249,7 @@ public class LLMBackend : MonoBehaviour
 
     public void GetActions(string message, string world, Action<ActionsResponse> onSuccess, Action<string> onError = null)
     {
-        string json = JsonUtility.ToJson(new ActionsRequestBody { message = message, world = world, session_id = sessionId ?? "" });
+        string json = JsonUtility.ToJson(new ActionsRequestBody { message = message, world = world, session_id = sessionId ?? "", log_directory = logDirectory ?? "", description = sessionDescription ?? "" });
         StartCoroutine(PostJson("/v1/turn", json, text =>
         {
             ActionsResponse response = JsonUtility.FromJson<ActionsResponse>(text);
@@ -242,6 +260,16 @@ public class LLMBackend : MonoBehaviour
             }
             onSuccess?.Invoke(response);
         }, onError));
+    }
+
+    SessionRequestBody SessionBody()
+    {
+        return new SessionRequestBody
+        {
+            session_id = sessionId ?? "",
+            log_directory = logDirectory ?? "",
+            description = sessionDescription ?? "",
+        };
     }
 
     IEnumerator PostJson(string path, string json, Action<string> onBody, Action<string> onError)

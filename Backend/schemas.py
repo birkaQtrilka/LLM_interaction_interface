@@ -6,13 +6,19 @@ class ActionsRequestBody(BaseModel):
     world: str | dict = ""
     # Empty skips the session log, so curl still works before Unity sends a session.
     session_id: str = ""
+    log_directory: str = ""
+    description: str = ""
 
 class ContextRequestBody(BaseModel):
     message: str
     session_id: str = ""
+    log_directory: str = ""
+    description: str = ""
 
 class SessionRequestBody(BaseModel):
     session_id: str
+    log_directory: str = ""
+    description: str = ""
 
 class FeedbackRequestBody(BaseModel):
     session_id: str
@@ -20,11 +26,15 @@ class FeedbackRequestBody(BaseModel):
     natural_note: str = ""
     accurate: int
     accurate_note: str = ""
+    log_directory: str = ""
+    description: str = ""
 
 class ErrorRequestBody(BaseModel):
     session_id: str
     message: str
     stack: str = ""
+    log_directory: str = ""
+    description: str = ""
 
 class UserFlags(BaseModel):
     position: bool = False

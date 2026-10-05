@@ -26,13 +26,42 @@ LOGS_DIR = BASE_DIR / "logs"
 # The system text is the same on every turn, so the log omits it unless this is on
 LOG_SYSTEM = False
 
-def session_path(session_id: str) -> Path:
-    # Filename is the GUID, so anything else could escape the logs folder.
+def log_dir(directory: str) -> Path:
+    # Empty keeps Backend/logs, a relative name is created inside it, and a full path is used as given
+    text = (directory or "").strip()
+    if not text:
+        return LOGS_DIR
+    raw = Path(text)
+    if raw.is_absolute():
+        return raw
+    candidate = (LOGS_DIR / raw).resolve()
+    root = LOGS_DIR.resolve()
+    if candidate != root and root not in candidate.parents:
+        raise HTTPException(status_code=400, detail="A relative log directory must stay inside Backend/logs")
+    return candidate
+
+def session_path(session_id: str, directory: str = "") -> Path:
+    # Filename is the GUID, so anything else could escape the logs folder
     try:
         parsed = uuid.UUID(session_id)
     except ValueError:
         raise HTTPException(status_code=400, detail="session_id must be a GUID")
-    return LOGS_DIR / f"{parsed}.json"
+    return log_dir(directory) / f"{parsed}.json"
+
+def new_session(path: Path, description: str = "") -> dict:
+    data = {
+        "session_id": path.stem,
+        "started_at": datetime.now().isoformat(timespec="seconds"),
+        "ended_at": None,
+        "turns": [],
+    }
+    apply_description(data, description)
+    return data
+
+def apply_description(data: dict, description: str) -> None:
+    text = (description or "").strip()
+    if text:
+        data["description"] = text
 
 def write_session(path: Path, data: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -42,20 +71,16 @@ def elapsed_s(started: float) -> float:
     # Seconds since the request arrived, sampled when the model call returns
     return round(time.perf_counter() - started, 3)
 
-def append_turn(session_id: str, endpoint: str, system: str, user: str, response: object, llm_s: float) -> None:
+def append_turn(session_id: str, endpoint: str, system: str, user: str, response: object, llm_s: float, directory: str = "", description: str = "") -> None:
     if not session_id:
         return
-    path = session_path(session_id)
+    path = session_path(session_id, directory)
     if path.exists():
         data = json.loads(path.read_text())
     else:
-        # Start may not have arrived yet. Create the file so this turn is kept.
-        data = {
-            "session_id": path.stem,
-            "started_at": datetime.now().isoformat(timespec="seconds"),
-            "ended_at": None,
-            "turns": [],
-        }
+        # Start may not have arrived yet, so create the file and keep this turn
+        data = new_session(path, description)
+    apply_description(data, description)
     turn = {
         "at": datetime.now().isoformat(timespec="seconds"),
         "endpoint": endpoint,
@@ -128,7 +153,7 @@ def build_messages(user_text: str, world: str) -> list[dict]:
 def context(body: ContextRequestBody) -> ContextQuery:
     started = time.perf_counter()
     if body.session_id:
-        session_path(body.session_id)
+        session_path(body.session_id, body.log_directory)
     try:
         parsed, usage = openai_json(
             [
@@ -137,7 +162,7 @@ def context(body: ContextRequestBody) -> ContextQuery:
             ]
         )
     except HTTPException as exc:
-        append_turn(body.session_id, "context", CONTEXT_CATALOG, body.message, exc.detail, elapsed_s(started))
+        append_turn(body.session_id, "context", CONTEXT_CATALOG, body.message, exc.detail, elapsed_s(started), body.log_directory, body.description)
         raise
     llm_s = elapsed_s(started)
     user = flags_from(parsed.get("userFlags"))
@@ -160,7 +185,7 @@ def context(body: ContextRequestBody) -> ContextQuery:
         prompt_tokens=int(usage.get("prompt_tokens") or 0),
         completion_tokens=int(usage.get("completion_tokens") or 0),
     )
-    append_turn(body.session_id, "context", CONTEXT_CATALOG, body.message, reply.model_dump(), llm_s)
+    append_turn(body.session_id, "context", CONTEXT_CATALOG, body.message, reply.model_dump(), llm_s, body.log_directory, body.description)
     return reply
 
 
@@ -168,14 +193,14 @@ def context(body: ContextRequestBody) -> ContextQuery:
 def turn(body: ActionsRequestBody) -> ActionsResponse:
     started = time.perf_counter()
     if body.session_id:
-        session_path(body.session_id)
+        session_path(body.session_id, body.log_directory)
     messages = build_messages(body.message, body.world)
     system = messages[0]["content"]
     user = messages[1]["content"]
     try:
         parsed, usage = openai_json(messages)
     except HTTPException as exc:
-        append_turn(body.session_id, "turn", system, user, exc.detail, elapsed_s(started))
+        append_turn(body.session_id, "turn", system, user, exc.detail, elapsed_s(started), body.log_directory, body.description)
         raise
     llm_s = elapsed_s(started)
 
@@ -209,38 +234,32 @@ def turn(body: ActionsRequestBody) -> ActionsResponse:
         prompt_tokens=int(usage.get("prompt_tokens") or 0),
         completion_tokens=int(usage.get("completion_tokens") or 0),
     )
-    append_turn(body.session_id, "turn", system, user, reply.model_dump(), llm_s)
+    append_turn(body.session_id, "turn", system, user, reply.model_dump(), llm_s, body.log_directory, body.description)
     return reply
 
 
 @app.post("/v1/session/start")
 def session_start(body: SessionRequestBody) -> dict:
-    path = session_path(body.session_id)
+    path = session_path(body.session_id, body.log_directory)
     # A turn can arrive before this call. Do not wipe turns already written.
     if path.exists():
-        return {"session_id": path.stem}
-    write_session(path, {
-        "session_id": path.stem,
-        "started_at": datetime.now().isoformat(timespec="seconds"),
-        "ended_at": None,
-        "turns": [],
-    })
+        data = json.loads(path.read_text())
+    else:
+        data = new_session(path, body.description)
+    apply_description(data, body.description)
+    write_session(path, data)
     return {"session_id": path.stem}
 
 
 @app.post("/v1/session/error")
 def session_error(body: ErrorRequestBody) -> dict:
-    path = session_path(body.session_id)
+    path = session_path(body.session_id, body.log_directory)
     if path.exists():
         data = json.loads(path.read_text())
     else:
         # Start may not have arrived yet, so create the file and keep this error
-        data = {
-            "session_id": path.stem,
-            "started_at": datetime.now().isoformat(timespec="seconds"),
-            "ended_at": None,
-            "turns": [],
-        }
+        data = new_session(path, body.description)
+    apply_description(data, body.description)
     errors = data.setdefault("errors", [])
     errors.append({
         "at": datetime.now().isoformat(timespec="seconds"),
@@ -255,7 +274,7 @@ def session_error(body: ErrorRequestBody) -> dict:
 def session_feedback(body: FeedbackRequestBody) -> dict:
     if body.natural < 1 or body.natural > 5 or body.accurate < 1 or body.accurate > 5:
         raise HTTPException(status_code=400, detail="Scores must be from 1 to 5")
-    path = session_path(body.session_id)
+    path = session_path(body.session_id, body.log_directory)
     if not path.exists():
         raise HTTPException(status_code=404, detail="Session log was not found")
     data = json.loads(path.read_text())
@@ -271,7 +290,7 @@ def session_feedback(body: FeedbackRequestBody) -> dict:
 
 @app.post("/v1/session/end")
 def session_end(body: SessionRequestBody) -> dict:
-    path = session_path(body.session_id)
+    path = session_path(body.session_id, body.log_directory)
     if not path.exists():
         return {"session_id": path.stem}
     data = json.loads(path.read_text())
