@@ -396,6 +396,7 @@ GameObject:
   - component: {fileID: 330585544}
   - component: {fileID: 330585547}
   - component: {fileID: 330585548}
+  - component: {fileID: 330585549}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -536,6 +537,21 @@ MonoBehaviour:
   moveSpeed: 4
   lookSensitivity: 0.5
   moveMomentum: 0.12
+--- !u!114 &330585549
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330585543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7d2e4f18a6c4e0d9f3a5c7b1e8d2f40, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LookCast
+  radius: 0.35
+  distance: 4
+  socialRadius: 3.5
 --- !u!4 &354874378 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7989861629694781450, guid: 6f84070aa6b2c5542a9cbdd7a3d08e24, type: 3}
