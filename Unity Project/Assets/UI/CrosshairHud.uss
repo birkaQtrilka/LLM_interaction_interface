@@ -1,0 +1,15 @@
+.root {
+    flex-grow: 1;
+}
+
+.crosshair {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    margin: 0;
+    padding: 0;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.25);
+    -unity-text-align: middle-center;
+}

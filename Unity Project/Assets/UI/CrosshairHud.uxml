@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/CrosshairHud.uss?fileID=7433441132597879392&amp;guid=a1b2c3d4e5f64789a0b1c2d3e4f50617&amp;type=3#CrosshairHud"/>
+    <ui:VisualElement name="root" picking-mode="Ignore" class="root">
+        <ui:Label name="crosshair" text="⚪" picking-mode="Ignore" class="crosshair"/>
+    </ui:VisualElement>
+</ui:UXML>
