@@ -38,7 +38,7 @@ public class ChatManager : MonoBehaviour
 
         LookCast look = Camera.main != null ? Camera.main.GetComponent<LookCast>() : null;
         NPC nurse = null;
-        if (look != null && !look.TryChoose(out nurse, out string reason))
+        if (look != null && !look.TryChoose(txt, out nurse, out string reason))
         {
             AddChat(reason);
             // Keep focus so Enter sends again after they look at someone

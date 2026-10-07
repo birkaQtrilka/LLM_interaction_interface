@@ -1,6 +1,8 @@
+using System;
 using UnityEngine;
 
-// The label names who would hear an order. A sent line uses that nurse
+// The label names who the look would pick
+// A sent line uses a name in the sentence first, then that look
 public class LookCast : MonoBehaviour
 {
     [SerializeField] float radius = 0.35f;
@@ -36,12 +38,85 @@ public class LookCast : MonoBehaviour
         Debug.Log("Look cast: " + shown);
     }
 
-    public bool TryChoose(out NPC nurse, out string reason)
+    public bool TryChoose(string sentence, out NPC nurse, out string reason)
     {
+        if (TryDirectName(sentence, out nurse, out reason))
+            return nurse != null;
+
         Choice choice = Evaluate();
         nurse = choice.nurse;
         reason = choice.label;
         return nurse != null;
+    }
+
+    // True when the sentence itself decided, including a refusal for two names
+    bool TryDirectName(string sentence, out NPC nurse, out string reason)
+    {
+        nurse = null;
+        reason = null;
+        if (string.IsNullOrEmpty(sentence)) return false;
+
+        for (int i = 0; i < nurses.Length; i++)
+        {
+            NPC candidate = nurses[i];
+            if (candidate == null || !MentionedAsAddressee(sentence, candidate.name)) continue;
+            if (nurse != null)
+            {
+                nurse = null;
+                reason = "Name one nurse";
+                return true;
+            }
+            nurse = candidate;
+        }
+
+        if (nurse == null) return false;
+        reason = "Named: " + nurse.name;
+        return true;
+    }
+
+    static bool MentionedAsAddressee(string sentence, string name)
+    {
+        if (string.IsNullOrEmpty(name)) return false;
+        int from = 0;
+        while (from <= sentence.Length - name.Length)
+        {
+            int at = sentence.IndexOf(name, from, StringComparison.OrdinalIgnoreCase);
+            if (at < 0) return false;
+            from = at + 1;
+            if (!IsWholeName(sentence, at, name.Length)) continue;
+            if (IsGiveTarget(sentence, at)) continue;
+            return true;
+        }
+        return false;
+    }
+
+    // ")" and "," are not letters, so "NPC (1)," still counts as the whole name
+    static bool IsWholeName(string text, int at, int length)
+    {
+        return IsBoundary(text, at - 1) && IsBoundary(text, at + length);
+    }
+
+    static bool IsBoundary(string text, int index)
+    {
+        if (index < 0 || index >= text.Length) return true;
+        return !char.IsLetterOrDigit(text[index]);
+    }
+
+    // The words just before the name are "to" or "give", so this name receives an object
+    static bool IsGiveTarget(string text, int index)
+    {
+        int end = index;
+        while (end > 0 && char.IsWhiteSpace(text[end - 1])) end--;
+        return EndsWithWord(text, end, "to") || EndsWithWord(text, end, "give");
+    }
+
+    static bool EndsWithWord(string text, int end, string word)
+    {
+        int start = end - word.Length;
+        if (start < 0) return false;
+        if (string.Compare(text, start, word, 0, word.Length, StringComparison.OrdinalIgnoreCase) != 0)
+            return false;
+        return IsBoundary(text, start - 1);
     }
 
     Choice Evaluate()
