@@ -930,6 +930,7 @@ GameObject:
   - component: {fileID: 620770198}
   - component: {fileID: 620770197}
   - component: {fileID: 620770196}
+  - component: {fileID: 620770199}
   m_Layer: 5
   m_Name: InputField (TMP)
   m_TagString: Untagged
@@ -1096,6 +1097,24 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 620770194}
   m_CullTransparentMesh: 1
+--- !u!114 &620770199
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 620770194}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98eacb1ceac506c4d900de13d42ae0f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::UISpriteAnimator
+  image: {fileID: 0}
+  frames: []
+  framesPerSecond: 12
+  loop: 1
+  playOnStart: 1
+  enableDisableOnRun: 1
 --- !u!1 &669004384
 GameObject:
   m_ObjectHideFlags: 0
