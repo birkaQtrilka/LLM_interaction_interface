@@ -35,7 +35,18 @@ public class ChatManager : MonoBehaviour
     private void OnSubmit(string txt)
     {
         if (string.IsNullOrWhiteSpace(txt) || !CanSend) return;
-        AddChat("You: " + txt);
+
+        LookCast look = Camera.main != null ? Camera.main.GetComponent<LookCast>() : null;
+        NPC nurse = null;
+        if (look != null && !look.TryChoose(out nurse, out string reason))
+        {
+            AddChat(reason);
+            // Keep focus so Enter sends again after they look at someone
+            input.ActivateInputField();
+            return;
+        }
+
+        AddChat(nurse != null ? "to " + nurse.name + ": " + txt : "You: " + txt);
         input.text = string.Empty;
         OnTextSent?.Invoke(txt);
     }

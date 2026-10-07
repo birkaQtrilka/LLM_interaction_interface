@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// The label names who would hear an order. Chat is unchanged
+// The label names who would hear an order. A sent line uses that nurse
 public class LookCast : MonoBehaviour
 {
     [SerializeField] float radius = 0.35f;
@@ -30,13 +30,28 @@ public class LookCast : MonoBehaviour
         Vector3 direction = eyes.transform.forward;
         Debug.DrawRay(origin, direction * distance, Color.green);
 
-        string text = Describe(origin, direction);
+        string text = Evaluate().label;
         if (text == shown) return;
         shown = text;
         Debug.Log("Look cast: " + shown);
     }
 
-    string Describe(Vector3 origin, Vector3 direction)
+    public bool TryChoose(out NPC nurse, out string reason)
+    {
+        Choice choice = Evaluate();
+        nurse = choice.nurse;
+        reason = choice.label;
+        return nurse != null;
+    }
+
+    Choice Evaluate()
+    {
+        if (eyes == null)
+            return new Choice { label = "No player camera, so nobody can be addressed" };
+        return Describe(eyes.transform.position, eyes.transform.forward);
+    }
+
+    Choice Describe(Vector3 origin, Vector3 direction)
     {
         int nearby = 0;
         NPC only = null;
@@ -49,18 +64,18 @@ public class LookCast : MonoBehaviour
             only = nurse;
         }
 
-        if (nearby == 0) return "Nobody is close enough";
-        if (nearby == 1) return "Only one nearby: " + only.name;
+        if (nearby == 0) return new Choice { label = "Nobody is close enough" };
+        if (nearby == 1) return new Choice { nurse = only, label = "Only one nearby: " + only.name };
 
         if (!Physics.SphereCast(origin, radius, direction, out RaycastHit hit, distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
-            return "Look at who you mean";
+            return new Choice { label = "Look at who you mean" };
 
         NPC looked = hit.collider.GetComponentInParent<NPC>();
         if (looked != null && DistanceFrom(looked, origin) <= socialRadius)
-            return "Looking at: " + looked.name;
+            return new Choice { nurse = looked, label = "Looking at: " + looked.name };
 
         // The first solid thing was not a nearby nurse, so the label shows what stopped the cast
-        return "Look at who you mean: " + hit.collider.name;
+        return new Choice { label = "Look at who you mean: " + hit.collider.name };
     }
 
     static float DistanceFrom(NPC nurse, Vector3 origin)
@@ -79,5 +94,11 @@ public class LookCast : MonoBehaviour
             label.fontSize = 40;
         }
         GUI.Label(new Rect(12, 12, 1200, 64), shown, label);
+    }
+
+    struct Choice
+    {
+        public NPC nurse;
+        public string label;
     }
 }
