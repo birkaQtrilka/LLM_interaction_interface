@@ -26,10 +26,21 @@ public class ContextLibrary : MonoBehaviour
     [SerializeField] bool includePlayingAnimations = true;
                                                     
     public List<NPC> agents = new();
+    [field: SerializeField] public Transform Player { get; private set; }
+
+    private void OnValidate()
+    {
+        if(Player == null)
+        {
+            Player = FindAnyObjectByType<Camera>().transform;
+        }
+    }
 
     // Auto-assign agents from the scene if none are assigned
     void Awake()
     {
+        if(Player == null) Debug.Log("ContextLibrary Player is null");
+
         if (agents.Count > 0) return;
         agents.AddRange(FindObjectsByType<NPC>());
         Debug.LogWarning(agents.Count == 0

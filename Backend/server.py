@@ -18,8 +18,8 @@ from prompts import PERSONA, CONTEXT_CATALOG, get_system_prompt
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
 
-with open(BASE_DIR / "actions.json", "r") as f:
-    ACTIONS = json.load(f)
+with open(BASE_DIR / "actions.json", "r", encoding="utf-8") as f:
+    ACTIONS = f.read()
 
 app = FastAPI()
 LOGS_DIR = BASE_DIR / "logs"
@@ -132,15 +132,10 @@ def flags_from(data: object) -> dict:
 def build_messages(user_text: str, world: str) -> list[dict]:
     user = f"Context:\n{world}\n\nUser request: {user_text}"
         
-    action_lines = []
-    for action in ACTIONS:
-        action_lines.append(f"// {action['doc']}\n{action['name']}({action['args']})")
-    
-    actions_str = "\n".join(action_lines)
     print("------------- SYSTEM -------------------")
 
-    system = get_system_prompt(PERSONA, actions_str)
-    print(system);
+    system = get_system_prompt(PERSONA, ACTIONS)
+    print(system)
     print("------------- USER -------------------")
     print(user)
     return [
