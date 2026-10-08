@@ -10,6 +10,7 @@ public class AnimationQueueTest : MonoBehaviour
         OrderTest,
         GoGrabPhone,
         GoGrabAndPlacePhone,
+        GestureTest
     }
 
     void Start()
@@ -25,8 +26,28 @@ public class AnimationQueueTest : MonoBehaviour
             case TestNames.GoGrabAndPlacePhone:
                 GrabAndPlacePhone();
                 break;
+            case TestNames.GestureTest:
+                GestureNod();
+                break;
         }
     }
+
+    public void GestureNod()
+    {
+        NPC agent = FindAnyObjectByType<NPC>();
+        animationLibrary.PlayAnimation(AgentSystem, new ActionData
+        {
+            id = 1,
+            name = "talk",
+            agent = agent.name,
+            parameters = new string[] { "Hi there![nod] How are you doing?", "user" },
+            runAfter = new int[] { },
+            delayBefore = 0
+        });
+
+    }
+
+
 
     public void GrabPhone()
     {

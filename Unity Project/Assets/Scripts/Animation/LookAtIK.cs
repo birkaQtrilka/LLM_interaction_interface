@@ -11,13 +11,15 @@ public class LookAtIK : MonoBehaviour
     public float turnDuration = .2f;
     private const string FloaterName = "LookAtFloater";
 
+    public string GetFloaterName() => FloaterName + transform.parent.name;
+
 #if UNITY_EDITOR
     private void OnValidate()
     {
         // Resolve/create floater.
         if (floater == null)
         {
-            var existing = GameObject.Find(FloaterName);
+            var existing = GameObject.Find(GetFloaterName());
 
             if (existing != null)
             {
@@ -25,7 +27,7 @@ public class LookAtIK : MonoBehaviour
             }
             else
             {
-                var go = new GameObject(FloaterName);
+                var go = new GameObject(GetFloaterName());
                 floater = go.transform;
             }
         }
@@ -74,7 +76,7 @@ public class LookAtIK : MonoBehaviour
             else
             {
                 Debug.LogWarning(
-                    $"Cannot add {FloaterName} to {aim.name}: source array is full.",
+                    $"Cannot add {GetFloaterName()} to {aim.name}: source array is full.",
                     aim
                 );
 
@@ -108,7 +110,6 @@ public IEnumerator LookAt(Vector3 pos)
 
     public IEnumerator StopLooking()
     {
-
         float elapsed = 0f;
         while (elapsed < turnDuration)
         {

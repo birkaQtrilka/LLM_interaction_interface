@@ -27,7 +27,15 @@ public class Talk : IAgentAction
             {
                 agent.StartCoroutine(MovementActions.TurnTowards(agent.transform, context.GetAgent(receiver).transform.position));
             }
-            context.chatManager.AddChat($"{action.agent} to {receiver}: {msg}");
+            ParsedLine line = LineParser.Parse(msg);
+            
+            context.chatManager.AddChat($"{action.agent} to {receiver}: {line.CleanText}");
+            if(context.AnimationLibrary.DialoguePlayer == null)
+            {
+                Debug.LogWarning("DialoguePlayer is null");
+                return;
+            }
+            agent.StartCoroutine( context.AnimationLibrary.DialoguePlayer.Play(line, context, action) );
 
         }
 
