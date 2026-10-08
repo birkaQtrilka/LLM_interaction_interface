@@ -24,6 +24,7 @@ public class LLMBackend : MonoBehaviour
         public string session_id;
         public string log_directory;
         public string description;
+        public string addressee;
     }
 
     [Serializable]
@@ -229,9 +230,9 @@ public class LLMBackend : MonoBehaviour
         }));
     }
 
-    public IEnumerator GetActions(string message, string world, CoroutineResult<ActionsResponse> res)
+    public IEnumerator GetActions(string message, string world, CoroutineResult<ActionsResponse> res, string addressee = null)
     {
-        string json = JsonUtility.ToJson(new ActionsRequestBody { message = message, world = world, session_id = sessionId ?? "", log_directory = logDirectory ?? "", description = sessionDescription ?? "" });
+        string json = JsonUtility.ToJson(new ActionsRequestBody { message = message, world = world, session_id = sessionId ?? "", log_directory = logDirectory ?? "", description = sessionDescription ?? "", addressee = addressee ?? "" });
         yield return StartCoroutine(PostJson("/v1/turn", json, text =>
         {
             ActionsResponse response = JsonUtility.FromJson<ActionsResponse>(text);
@@ -249,7 +250,7 @@ public class LLMBackend : MonoBehaviour
 
     public void GetActions(string message, string world, Action<ActionsResponse> onSuccess, Action<string> onError = null)
     {
-        string json = JsonUtility.ToJson(new ActionsRequestBody { message = message, world = world, session_id = sessionId ?? "", log_directory = logDirectory ?? "", description = sessionDescription ?? "" });
+        string json = JsonUtility.ToJson(new ActionsRequestBody { message = message, world = world, session_id = sessionId ?? "", log_directory = logDirectory ?? "", description = sessionDescription ?? "", addressee = "" });
         StartCoroutine(PostJson("/v1/turn", json, text =>
         {
             ActionsResponse response = JsonUtility.FromJson<ActionsResponse>(text);

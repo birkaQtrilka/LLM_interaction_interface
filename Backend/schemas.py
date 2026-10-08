@@ -8,6 +8,8 @@ class ActionsRequestBody(BaseModel):
     session_id: str = ""
     log_directory: str = ""
     description: str = ""
+    # Empty leaves the system prompt unchanged
+    addressee: str = ""
 
 class ContextRequestBody(BaseModel):
     message: str

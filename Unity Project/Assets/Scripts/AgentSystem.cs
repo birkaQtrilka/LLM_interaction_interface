@@ -48,10 +48,13 @@ public class AgentSystem : MonoBehaviour
 
     IEnumerator RunTurn(string userPrompt)
     {
+        LookCast look = Camera.main != null ? Camera.main.GetComponent<LookCast>() : null;
+        string addressee = look != null ? look.AddresseeName : null;
+
         CoroutineResult<ActionsResponse> actionRes = new();
         if (sendAllContext)
         {
-            yield return StartCoroutine(GetActionsJson(userPrompt, ContextQuery.GetFullContext(), actionRes));
+            yield return StartCoroutine(GetActionsJson(userPrompt, ContextQuery.GetFullContext(), actionRes, addressee));
             if (actionRes.Status == ContextStatus.Failure) yield break;
         }
         else
@@ -60,7 +63,7 @@ public class AgentSystem : MonoBehaviour
             yield return StartCoroutine(GetContextJson(userPrompt, queryRes));
             if(queryRes.Status == ContextStatus.Failure) yield break;
 
-            yield return StartCoroutine(GetActionsJson(userPrompt, queryRes.Response, actionRes));
+            yield return StartCoroutine(GetActionsJson(userPrompt, queryRes.Response, actionRes, addressee));
             if (actionRes.Status == ContextStatus.Failure) yield break;
 
         }
@@ -112,7 +115,7 @@ public class AgentSystem : MonoBehaviour
         }
     }
 
-    public IEnumerator GetActionsJson(string userPrompt, ContextQuery context, CoroutineResult<ActionsResponse> res = null)
+    public IEnumerator GetActionsJson(string userPrompt, ContextQuery context, CoroutineResult<ActionsResponse> res = null, string addressee = null)
     {
         res ??= new();
         yield return RunBusy(Body(), res.SetError);
@@ -121,7 +124,7 @@ public class AgentSystem : MonoBehaviour
         {
             string world = contextLibrary.GetContext(context, animationLibrary.animations);
             Debug.Log($"Sending to backend Round 2:\n{world}\n{userPrompt}");
-            yield return StartCoroutine(llm.GetActions(userPrompt, world, res));
+            yield return StartCoroutine(llm.GetActions(userPrompt, world, res, addressee));
 
             if (res.Status == ContextStatus.Success)
             {

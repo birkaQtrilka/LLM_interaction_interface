@@ -10,6 +10,12 @@ public class LookCast : MonoBehaviour
     [SerializeField] float socialRadius = 3.5f;
     // An overlap keeps the previous nurse while their head stays inside this angle
     [SerializeField] float keepLastDegrees = 25f;
+    // Names that nurse inside the system prompt
+    [SerializeField] bool tellTheModel = true;
+
+    public NPC Chosen { get; private set; }
+    // Null when the checkbox is off
+    public string AddresseeName => tellTheModel && Chosen != null ? Chosen.name : null;
 
     Camera eyes;
     NPC[] nurses = System.Array.Empty<NPC>();
@@ -44,11 +50,15 @@ public class LookCast : MonoBehaviour
     public bool TryChoose(string sentence, out NPC nurse, out string reason)
     {
         if (TryDirectName(sentence, out nurse, out reason))
+        {
+            if (nurse != null) Chosen = nurse;
             return nurse != null;
+        }
 
         Choice choice = Evaluate();
         nurse = choice.nurse;
         reason = choice.label;
+        if (nurse != null) Chosen = nurse;
         return nurse != null;
     }
 

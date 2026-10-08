@@ -43,10 +43,18 @@ Do not add actions, names, or coordinates.
 # grab's parameter is the item to pick up. place's parameter is only the surface (Tray), not the item in the hand.
 # Only emit actions for this user request. Do not add a place because an earlier message mentioned a tray. If they asked only to grab, do not place.
 # If an agent grabs and then places, the place action must list that same agent's grab id in runAfter so place waits until the item is in hand.
-def get_system_prompt(PERSONA: str, actions_str: str):
+def get_system_prompt(PERSONA: str, actions_str: str, addressee: str = ""):
+  speaking = ""
+  name = addressee.strip()
+  if name:
+    speaking = (
+      f" The user is speaking to {name}."
+      f" Every action in this request uses {name}."
+      f" Another name is only a target, such as give, unless the sentence tells a different nurse to act."
+    )
   return f"""{PERSONA} You will be given context about the world in Unity, including multiple named agents (NPCs), and the user will ask you tasks/questions related to the context. Axis system is x (right), y (up), z (forward)
 
-Below are the actions you can perform to achieve the task / answer the question asked by the user along with documentation about when to use it. Every action object you output MUST include an "agent" field (a top level field, not inside parameters) set to the exact name of the NPC performing that action. If only one agent exists in the world data, still set agent to its name.
+Below are the actions you can perform to achieve the task / answer the question asked by the user along with documentation about when to use it. Every action object you output MUST include an "agent" field (a top level field, not inside parameters) set to the exact name of the NPC performing that action. If only one agent exists in the world data, still set agent to its name.{speaking}
 
 Action List:
 {actions_str}
