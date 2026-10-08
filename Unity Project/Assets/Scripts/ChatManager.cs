@@ -40,7 +40,7 @@ public class ChatManager : MonoBehaviour
         NPC nurse = null;
         if (look != null && !look.TryChoose(txt, out nurse, out string reason))
         {
-            AddChat(reason);
+            AddChat("System: " + reason);
             // Keep focus so Enter sends again after they look at someone
             input.ActivateInputField();
             return;
@@ -48,6 +48,7 @@ public class ChatManager : MonoBehaviour
 
         AddChat(nurse != null ? "to " + nurse.name + ": " + txt : "You: " + txt);
         input.text = string.Empty;
+
         OnTextSent?.Invoke(txt);
     }
 
