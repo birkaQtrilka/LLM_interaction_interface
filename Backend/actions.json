@@ -11,8 +11,8 @@
   },
   {
     "name": "talk",
-    "args": "msg: string",
-    "doc": "use this action when the user asks something or where a comment to some other action is appropriate. msg is the text to say. The 'agent' field on the action object identifies which NPC is speaking."
+    "args": "msg: string, receiver: string",
+    "doc": "use this action when the user asks something or where a comment to some other action is appropriate. msg is the text to say. The 'agent' field on the action object identifies which NPC is speaking. The 'receiver' parameter is the name of the other NPC the agent is speaking to. If NPC talks to the user the 'receiver' parameter should be 'user'"
   },
   {
     "name": "grab",
