@@ -2,7 +2,7 @@
   {
     "name": "moveTo",
     "args": "spotName: string",
-    "doc": "when user asks an agent to move to a specific spot or environment object in the world, use this action. spotName is the name of the spot or environment object. The 'agent' field on the action object identifies which NPC performs it."
+    "doc": "when user asks an agent to move to a specific spot or environment object in the world, use this action. spotName is the name of the spot or environment object, or an agent when giving something to them. It must be a name from the context. If the name is not there, use talk and do not substitute a different name. The 'agent' field on the action object identifies which NPC performs it."
   },
   {
     "name": "moveToPoint",
@@ -17,16 +17,16 @@
   {
     "name": "grab",
     "args": "objectName: string",
-    "doc": "the agent named in the action's 'agent' field picks up a named object from the environment. DO NOT grab if that agent's itemInRightHand is already non-empty. DO NOT grab if the object has grabbable: false, regardless of what the name suggests. Always do moveTo for this agent to get close to the object first. Each agent can hold only ONE item at a time, but different agents can each hold their own item simultaneously."
+    "doc": "the agent named in the action's 'agent' field picks up a named object from the environment. DO NOT grab if that agent's itemInRightHand is already non-empty. DO NOT grab if the object has grabbable: false, regardless of what the name suggests. If grabbable is false, use talk only and do not moveTo that object first. If the user said not to walk, use talk and do not grab. Always do moveTo for this agent to get close to the object first. Each agent can hold only ONE item at a time, but different agents can each hold their own item simultaneously."
   },
   {
     "name": "place",
     "args": "objectNameToPlaceOnto: string",
-    "doc": "the agent named in the action's 'agent' field places the item currently in its own itemInRightHand onto the named environment object. Precondition: that agent's itemInRightHand must be non-empty. If it is empty, there is nothing for that agent to place, use talk instead. Always do moveTo for this agent to get close to the target object first."
+    "doc": "the agent named in the action's 'agent' field places the item currently in its own itemInRightHand onto the named environment object. Precondition: that agent's itemInRightHand must be non-empty. If it is empty, there is nothing for that agent to place, use talk instead. If canPlaceOn is false, use talk and do not place. Always do moveTo for this agent to get close to the target object first."
   },
   {
     "name": "give",
     "args": "agentToGive: string",
-    "doc": "the agent named in the action's 'agent' field gives the item currently in its own itemInRightHand to the agentToGive in parameters. Precondition: that agent's itemInRightHand must be non-empty. If it is empty, there is nothing for that agent to place, use talk instead. Always do moveTo for this agent to get close to agentToGive first."
+    "doc": "the agent named in the action's 'agent' field gives the item currently in its own itemInRightHand to the agentToGive in parameters. Precondition: that agent's itemInRightHand must be non-empty. If it is empty, there is nothing for that agent to give, use talk instead. If agentToGive is not in the agent list, use talk only and do not grab first. Always do moveTo for this agent to get close to agentToGive first."
   }
 ]

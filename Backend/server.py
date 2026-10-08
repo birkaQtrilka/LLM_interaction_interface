@@ -1,5 +1,6 @@
 ﻿import json
 import os
+import re
 import time
 import uuid
 from datetime import datetime
@@ -71,7 +72,7 @@ def elapsed_s(started: float) -> float:
     # Seconds since the request arrived, sampled when the model call returns
     return round(time.perf_counter() - started, 3)
 
-def append_turn(session_id: str, endpoint: str, system: str, user: str, response: object, llm_s: float, directory: str = "", description: str = "") -> None:
+def append_turn(session_id: str, endpoint: str, system: str, user: str, response: object, llm_s: float, directory: str = "", description: str = "", rejected: list | None = None) -> None:
     if not session_id:
         return
     path = session_path(session_id, directory)
@@ -90,6 +91,9 @@ def append_turn(session_id: str, endpoint: str, system: str, user: str, response
     }
     if LOG_SYSTEM:
         turn["system"] = system
+    # The reply is the corrected plan, and this keeps the chain the model actually returned
+    if rejected:
+        turn["rejected"] = rejected
     data["turns"].append(turn)
     write_session(path, data)
 
@@ -224,12 +228,14 @@ def turn(body: ActionsRequestBody) -> ActionsResponse:
             )
         )
 
+    actions, rejected = correct_actions(actions, body.world)
+
     reply = ActionsResponse(
         actions=actions,
         prompt_tokens=int(usage.get("prompt_tokens") or 0),
         completion_tokens=int(usage.get("completion_tokens") or 0),
     )
-    append_turn(body.session_id, "turn", system, user, reply.model_dump(), llm_s, body.log_directory, body.description)
+    append_turn(body.session_id, "turn", system, user, reply.model_dump(), llm_s, body.log_directory, body.description, rejected or None)
     return reply
 
 

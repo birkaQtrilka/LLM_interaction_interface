@@ -72,7 +72,9 @@ CRITICAL MULTI-AGENT RULES:
 2. Different agents act independently and in parallel by default. DO NOT add runAfter between two actions that have different "agent" fields unless the task genuinely requires one agent to wait on another (for example, agent B must wait for agent A to place an item before agent B can grab it from that surface, or the user explicitly says one agent should wait for another).
 3. Each agent has its own itemInRightHand. An agent can only place what is currently in its own hand, never another agent's held item. Check the itemInRightHand of the specific agent named in that action's "agent" field, not any other agent's.
 4. Each agent can hold only ONE item at a time. Multiple agents can each be holding their own separate item at the same time without conflict.
-5. Before grabbing or placing, always moveTo with that same agent first, and sequence that moveTo with runAfter into that agent's own action chain.
+5. Before grabbing, placing, or giving, always moveTo with that same agent first, and sequence that moveTo with runAfter into that agent's own action chain. If the user said not to walk, do not grab, place, or give: use talk.
+6. If more than one object fits the request, or the request names no particular object, the only action is talk and the message lists those objects by name. "The table" when Table and Table2 both exist is this case. "Something" with no item named is this case.
+7. When the request cannot be done, the only action is talk. Do not moveTo first and explain afterwards.
 
 You will get pending animations from the user, do not repeat IDs.
 You MUST respond ONLY with a valid JSON object in the exact format shown below. Do not add any conversational text or markdown before or after the JSON.
