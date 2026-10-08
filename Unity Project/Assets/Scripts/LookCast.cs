@@ -8,9 +8,12 @@ public class LookCast : MonoBehaviour
     [SerializeField] float radius = 0.35f;
     [SerializeField] float distance = 4f;
     [SerializeField] float socialRadius = 3.5f;
+    // An overlap keeps the previous nurse while their head stays inside this angle
+    [SerializeField] float keepLastDegrees = 25f;
 
     Camera eyes;
     NPC[] nurses = System.Array.Empty<NPC>();
+    NPC lastLooked;
     string shown = "";
     GUIStyle label;
 
@@ -140,17 +143,88 @@ public class LookCast : MonoBehaviour
         }
 
         if (nearby == 0) return new Choice { label = "Nobody is close enough" };
-        if (nearby == 1) return new Choice { nurse = only, label = "Only one nearby: " + only.name };
+        if (nearby == 1) return Remember(only, "Only one nearby: " + only.name);
 
-        if (!Physics.SphereCast(origin, radius, direction, out RaycastHit hit, distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
-            return new Choice { label = "Look at who you mean" };
+        return Cast(origin, direction);
+    }
 
-        NPC looked = hit.collider.GetComponentInParent<NPC>();
-        if (looked != null && DistanceFrom(looked, origin) <= socialRadius)
-            return new Choice { nurse = looked, label = "Looking at: " + looked.name };
+    // SphereCastAll also reaches people behind the first one, so a wall or the floor ends the list
+    Choice Cast(Vector3 origin, Vector3 direction)
+    {
+        direction.Normalize();
+        RaycastHit[] hits = Physics.SphereCastAll(origin, radius, direction, distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+        Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
 
-        // The first solid thing was not a nearby nurse, so the label shows what stopped the cast
-        return new Choice { label = "Look at who you mean: " + hit.collider.name };
+        var found = new Overlap[nurses.Length];
+        int count = 0;
+        for (int i = 0; i < hits.Length; i++)
+        {
+            NPC npc = hits[i].collider.GetComponentInParent<NPC>();
+            if (npc == null || DistanceFrom(npc, origin) > socialRadius)
+            {
+                if (count == 0)
+                    return new Choice { label = "Look at who you mean: " + hits[i].collider.name };
+                return ChooseOverlap(found, count);
+            }
+
+            if (Contains(found, count, npc)) continue;
+
+            Vector3 toHead = HeadOf(npc) - origin;
+            found[count] = new Overlap
+            {
+                nurse = npc,
+                lookAngle = Vector3.Angle(direction, toHead),
+                headToRay = Vector3.Cross(direction, toHead).magnitude,
+            };
+            count++;
+        }
+
+        if (count == 0) return new Choice { label = "Look at who you mean" };
+        return ChooseOverlap(found, count);
+    }
+
+    // One nurse in the cast is final
+    // A tie keeps the last nurse, or the head nearer the cast line
+    Choice ChooseOverlap(Overlap[] found, int count)
+    {
+        if (count == 1)
+            return Remember(found[0].nurse, "Looking at: " + found[0].nurse.name);
+
+        for (int i = 0; i < count; i++)
+        {
+            if (found[i].nurse != lastLooked) continue;
+            if (found[i].lookAngle > keepLastDegrees) continue;
+            return Remember(found[i].nurse, "Still looking at: " + found[i].nurse.name);
+        }
+
+        int best = 0;
+        for (int i = 1; i < count; i++)
+        {
+            if (found[i].headToRay < found[best].headToRay)
+                best = i;
+        }
+        return Remember(found[best].nurse, "Looking at: " + found[best].nurse.name);
+    }
+
+    Choice Remember(NPC nurse, string label)
+    {
+        lastLooked = nurse;
+        return new Choice { nurse = nurse, label = label };
+    }
+
+    static bool Contains(Overlap[] found, int count, NPC nurse)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            if (found[i].nurse == nurse) return true;
+        }
+        return false;
+    }
+
+    static Vector3 HeadOf(NPC nurse)
+    {
+        if (nurse.Head != null) return nurse.Head.position;
+        return nurse.transform.position;
     }
 
     static float DistanceFrom(NPC nurse, Vector3 origin)
@@ -175,5 +249,12 @@ public class LookCast : MonoBehaviour
     {
         public NPC nurse;
         public string label;
+    }
+
+    struct Overlap
+    {
+        public NPC nurse;
+        public float lookAngle;
+        public float headToRay;
     }
 }
