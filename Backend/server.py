@@ -129,13 +129,13 @@ def flags_from(data: object) -> dict:
 
 
 
-def build_messages(user_text: str, world: str) -> list[dict]:
+def build_messages(user_text: str, world: str, addressee: str = "") -> list[dict]:
     user = f"Context:\n{world}\n\nUser request: {user_text}"
         
     print("------------- SYSTEM -------------------")
 
-    system = get_system_prompt(PERSONA, ACTIONS)
-    print(system)
+    system = get_system_prompt(PERSONA, ACTIONS, addressee)
+    print(system);
     print("------------- USER -------------------")
     print(user)
     return [
@@ -189,7 +189,7 @@ def turn(body: ActionsRequestBody) -> ActionsResponse:
     started = time.perf_counter()
     if body.session_id:
         session_path(body.session_id, body.log_directory)
-    messages = build_messages(body.message, body.world)
+    messages = build_messages(body.message, body.world, body.addressee)
     system = messages[0]["content"]
     user = messages[1]["content"]
     try:
