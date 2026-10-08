@@ -6,6 +6,10 @@ static class MovementActions
 {
     public static readonly Dictionary<NPC, Vector3> reserved = new();
 
+    const float maxSightDistance = 6f;     // how far the agent can notice the item
+    const float checkInterval = 0.1f;      // seconds between raycasts
+    const float itemTolerance = 0.5f;      // a hit this close to pos counts as hitting the item
+
     public static AnimAction Build(NPC agent, TransOrPos pos, ActionData action)
     {
         LayerMask sightMask = Physics.DefaultRaycastLayers; // set this to your obstruction layers
@@ -48,16 +52,63 @@ static class MovementActions
             }
         }
 
+        Coroutine lookRoutine = null;
+
+        void startLookAt()
+        {
+            if (lookRoutine != null) return;
+            lookRoutine = agent.StartCoroutine(LookAt(agent, pos.position));
+        }
+
+        void stopLookAt()
+        {
+            if (lookRoutine == null) return;
+            agent.StopCoroutine(lookRoutine);
+            lookRoutine = null;
+            StopLookAt(agent); // your graceful blend out
+        }
+
+        bool canSeeItem()
+        {
+            Vector3 origin = agent.Head.position;
+            Vector3 toItem = pos.position - origin;
+            float dist = toItem.magnitude;
+
+            if (dist > maxSightDistance) return false;
+            if (dist < 0.01f) return true;
+
+            if (Physics.Raycast(origin, toItem / dist, out RaycastHit hit, dist, sightMask, QueryTriggerInteraction.Ignore))
+            {
+                // Something was hit before reaching pos. Only counts as visible if it is basically the item itself
+                return hit.distance + itemTolerance >= dist;
+            }
+            return true;
+        }
+
+        IEnumerator watchForItem()
+        {
+            var wait = new WaitForSeconds(checkInterval);
+            while (true)
+            {
+                if (canSeeItem()) startLookAt();
+                else stopLookAt();
+                yield return wait;
+            }
+        }
+
         IEnumerator behavior()
         {
+            Coroutine w1 = agent.StartCoroutine(watchForItem());
             Coroutine w2 = agent.StartCoroutine(walkAndFace());
             yield return agent.StartCoroutine(Utils.MonitorMovement(agent.Nav));
+            if (w1 != null) agent.StopCoroutine(w1);
             if (w2 != null) agent.StopCoroutine(w2);
         }
 
         void end()
         {
             Release(agent);
+            StopLookAt(agent);
             agent.Anim.SetBool("Walking", false);
             agent.Nav.ResetPath();
             agent.Nav.isStopped = false;
@@ -65,6 +116,19 @@ static class MovementActions
 
         return new AnimAction(action, start, behavior(), end);
     }
+
+    static IEnumerator LookAt(NPC agent, Vector3 target)
+    {
+        LookAtIK lookAnim = agent.GetComponentInChildren<LookAtIK>();
+        yield return agent.StartCoroutine(lookAnim.LookAt(target));
+    }
+
+    static void StopLookAt(NPC agent)
+    {
+        LookAtIK lookAnim = agent.GetComponentInChildren<LookAtIK>();
+        agent.StartCoroutine(lookAnim.StopLooking());
+    }
+
 
     static Vector3 ApproachPoint(NPC agent, Transform target, float gap = 0.3f)
     {
