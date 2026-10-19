@@ -217,25 +217,34 @@ def turn(body: ActionsRequestBody) -> ActionsResponse:
         if not isinstance(run_after, list):
             run_after = [run_after]
             
+        # A string "false" must stay false. bool("false") is True
+        raw_reply = item.get("isReply", False)
+        if isinstance(raw_reply, str):
+            is_reply = raw_reply.strip().lower() == "true"
+        elif isinstance(raw_reply, bool):
+            is_reply = raw_reply
+        else:
+            is_reply = False
+
         actions.append(
             ActionData(
                 id=int(item.get("id", 0)),
                 name=str(item.get("name") or ""),
                 agent=str(item.get("agent") or "AAAA"),
+                addressee=str(item.get("addressee") or ""),
+                isReply=is_reply,
                 parameters=[str(p) for p in params],
                 runAfter=[int(r) for r in run_after],
                 delayBefore=float(item.get("delayBefore", 0.0))
             )
         )
 
-    actions, rejected = correct_actions(actions, body.world)
-
     reply = ActionsResponse(
         actions=actions,
         prompt_tokens=int(usage.get("prompt_tokens") or 0),
         completion_tokens=int(usage.get("completion_tokens") or 0),
     )
-    append_turn(body.session_id, "turn", system, user, reply.model_dump(), llm_s, body.log_directory, body.description, rejected or None)
+    append_turn(body.session_id, "turn", system, user, reply.model_dump(), llm_s, body.log_directory, body.description)
     return reply
 
 
