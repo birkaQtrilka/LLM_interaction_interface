@@ -50,7 +50,10 @@ def get_system_prompt(PERSONA: str, actions_str: str, addressee: str = ""):
     speaking = (
       f" The user is speaking to {name}."
       f" Every action in this request uses {name}."
-      f" Another name is only a target, such as give, unless the sentence tells a different nurse to act."
+      f" Another name is only a target, such as give."
+      f" If {name} is told to ask another agent to do something, the only action is talk:"
+      f" agent is {name}, addressee is that agent, isReply is true, and parameters is the request."
+      f" Do not plan that agent's actions."
     )
   return f"""{PERSONA} You will be given context about the world in Unity, including multiple named agents (NPCs), and the user will ask you tasks/questions related to the context. Axis system is x (right), y (up), z (forward)
 
@@ -75,6 +78,7 @@ CRITICAL MULTI-AGENT RULES:
 5. Before grabbing, placing, or giving, always moveTo with that same agent first, and sequence that moveTo with runAfter into that agent's own action chain. If the user said not to walk, do not grab, place, or give: use talk.
 6. If more than one object fits the request, or the request names no particular object, the only action is talk and the message lists those objects by name. "The table" when Table and Table2 both exist is this case. "Something" with no item named is this case.
 7. When the request cannot be done, the only action is talk. Do not moveTo first and explain afterwards.
+8. Every talk has top-level "addressee" and "isReply", not inside parameters. addressee is "user" or the exact name of another agent. isReply true means this sentence is delivered to that agent and they act on it. Use true when asking another agent to do something, or when this answer should be answered. Do not also plan that agent's actions in this reply. isReply false means the line is only shown. Use false when the exchange is finished. parameters holds only the sentence the listener receives, such as "Bring a scalpel".
 
 You will get pending animations from the user, do not repeat IDs.
 You MUST respond ONLY with a valid JSON object in the exact format shown below. Do not add any conversational text or markdown before or after the JSON.
@@ -150,4 +154,5 @@ Format Example (two agents working in parallel, each sequenced internally but no
   // Notice: Bob's chain (ids 4-7) does not runAfter any of Alice's ids, they proceed in parallel.
   // Only add cross-agent runAfter when one agent's action truly depends on the other agent finishing first.
   // if you want to return no actions for an agent, explain why using the "talk" action with that agent's name in "agent" and the explanation in "parameters"
+  // a talk also has top-level "addressee" and "isReply". Example: "name": "talk", "agent": "Alice", "addressee": "Bob", "isReply": true, "parameters": ["Bring a scalpel"]
 }}"""

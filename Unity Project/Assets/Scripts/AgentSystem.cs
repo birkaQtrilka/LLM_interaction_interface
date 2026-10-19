@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class CoroutineResult<Res> : CoroutineResult<Res, string> { }
@@ -15,6 +16,16 @@ public class AgentSystem : MonoBehaviour
     public AnimationLibrary AnimationLibrary => animationLibrary;
     public bool IsBusy { get; private set; }
     public ActionsResponse LastActions { get; private set; }
+    // True while one turn already holds IsBusy, so the two rounds inside it do not release the lock
+    bool hold;
+    readonly Queue<HeardLine> pendingTalks = new();
+    bool drainingTalks;
+
+    struct HeardLine
+    {
+        public string message;
+        public string addressee;
+    }
 
     public void Init(LLMBackend llm, AnimationLibrary anim, ContextLibrary ctx)
     {
@@ -46,10 +57,15 @@ public class AgentSystem : MonoBehaviour
         yield return RunTurn(userPrompt);
     }
 
-    IEnumerator RunTurn(string userPrompt)
+    // spokenTo is the nurse who just heard a line, null means the player and look-cast picks the addressee
+    IEnumerator RunTurn(string userPrompt, string spokenTo = null)
     {
-        LookCast look = Camera.main != null ? Camera.main.GetComponent<LookCast>() : null;
-        string addressee = look != null ? look.AddresseeName : null;
+        string addressee = spokenTo;
+        if (spokenTo == null)
+        {
+            LookCast look = Camera.main != null ? Camera.main.GetComponent<LookCast>() : null;
+            addressee = look != null ? look.AddresseeName : null;
+        }
 
         CoroutineResult<ActionsResponse> actionRes = new();
         if (sendAllContext)
@@ -72,7 +88,7 @@ public class AgentSystem : MonoBehaviour
 
     IEnumerator RunBusy(IEnumerator work, Action<string> onBusy = null)
     {
-        if (IsBusy)
+        if (IsBusy && !hold)
         {
             string err = "Still processing a previous message, wait until it's done";
             Debug.LogWarning(err);
@@ -80,15 +96,45 @@ public class AgentSystem : MonoBehaviour
             yield break;
         }
 
-        SetBusiness(true);
+        bool outer = !hold;
+        if (outer)
+        {
+            hold = true;
+            SetBusiness(true);
+        }
         try
         {
             yield return StartCoroutine(work);
         }
         finally
         {
-            SetBusiness(false);
+            if (outer)
+            {
+                hold = false;
+                SetBusiness(false);
+            }
         }
+    }
+
+    // A line with isReply is sent on as that nurse's request and waits out the turn that produced it
+    public void SendTalk(string message, string addressee)
+    {
+        pendingTalks.Enqueue(new HeardLine { message = message, addressee = addressee });
+        if (!drainingTalks)
+            StartCoroutine(DrainTalks());
+    }
+
+    IEnumerator DrainTalks()
+    {
+        drainingTalks = true;
+        while (pendingTalks.Count > 0)
+        {
+            while (IsBusy)
+                yield return null;
+            HeardLine line = pendingTalks.Dequeue();
+            yield return RunBusy(RunTurn(line.message, line.addressee));
+        }
+        drainingTalks = false;
     }
 
     public IEnumerator GetContextJson(string userPrompt, CoroutineResult<ContextQuery> res = null)

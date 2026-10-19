@@ -10,28 +10,33 @@ public class Talk : IAgentAction
         if (action.parameters == null || action.parameters.Length < 1) return "talk requires a message";
 
         string msg = action.parameters[0];
-        // The model often returns only the sentence, and that sentence is for the user
-        string receiver = action.parameters.Length > 1 ? action.parameters[1] : "user";
+        // Empty addressee is the player, and a named nurse must exist
+        string heardBy = string.IsNullOrEmpty(action.addressee) ? "user" : action.addressee;
+        NPC other = null;
+        if (heardBy != "user")
+        {
+            other = context.GetAgent(heardBy);
+            if (other == null) return $"Couldn't find agent with name {heardBy}";
+        }
+        bool sendOn = action.isReply && other != null;
         void start()
         {
             if (context.chatManager == null)
-            {
                 Debug.LogWarning("Chat is null");
-                return;
-            }
-            if (receiver == "user")
+            else if (other == null)
             {
-                receiver = "you";
                 Transform player = context.contextLibrary.Player;
                 if (player != null)
                     agent.StartCoroutine(MovementActions.TurnTowards(agent.transform, player.position));
+                context.chatManager.AddChat($"{action.agent} to you: {msg}");
             }
             else
             {
-                agent.StartCoroutine(MovementActions.TurnTowards(agent.transform, context.GetAgent(receiver).transform.position));
+                agent.StartCoroutine(MovementActions.TurnTowards(agent.transform, other.transform.position));
+                context.chatManager.AddChat($"{action.agent} to {heardBy}: {msg}");
             }
-            context.chatManager.AddChat($"{action.agent} to {receiver}: {msg}");
-
+            if (sendOn)
+                context.SendTalk(msg, heardBy);
         }
 
         result = new AnimAction(action, start, null, null);
