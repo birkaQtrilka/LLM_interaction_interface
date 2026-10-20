@@ -7,7 +7,6 @@ from datetime import datetime
 from pathlib import Path
 
 import httpx
-from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 
 from schemas import (
@@ -16,8 +15,7 @@ from schemas import (
     FeedbackRequestBody, ErrorRequestBody,
 )
 from prompts import PERSONA, CONTEXT_CATALOG, get_system_prompt
-BASE_DIR = Path(__file__).resolve().parent
-load_dotenv(BASE_DIR / ".env")
+from settings import BASE_DIR, OPENAI_MODEL
 
 with open(BASE_DIR / "actions.json", "r", encoding="utf-8") as f:
     ACTIONS = f.read()
@@ -106,7 +104,7 @@ def openai_json(messages: list[dict]) -> tuple[dict, dict]:
         "https://api.openai.com/v1/chat/completions",
         headers={"Authorization": f"Bearer {api_key}"},
         json={
-            "model": "gpt-4o-mini",
+            "model": OPENAI_MODEL,
             "messages": messages,
             "response_format": {"type": "json_object"},
         },

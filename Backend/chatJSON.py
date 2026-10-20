@@ -1,10 +1,8 @@
 import os
-from pathlib import Path
 
 import httpx
-from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).resolve().parent / ".env")
+from settings import OPENAI_MODEL
 
 PERSONA = "You are a scrub nurse in an operating room, reply in character, keep it short."
 JSON_INSTRUCTIONS = (
@@ -30,7 +28,7 @@ while True:
         "https://api.openai.com/v1/chat/completions",
         headers=headers,
         json={
-            "model": "gpt-4o-mini",
+            "model": OPENAI_MODEL,
             "messages": messages,
             "response_format": {"type": "json_object"},
         },
