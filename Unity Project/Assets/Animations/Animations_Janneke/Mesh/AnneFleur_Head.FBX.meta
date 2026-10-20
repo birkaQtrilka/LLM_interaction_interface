@@ -8,22 +8,22 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: M_GrayTexture_Eyes
-    second: {fileID: 2100000, guid: 0d164b82274c11f4b90dc0cb2bf5d123, type: 2}
+    second: {fileID: 2100000, guid: 8b297a80a2918694690a00927de3ab01, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: M_GrayTexture_Eyes_4
-    second: {fileID: 2100000, guid: 9fd31ae9d470d2b4a8449d23a278bc9b, type: 2}
+    second: {fileID: 2100000, guid: 8b297a80a2918694690a00927de3ab01, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: M_GrayTexture_Head
-    second: {fileID: 2100000, guid: 2a52a6695940b4546a647e913fe702d7, type: 2}
+    second: {fileID: 2100000, guid: 5a2aed3dba698b94d80402dd7edcda27, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: M_GrayTexture_Teeth
-    second: {fileID: 2100000, guid: 900b3d58d4b21e04e910b1198351d120, type: 2}
+    second: {fileID: 2100000, guid: d5b644c4e8011bf499c867d6be529ef8, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
