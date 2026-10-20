@@ -9,15 +9,16 @@ public class AgentSameDestinationTest : MonoBehaviour
     }
     public TestType test;
     [SerializeField] private string targetObjectName = "Chair";
+    [SerializeField] private float startTime;
     private void Start()
     {
         switch (test)
         {
             case TestType.ReachDestination:
-                ReachDestination();
+                Invoke(nameof(ReachDestination), startTime);
                 break;
             case TestType.TwoAgents:
-                TwoAgents();
+                Invoke(nameof(TwoAgents), startTime);
                 break;
         }
     }
@@ -26,6 +27,11 @@ public class AgentSameDestinationTest : MonoBehaviour
     {
         var agents = FindObjectsByType<NPC>();
         var system = FindAnyObjectByType<AgentSystem>();
+        if(agents == null || agents.Length == 0)
+        {
+            Debug.LogWarning("No agents found");
+            return;
+        }
         var agent = agents[0];
         system.AnimationLibrary.PlayAnimation(system,
             new ActionData

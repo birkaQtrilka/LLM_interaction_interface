@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: a71765d89ba38794c917af2369216f26
+guid: 44658826c2b6fda43980cb1d5e4faa88
 ModelImporter:
   serializedVersion: 24600
   internalIDToNameTable: []
@@ -32,11 +32,11 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: AS_AnneFleur_RightTurn180
+      name: AS_AnneFleur_RightTurn90
       takeName: Unreal Take
       internalID: 8993902097722301239
       firstFrame: 1
-      lastFrame: 49
+      lastFrame: 28
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -44,7 +44,7 @@ ModelImporter:
       loop: 0
       hasAdditiveReferencePose: 0
       loopTime: 1
-      loopBlend: 0
+      loopBlend: 1
       loopBlendOrientation: 0
       loopBlendPositionY: 0
       loopBlendPositionXZ: 0
