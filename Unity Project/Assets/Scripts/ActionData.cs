@@ -7,7 +7,7 @@ public class ActionData
     public string name;
     public string agent;
     public string addressee;
-    public bool isReply;
+    public bool isNextTurn;
     public string[] parameters;
     public int[] runAfter;
     public float delayBefore;

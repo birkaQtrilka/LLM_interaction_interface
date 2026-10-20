@@ -43,16 +43,27 @@ Do not add actions, names, or coordinates.
 # grab's parameter is the item to pick up. place's parameter is only the surface (Tray), not the item in the hand.
 # Only emit actions for this user request. Do not add a place because an earlier message mentioned a tray. If they asked only to grab, do not place.
 # If an agent grabs and then places, the place action must list that same agent's grab id in runAfter so place waits until the item is in hand.
-def get_system_prompt(PERSONA: str, actions_str: str, addressee: str = ""):
+def get_system_prompt(PERSONA: str, actions_str: str, addressee: str = "", speaker: str = ""):
   speaking = ""
   name = addressee.strip()
-  if name:
+  who = speaker.strip()
+  if name and who:
+    speaking = (
+      f" {who} is speaking to {name}. This is not the human."
+      f" Every action in this request uses {name}."
+      f" Carry out or answer what {who} said."
+      f" Do not repeat {who}'s sentence as your talk message."
+      f" Write a new answer or do the requested world actions."
+      f" On a closing answer, thanks, or acknowledgement, isNextTurn is false."
+      f" isNextTurn is true only if you ask {who} (or another agent) to do something further, or ask a question that still needs their answer."
+    )
+  elif name:
     speaking = (
       f" The user is speaking to {name}."
       f" Every action in this request uses {name}."
       f" Another name is only a target, such as give."
       f" If {name} is told to ask another agent to do something, the only action is talk:"
-      f" agent is {name}, addressee is that agent, isReply is true, and parameters is the request."
+      f" agent is {name}, addressee is that agent, isNextTurn is true, and parameters is the request."
       f" Do not plan that agent's actions."
     )
   return f"""{PERSONA} You will be given context about the world in Unity, including multiple named agents (NPCs), and the user will ask you tasks/questions related to the context. Axis system is x (right), y (up), z (forward)
@@ -78,7 +89,7 @@ CRITICAL MULTI-AGENT RULES:
 5. Before grabbing, placing, or giving, always moveTo with that same agent first, and sequence that moveTo with runAfter into that agent's own action chain. If the user said not to walk, do not grab, place, or give: use talk.
 6. If more than one object fits the request, or the request names no particular object, the only action is talk and the message lists those objects by name. "The table" when Table and Table2 both exist is this case. "Something" with no item named is this case.
 7. When the request cannot be done, the only action is talk. Do not moveTo first and explain afterwards.
-8. Every talk has top-level "addressee" and "isReply", not inside parameters. addressee is "user" or the exact name of another agent. isReply true means this sentence is delivered to that agent and they act on it. Use true when asking another agent to do something, or when this answer should be answered. Do not also plan that agent's actions in this reply. isReply false means the line is only shown. Use false when the exchange is finished. parameters holds only the sentence the listener receives, such as "Bring a scalpel".
+8. Every talk has top-level "addressee" and "isNextTurn", not inside parameters. addressee is "user" or the exact name of another agent. isNextTurn true means this sentence is sent to that agent as their next turn. Use true when asking another agent to do a world action, or when asking them a question that needs their answer. Do not also plan that agent's actions in this reply. isNextTurn false means the line is only shown. Use false for answers, thanks, and when the exchange is finished. Never copy the incoming request text into parameters. parameters holds only the new sentence the listener should hear, such as "Bring a scalpel".
 
 You will get pending animations from the user, do not repeat IDs.
 You MUST respond ONLY with a valid JSON object in the exact format shown below. Do not add any conversational text or markdown before or after the JSON.
@@ -154,5 +165,5 @@ Format Example (two agents working in parallel, each sequenced internally but no
   // Notice: Bob's chain (ids 4-7) does not runAfter any of Alice's ids, they proceed in parallel.
   // Only add cross-agent runAfter when one agent's action truly depends on the other agent finishing first.
   // if you want to return no actions for an agent, explain why using the "talk" action with that agent's name in "agent" and the explanation in "parameters"
-  // a talk also has top-level "addressee" and "isReply". Example: "name": "talk", "agent": "Alice", "addressee": "Bob", "isReply": true, "parameters": ["Bring a scalpel"]
+  // a talk also has top-level "addressee" and "isNextTurn". Example: "name": "talk", "agent": "Alice", "addressee": "Bob", "isNextTurn": true, "parameters": ["Bring a scalpel"]
 }}"""

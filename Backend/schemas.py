@@ -10,6 +10,8 @@ class ActionsRequestBody(BaseModel):
     description: str = ""
     # Empty leaves the system prompt unchanged
     addressee: str = ""
+    # Empty means the human spoke. Set when one NPC delivered a line to another
+    speaker: str = ""
 
 class ContextRequestBody(BaseModel):
     message: str
@@ -64,7 +66,7 @@ class ActionData(BaseModel):
     name: str
     agent: str
     addressee: str = ""
-    isReply: bool = False
+    isNextTurn: bool = False
     parameters: list[str] = Field(default_factory=list)
     runAfter: list[int] = Field(default_factory=list)
     delayBefore: float = 0.0

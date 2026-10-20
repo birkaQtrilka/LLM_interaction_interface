@@ -133,13 +133,18 @@ def flags_from(data: object) -> dict:
 
 
 
-def build_messages(user_text: str, world: str, addressee: str = "") -> list[dict]:
-    user = f"Context:\n{world}\n\nUser request: {user_text}"
-        
+def build_messages(user_text: str, world: str, addressee: str = "", speaker: str = "") -> list[dict]:
+    who = speaker.strip()
+    if who and addressee.strip():
+        request = f"{who} says to {addressee.strip()}: {user_text}"
+    else:
+        request = f"User request: {user_text}"
+    user = f"Context:\n{world}\n\n{request}"
+
     print("------------- SYSTEM -------------------")
 
-    system = get_system_prompt(PERSONA, ACTIONS, addressee)
-    print(system);
+    system = get_system_prompt(PERSONA, ACTIONS, addressee, speaker)
+    print(system)
     print("------------- USER -------------------")
     print(user)
     return [
@@ -193,7 +198,7 @@ def turn(body: ActionsRequestBody) -> ActionsResponse:
     started = time.perf_counter()
     if body.session_id:
         session_path(body.session_id, body.log_directory)
-    messages = build_messages(body.message, body.world, body.addressee)
+    messages = build_messages(body.message, body.world, body.addressee, body.speaker)
     system = messages[0]["content"]
     user = messages[1]["content"]
     try:
@@ -218,13 +223,13 @@ def turn(body: ActionsRequestBody) -> ActionsResponse:
             run_after = [run_after]
             
         # A string "false" must stay false. bool("false") is True
-        raw_reply = item.get("isReply", False)
-        if isinstance(raw_reply, str):
-            is_reply = raw_reply.strip().lower() == "true"
-        elif isinstance(raw_reply, bool):
-            is_reply = raw_reply
+        raw_next = item.get("isNextTurn", False)
+        if isinstance(raw_next, str):
+            is_next = raw_next.strip().lower() == "true"
+        elif isinstance(raw_next, bool):
+            is_next = raw_next
         else:
-            is_reply = False
+            is_next = False
 
         actions.append(
             ActionData(
@@ -232,7 +237,7 @@ def turn(body: ActionsRequestBody) -> ActionsResponse:
                 name=str(item.get("name") or ""),
                 agent=str(item.get("agent") or "AAAA"),
                 addressee=str(item.get("addressee") or ""),
-                isReply=is_reply,
+                isNextTurn=is_next,
                 parameters=[str(p) for p in params],
                 runAfter=[int(r) for r in run_after],
                 delayBefore=float(item.get("delayBefore", 0.0))

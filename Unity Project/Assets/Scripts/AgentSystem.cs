@@ -25,6 +25,7 @@ public class AgentSystem : MonoBehaviour
     {
         public string message;
         public string addressee;
+        public string speaker;
     }
 
     public void Init(LLMBackend llm, AnimationLibrary anim, ContextLibrary ctx)
@@ -58,7 +59,7 @@ public class AgentSystem : MonoBehaviour
     }
 
     // spokenTo is the nurse who just heard a line, null means the player and look-cast picks the addressee
-    IEnumerator RunTurn(string userPrompt, string spokenTo = null)
+    IEnumerator RunTurn(string userPrompt, string spokenTo = null, string speaker = null)
     {
         string addressee = spokenTo;
         if (spokenTo == null)
@@ -70,7 +71,7 @@ public class AgentSystem : MonoBehaviour
         CoroutineResult<ActionsResponse> actionRes = new();
         if (sendAllContext)
         {
-            yield return StartCoroutine(GetActionsJson(userPrompt, ContextQuery.GetFullContext(), actionRes, addressee));
+            yield return StartCoroutine(GetActionsJson(userPrompt, ContextQuery.GetFullContext(), actionRes, addressee, speaker));
             if (actionRes.Status == ContextStatus.Failure) yield break;
         }
         else
@@ -79,11 +80,13 @@ public class AgentSystem : MonoBehaviour
             yield return StartCoroutine(GetContextJson(userPrompt, queryRes));
             if(queryRes.Status == ContextStatus.Failure) yield break;
 
-            yield return StartCoroutine(GetActionsJson(userPrompt, queryRes.Response, actionRes, addressee));
+            yield return StartCoroutine(GetActionsJson(userPrompt, queryRes.Response, actionRes, addressee, speaker));
             if (actionRes.Status == ContextStatus.Failure) yield break;
 
         }
-        contextLibrary.AddMessageToHistory(userPrompt);
+        // NPC handoffs are not player messages
+        if (spokenTo == null)
+            contextLibrary.AddMessageToHistory(userPrompt);
     }
 
     IEnumerator RunBusy(IEnumerator work, Action<string> onBusy = null)
@@ -116,10 +119,10 @@ public class AgentSystem : MonoBehaviour
         }
     }
 
-    // A line with isReply is sent on as that nurse's request and waits out the turn that produced it
-    public void SendTalk(string message, string addressee)
+    // isNextTurn sends this line as that nurse's request and waits out the turn that produced it
+    public void SendTalk(string message, string addressee, string speaker)
     {
-        pendingTalks.Enqueue(new HeardLine { message = message, addressee = addressee });
+        pendingTalks.Enqueue(new HeardLine { message = message, addressee = addressee, speaker = speaker });
         if (!drainingTalks)
             StartCoroutine(DrainTalks());
     }
@@ -132,7 +135,7 @@ public class AgentSystem : MonoBehaviour
             while (IsBusy)
                 yield return null;
             HeardLine line = pendingTalks.Dequeue();
-            yield return RunBusy(RunTurn(line.message, line.addressee));
+            yield return RunBusy(RunTurn(line.message, line.addressee, line.speaker));
         }
         drainingTalks = false;
     }
@@ -161,7 +164,7 @@ public class AgentSystem : MonoBehaviour
         }
     }
 
-    public IEnumerator GetActionsJson(string userPrompt, ContextQuery context, CoroutineResult<ActionsResponse> res = null, string addressee = null)
+    public IEnumerator GetActionsJson(string userPrompt, ContextQuery context, CoroutineResult<ActionsResponse> res = null, string addressee = null, string speaker = null)
     {
         res ??= new();
         yield return RunBusy(Body(), res.SetError);
@@ -170,7 +173,7 @@ public class AgentSystem : MonoBehaviour
         {
             string world = contextLibrary.GetContext(context, animationLibrary.animations);
             Debug.Log($"Sending to backend Round 2:\n{world}\n{userPrompt}");
-            yield return StartCoroutine(llm.GetActions(userPrompt, world, res, addressee));
+            yield return StartCoroutine(llm.GetActions(userPrompt, world, res, addressee, speaker));
 
             if (res.Status == ContextStatus.Success)
             {

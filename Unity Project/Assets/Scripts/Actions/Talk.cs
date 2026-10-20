@@ -18,7 +18,8 @@ public class Talk : IAgentAction
             other = context.GetAgent(heardBy);
             if (other == null) return $"Couldn't find agent with name {heardBy}";
         }
-        bool sendOn = action.isReply && other != null;
+        bool sendOn = action.isNextTurn && other != null;
+        string speaker = action.agent;
         void start()
         {
             if (context.chatManager == null)
@@ -28,15 +29,15 @@ public class Talk : IAgentAction
                 Transform player = context.contextLibrary.Player;
                 if (player != null)
                     agent.StartCoroutine(MovementActions.TurnTowards(agent.transform, player.position));
-                context.chatManager.AddChat($"{action.agent} to you: {msg}");
+                context.chatManager.AddChat($"{speaker} to you: {msg}");
             }
             else
             {
                 agent.StartCoroutine(MovementActions.TurnTowards(agent.transform, other.transform.position));
-                context.chatManager.AddChat($"{action.agent} to {heardBy}: {msg}");
+                context.chatManager.AddChat($"{speaker} to {heardBy}: {msg}");
             }
             if (sendOn)
-                context.SendTalk(msg, heardBy);
+                context.SendTalk(msg, heardBy, speaker);
         }
 
         result = new AnimAction(action, start, null, null);
