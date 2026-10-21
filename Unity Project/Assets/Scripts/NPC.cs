@@ -18,6 +18,13 @@ public class NPC : MonoBehaviour
     [field: SerializeField] public float FaceDistance {get; private set; }= 2f;     // Distance to item where we start facing the item
     [field: SerializeField] public float DampTime {get; private set; }= 0.15f;
 
+    [Header("Turn Angle Gizmos")]
+    [SerializeField] private bool showGizmos = true;
+    [SerializeField] private float gizmoHeightOffset = -0.1f;
+    [SerializeField] private float gizmoRadius = 1.5f;
+    [SerializeField, Range(8, 64)] private int gizmoSegments = 32;
+
+
     public event Action<Collision> OnCollide;
 
     public bool RightHandTaken => RightHand.childCount > 0;
@@ -66,5 +73,40 @@ public class NPC : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         OnCollide?.Invoke(collision);
+    }
+    private void OnDrawGizmosSelected()
+    {
+        if (!showGizmos)
+            return;
+
+        Vector3 origin = transform.position + Vector3.up * gizmoHeightOffset;
+        Vector3 forward = transform.forward;
+
+        // Draw the forward direction
+        Gizmos.color = Color.green;
+        Gizmos.DrawRay(origin, forward * gizmoRadius);
+
+        // Draw the left and right maximum turn boundaries
+        Vector3 leftBoundary = Quaternion.AngleAxis(-MaxTurnAngle, Vector3.up) * forward;
+        Vector3 rightBoundary = Quaternion.AngleAxis(MaxTurnAngle, Vector3.up) * forward;
+
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawRay(origin, leftBoundary * gizmoRadius);
+        Gizmos.DrawRay(origin, rightBoundary * gizmoRadius);
+
+        // Draw the arc between the boundaries
+        Gizmos.color = Color.cyan;
+
+        Vector3 previousPoint = origin + leftBoundary * gizmoRadius;
+
+        for (int i = 1; i <= gizmoSegments; i++)
+        {
+            float angle = Mathf.Lerp(-MaxTurnAngle, MaxTurnAngle, i / (float)gizmoSegments);
+            Vector3 direction = Quaternion.AngleAxis(angle, Vector3.up) * forward;
+            Vector3 currentPoint = origin + direction * gizmoRadius;
+
+            Gizmos.DrawLine(previousPoint, currentPoint);
+            previousPoint = currentPoint;
+        }
     }
 }

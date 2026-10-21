@@ -11,84 +11,74 @@ static class MovementActions
     const float checkInterval = 0.1f;
     const float itemTolerance = 0.5f;
 
-    // Animator parameter hashes (Rotation removed)
     static readonly int HorizontalHash = Animator.StringToHash("Horizontal");
     static readonly int VerticalHash = Animator.StringToHash("Vertical");
     static readonly int MotionSpeedHash = Animator.StringToHash("MotionSpeed");
-    //static readonly int TurnAngleHash = Animator.StringToHash("TurnAngle");
-    //static readonly int DoTurnHash = Animator.StringToHash("DoTurn");
+    static readonly int TurnAngleHash = Animator.StringToHash("TurnAngle");
+    static readonly int DoTurnHash = Animator.StringToHash("DoTurn");
+    static readonly int MoveHash = Animator.StringToHash("Move");
+    static readonly int TurnInPlaceHash = Animator.StringToHash("TurnInPlace");
 
     public static AnimAction Build(NPC agent, TransOrPos pos, ActionData action)
     {
         LayerMask sightMask = Physics.DefaultRaycastLayers;
+        Coroutine lookRoutine = null;
+        Coroutine watchRoutine = null;
+        Coroutine walkRoutine = null;
 
         void start()
         {
             float standoff = agent.Nav.radius + 0.5f;
-            if (pos.IsTransform && pos.transform.TryGetComponent(out NavMeshAgent other))
+            if (pos.IsTransform && pos.transform != null && pos.transform.TryGetComponent(out NavMeshAgent other))
                 standoff += other.radius;
 
             float startRadius = pos.IsTransform ? standoff : 0f;
 
+            Vector3 destination;
             if (TryReserve(agent, pos.position, out Vector3 spot, agent.Nav.radius + 0.5f, startRadius))
-                agent.Nav.SetDestination(spot);
+                destination = spot;
+            else if (pos.IsTransform)
+                destination = ApproachPoint(agent, pos.transform);
             else
-                agent.Nav.SetDestination(ApproachPoint(agent, pos.transform));
+                destination = pos.position;
+
+            if (Vector3.Distance(agent.transform.position, destination) > agent.Nav.stoppingDistance + 0.05f)
+                agent.Nav.SetDestination(destination);
         }
 
         IEnumerator walkAndFace()
         {
-            float baseWalkSpeed = agent.WalkSpeedMult; // Natural clip speed for foot sync
-            float turnSpeed = agent.TurnSpeed;      // Degrees per second the script rotates the NPC
-            float maxTurnAngle = agent.MaxTurnAngle;    // Angle that produces maximum h (1.0 or -1.0)
-            float faceDistance = agent.FaceDistance;     // Distance to item where we start facing the item
-            float dampTime = agent.DampTime;
-
             var nav = agent.Nav;
-            nav.updateRotation = false;  // We handle rotation manually below
-            Vector3 initialDir = nav.desiredVelocity;
+
+            Vector3 initialDir = (nav.steeringTarget - agent.transform.position);
             initialDir.y = 0f;
 
             if (initialDir.sqrMagnitude > 0.001f)
             {
                 initialDir.Normalize();
+                float turnAngle = Vector3.SignedAngle(agent.transform.forward, initialDir, Vector3.up);
 
-                float turnAngle = Vector3.SignedAngle(
-                    agent.transform.forward,
-                    initialDir,
-                    Vector3.up
-                );
-
-                if (Mathf.Abs(turnAngle) > 60f)
+                if (Mathf.Abs(turnAngle) > agent.MaxTurnAngle)
                 {
                     nav.isStopped = true;
+                    agent.Anim.SetFloat(TurnAngleHash, turnAngle);
+                    agent.Anim.SetTrigger(DoTurnHash);
 
-                    //agent.Anim.SetFloat(TurnAngleHash, turnAngle);
-                    //agent.Anim.SetTrigger(DoTurnHash);
+                    Quaternion targetRot = Quaternion.LookRotation(initialDir, Vector3.up);
+                    yield return Utils.MonitorAnimatorState(agent.Anim, TurnInPlaceHash);
 
-                    Quaternion targetRot = Quaternion.LookRotation(
-                        initialDir,
-                        Vector3.up
-                    );
-
-                    while (Quaternion.Angle(agent.transform.rotation, targetRot) > 1f)
-                    {
-                        agent.transform.rotation = Quaternion.RotateTowards(
-                            agent.transform.rotation,
-                            targetRot,
-                            turnSpeed * Time.deltaTime
-                        );
-
-                        yield return null;
-                    }
-
+                    AnimatorStateInfo state = agent.Anim.GetCurrentAnimatorStateInfo(0);
+                    agent.Anim.Play(state.fullPathHash, 0, 0f);
+                    agent.Anim.Update(0f);
+                    agent.Anim.CrossFade(MoveHash, 0.35f, 0);
+                    agent.transform.rotation = targetRot;
                     nav.isStopped = false;
                 }
             }
 
-            while (nav.pathPending || nav.remainingDistance > nav.stoppingDistance + 0.05f)
+            while (nav.remainingDistance > nav.stoppingDistance + 0.05f)
             {
-                Vector3 targetDir = nav.remainingDistance < faceDistance
+                Vector3 targetDir = nav.remainingDistance < agent.FaceDistance
                     ? pos.position - agent.transform.position
                     : nav.desiredVelocity;
                 targetDir.y = 0f;
@@ -100,37 +90,25 @@ static class MovementActions
                 {
                     Vector3 normTarget = targetDir.normalized;
 
-                    Quaternion goalRot = Quaternion.LookRotation(normTarget, Vector3.up);
-                    agent.transform.rotation = Quaternion.RotateTowards(
-                        agent.transform.rotation, goalRot, turnSpeed * Time.deltaTime);
-
-                    // 3. Calculate H based on angle difference
-                    // Angle > 0 means target is to the right (h -> +1)
-                    // Angle < 0 means target is to the left (h -> -1)
                     float angle = Vector3.SignedAngle(agent.transform.forward, normTarget, Vector3.up);
-                    h = Mathf.Clamp(angle / maxTurnAngle, -1f, 1f);
+                    h = Mathf.Clamp(angle / agent.MaxTurnAngle, -1f, 1f);
 
-                    // 4. Calculate V (Forward Walk)
-                    // If the agent is facing mostly away (> 90 deg turn), slow down V until
-                    // it turns around so it doesn't moonwalk sideways/backward.
                     float alignment = Mathf.Max(0f, Vector3.Dot(agent.transform.forward, normTarget));
-                    v = alignment; // Drops towards 0 during sharp turns, hits 1.0 when aligned
+                    v = alignment;
                 }
 
                 float currentSpeed = nav.velocity.magnitude;
-                float motionSpeed = (baseWalkSpeed > 0.001f) ? (currentSpeed / baseWalkSpeed) : 1f;
+                float motionSpeed = (agent.WalkSpeedMult > 0.001f) ? (currentSpeed / agent.WalkSpeedMult) : 1f;
                 if (currentSpeed > 0.05f)
                     motionSpeed = Mathf.Max(motionSpeed, 0.5f);
 
-                agent.Anim.SetFloat(HorizontalHash, h, dampTime, Time.deltaTime);
-                agent.Anim.SetFloat(VerticalHash, v, dampTime, Time.deltaTime);
-                agent.Anim.SetFloat(MotionSpeedHash, motionSpeed, dampTime, Time.deltaTime);
+                agent.Anim.SetFloat(HorizontalHash, h, agent.DampTime, Time.deltaTime);
+                agent.Anim.SetFloat(VerticalHash, v, agent.DampTime, Time.deltaTime);
+                agent.Anim.SetFloat(MotionSpeedHash, motionSpeed, agent.DampTime, Time.deltaTime);
 
                 yield return null;
             }
         }
-
-        Coroutine lookRoutine = null;
 
         void startLookAt()
         {
@@ -174,22 +152,49 @@ static class MovementActions
 
         IEnumerator behavior()
         {
-            Coroutine w1 = agent.StartCoroutine(watchForItem());
-            Coroutine w2 = agent.StartCoroutine(walkAndFace());
 
-            yield return agent.StartCoroutine(Utils.MonitorMovement(agent.Nav));
+            // Wait for NavMesh to finish asynchronous path calculation
+            yield return null;
+            while (agent.Nav.pathPending)
+                yield return null;
+            watchRoutine = agent.StartCoroutine(watchForItem());
 
-            if (w2 != null) agent.StopCoroutine(w2);
+            // If already in range or no path needed, just turn to face the target
+            if (!agent.Nav.hasPath || agent.Nav.remainingDistance <= agent.Nav.stoppingDistance + 0.05f)
+            {
+                yield return agent.StartCoroutine(TurnTowards(agent, pos.position));
+            }
+            else
+            {
+                walkRoutine = agent.StartCoroutine(walkAndFace());
+                yield return agent.StartCoroutine(Utils.MonitorMovement(agent.Nav));
+                if (walkRoutine != null)
+                {
+                    agent.StopCoroutine(walkRoutine);
+                    walkRoutine = null;
+                }
+            }
 
             yield return agent.StartCoroutine(BlendToIdle(agent));
-
-            if (w1 != null) agent.StopCoroutine(w1);
         }
 
         void end()
         {
             Release(agent);
-            StopLookAt(agent);
+
+            if (watchRoutine != null)
+            {
+                agent.StopCoroutine(watchRoutine);
+                watchRoutine = null;
+            }
+
+            if (walkRoutine != null)
+            {
+                agent.StopCoroutine(walkRoutine);
+                walkRoutine = null;
+            }
+
+            stopLookAt();
 
             agent.Anim.SetFloat(HorizontalHash, 0f);
             agent.Anim.SetFloat(VerticalHash, 0f);
@@ -205,50 +210,68 @@ static class MovementActions
     static IEnumerator LookAt(NPC agent, Vector3 target)
     {
         LookAtIK lookAnim = agent.GetComponentInChildren<LookAtIK>();
-        yield return agent.StartCoroutine(lookAnim.LookAt(target));
+        if (lookAnim != null)
+            yield return agent.StartCoroutine(lookAnim.LookAt(target));
     }
 
     static void StopLookAt(NPC agent)
     {
         LookAtIK lookAnim = agent.GetComponentInChildren<LookAtIK>();
-        agent.StartCoroutine(lookAnim.StopLooking());
+        if (lookAnim != null)
+            agent.StartCoroutine(lookAnim.StopLooking());
     }
 
     static Vector3 ApproachPoint(NPC agent, Transform target, float gap = 0.3f)
     {
+        if (target == null) return agent.transform.position;
+
         float targetRadius = target.TryGetComponent(out NavMeshAgent other) ? other.radius : 0f;
-        float standoff = agent.Nav.radius + targetRadius + gap;
+        float minDistance = agent.Nav.radius + targetRadius;
+        float standoff = minDistance + gap;
 
-        Vector3 dir = agent.transform.position - target.position;
-        dir.y = 0f;
-        dir = dir.sqrMagnitude < 0.001f ? target.forward : dir.normalized;
+        Vector3 toAgent = agent.transform.position - target.position;
+        toAgent.y = 0f;
+        float currentDist = toAgent.magnitude;
 
+        if (currentDist <= standoff && currentDist >= minDistance)
+            return agent.transform.position;
+
+        Vector3 dir = (currentDist < 0.01f) ? -agent.transform.forward : toAgent / currentDist;
         Vector3 p = target.position + dir * standoff;
         return NavMesh.SamplePosition(p, out var hit, 1f, NavMesh.AllAreas) ? hit.position : target.position;
     }
 
-    public static IEnumerator TurnTowards(Transform t, Vector3 target, float smoothing = 6f)
+    public static IEnumerator TurnTowards(NPC agent, Vector3 target)
     {
+        Transform t = agent.transform;
+        NavMeshAgent nav = agent.Nav;
         Vector3 local = t.InverseTransformPoint(target);
         local.y = 0f;
         if (local.sqrMagnitude < 0.0001f) yield break;
 
         Vector3 flatDir = t.TransformDirection(local);
-        Quaternion goal = Quaternion.LookRotation(flatDir, Vector3.up);
+        float turnAngle = Vector3.SignedAngle(agent.transform.forward, flatDir, Vector3.up);
 
-        while (Quaternion.Angle(t.rotation, goal) > 0.5f)
-        {
-            t.rotation = Quaternion.Lerp(t.rotation, goal, Time.deltaTime * smoothing);
-            yield return null;
-        }
-        t.rotation = goal;
+        nav.isStopped = true;
+        agent.Anim.SetFloat(TurnAngleHash, turnAngle);
+        agent.Anim.SetTrigger(DoTurnHash);
+
+        Quaternion targetRot = Quaternion.LookRotation(flatDir, Vector3.up);
+        yield return Utils.MonitorAnimatorState(agent.Anim, TurnInPlaceHash);
+
+        AnimatorStateInfo state = agent.Anim.GetCurrentAnimatorStateInfo(0);
+        agent.Anim.Play(state.fullPathHash, 0, 0f);
+        agent.Anim.Update(0f);
+        agent.Anim.CrossFade(MoveHash, 0.35f, 0);
+        agent.transform.rotation = targetRot;
+        nav.isStopped = false;
     }
+
     static IEnumerator BlendToIdle(NPC agent)
     {
         var anim = agent.Anim;
         float dampTime = agent.DampTime;
 
-        // Smoothly return to the idle blend-tree values.
         while (Mathf.Abs(anim.GetFloat(HorizontalHash)) > 0.01f ||
                Mathf.Abs(anim.GetFloat(VerticalHash)) > 0.01f ||
                Mathf.Abs(anim.GetFloat(MotionSpeedHash) - 1f) > 0.01f)
@@ -256,17 +279,16 @@ static class MovementActions
             anim.SetFloat(HorizontalHash, 0f, dampTime, Time.deltaTime);
             anim.SetFloat(VerticalHash, 0f, dampTime, Time.deltaTime);
             anim.SetFloat(MotionSpeedHash, 1f, dampTime, Time.deltaTime);
-
             yield return null;
         }
 
-        // Ensure the final values are exact.
         anim.SetFloat(HorizontalHash, 0f);
         anim.SetFloat(VerticalHash, 0f);
         anim.SetFloat(MotionSpeedHash, 1f);
     }
+
     static bool TryReserve(NPC npc, Vector3 target, out Vector3 spot,
-                       float spacing = 1f, float startRadius = 0f)
+                   float spacing = 1f, float startRadius = 0f)
     {
         Release(npc);
         spot = default;
@@ -276,7 +298,20 @@ static class MovementActions
 
         Vector3 from = npc.transform.position - target;
         from.y = 0f;
-        float baseAngle = Mathf.Atan2(from.z, from.x);
+
+        float baseAngle = from.sqrMagnitude > 0.001f
+            ? Mathf.Atan2(from.z, from.x)
+            : Mathf.Atan2(-npc.transform.forward.z, -npc.transform.forward.x);
+
+        if (startRadius > 0f && from.magnitude <= startRadius && from.magnitude > npc.Nav.radius)
+        {
+            if (!IsTaken(npc, npc.transform.position, spacing * 0.9f))
+            {
+                reserved[npc] = npc.transform.position;
+                spot = npc.transform.position;
+                return true;
+            }
+        }
 
         for (int ring = 0; ring < 4; ring++)
         {

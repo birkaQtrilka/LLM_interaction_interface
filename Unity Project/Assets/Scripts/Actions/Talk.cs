@@ -21,11 +21,11 @@ public class Talk : IAgentAction
             if (receiver == "user")
             {
                 receiver = "you";
-                agent.StartCoroutine(MovementActions.TurnTowards(agent.transform, context.contextLibrary.Player.position));
+                agent.StartCoroutine(MovementActions.TurnTowards(agent, context.contextLibrary.Player.position));
             }
             else
             {
-                agent.StartCoroutine(MovementActions.TurnTowards(agent.transform, context.GetAgent(receiver).transform.position));
+                agent.StartCoroutine(MovementActions.TurnTowards(agent, context.GetAgent(receiver).transform.position));
             }
             ParsedLine line = LineParser.Parse(msg);
             
