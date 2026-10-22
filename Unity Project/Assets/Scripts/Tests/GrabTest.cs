@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class GrabTest : MonoBehaviour
+public class GrabTest : MyTest
 {
     [SerializeField] NPC npc;
     [SerializeField] string targetName;

@@ -1,7 +1,5 @@
 using NUnit.Framework;
-using System.Collections;
 using UnityEngine;
-using UnityEngine.TestTools;
 
 public class Combo_System_Tests
 {

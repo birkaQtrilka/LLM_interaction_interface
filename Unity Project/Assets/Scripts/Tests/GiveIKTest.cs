@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public class GiveIKTest : MonoBehaviour
+public class GiveIKTest : MyTest
 {
     [SerializeField] TestNames testName;
     [SerializeField] AnimationLibrary animationLibrary;

@@ -399,7 +399,7 @@ AnimatorController:
   - serializedVersion: 5
     m_Name: Gestures
     m_StateMachine: {fileID: 400900232795597438}
-    m_Mask: {fileID: 0}
+    m_Mask: {fileID: 31900000, guid: 7f02ddf819fecad42ad56fa457b0718d, type: 2}
     m_Motions: []
     m_Behaviours: []
     m_BlendingMode: 0

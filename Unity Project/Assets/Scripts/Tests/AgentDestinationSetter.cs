@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using static Codice.Client.Common.WebApi.WebApiEndpoints;
 [RequireComponent(typeof(RaycastHitEvents))]
 public class AgentDestinationSetter : MonoBehaviour
 {

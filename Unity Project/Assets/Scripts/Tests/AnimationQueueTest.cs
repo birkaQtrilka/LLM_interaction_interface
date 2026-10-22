@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class AnimationQueueTest : MonoBehaviour
+public class AnimationQueueTest : MyTest
 {
     [SerializeField] TestNames testName;
     [SerializeField] AnimationLibrary animationLibrary;
