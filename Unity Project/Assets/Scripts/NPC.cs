@@ -11,6 +11,8 @@ public class NPC : MonoBehaviour
     [field: SerializeField] public NavMeshAgent Nav { get; private set; }
     [field: SerializeField] public GrabReceiver GrabReceiver { get; private set; }
     [field: SerializeField] public Animator Anim { get; private set; }
+    [field: SerializeField] public LookSettings LookSettings { get; private set; } = new LookSettings { MaxSightDistance = 6f, CheckInterval = 0.1f, ItemTolerance = 0.5f };
+
     [Header("Movement Settings")]
     [field: SerializeField] public float WalkSpeedMult { get; private set; } = 1f;
     [field: SerializeField] public float TurnSpeed {get; private set; }= 400f;      // Degrees per second the script rotates the NPC

@@ -15,7 +15,7 @@ public class ReservedSpotsDebugger : MonoBehaviour
     {
         if (!draw || !Application.isPlaying) return;
 
-        foreach (var kv in MovementActions.reserved)
+        foreach (var kv in MovementActions.Reserved)
         {
             NPC npc = kv.Key;
             if (npc == null) continue; // destroyed while still holding a reservation
