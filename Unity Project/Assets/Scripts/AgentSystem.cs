@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class CoroutineResult<Res> : CoroutineResult<Res, string> { }
@@ -18,15 +17,6 @@ public class AgentSystem : MonoBehaviour
     public ActionsResponse LastActions { get; private set; }
     // True while one turn already holds IsBusy, so the two rounds inside it do not release the lock
     bool hold;
-    readonly Queue<HeardLine> pendingTalks = new();
-    bool drainingTalks;
-
-    struct HeardLine
-    {
-        public string message;
-        public string addressee;
-        public string speaker;
-    }
 
     public void Init(LLMBackend llm, AnimationLibrary anim, ContextLibrary ctx)
     {
@@ -119,25 +109,10 @@ public class AgentSystem : MonoBehaviour
         }
     }
 
-    // isNextTurn sends this line as that nurse's request and waits out the turn that produced it
-    public void SendTalk(string message, string addressee, string speaker)
+    // Talk queues NPC-to-NPC lines here so the addressee gets a turn with speaker set
+    public IEnumerator RunHeardTurn(string message, string spokenTo, string speaker)
     {
-        pendingTalks.Enqueue(new HeardLine { message = message, addressee = addressee, speaker = speaker });
-        if (!drainingTalks)
-            StartCoroutine(DrainTalks());
-    }
-
-    IEnumerator DrainTalks()
-    {
-        drainingTalks = true;
-        while (pendingTalks.Count > 0)
-        {
-            while (IsBusy)
-                yield return null;
-            HeardLine line = pendingTalks.Dequeue();
-            yield return RunBusy(RunTurn(line.message, line.addressee, line.speaker));
-        }
-        drainingTalks = false;
+        yield return RunBusy(RunTurn(message, spokenTo, speaker));
     }
 
     public IEnumerator GetContextJson(string userPrompt, CoroutineResult<ContextQuery> res = null)
