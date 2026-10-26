@@ -26868,6 +26868,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 249522296}
   m_LocalEulerAnglesHint: {x: -89.22569, y: 89.786674, z: -89.79691}
+--- !u!1 &803420952
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 803420953}
+  m_Layer: 0
+  m_Name: LookAtFloaterNPC
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &803420953
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 803420952}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &803702652
 GameObject:
   m_ObjectHideFlags: 0
@@ -28151,7 +28182,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &854060013
 Transform:
   m_ObjectHideFlags: 0
@@ -34446,7 +34477,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1165020438
 Transform:
   m_ObjectHideFlags: 0
@@ -34474,7 +34505,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5941d804b9e87eb4e9eb54be19100e32, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Scripts::AgentSameDestinationTest
-  test: 0
+  test: 1
   targetObjectName: Chair
   startTime: 3
 --- !u!1 &1166085842
@@ -45686,7 +45717,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7143666008480823539, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -53405,10 +53436,6 @@ PrefabInstance:
       propertyPath: m_Data.m_SourceObjects.m_Item0.transform
       value: 
       objectReference: {fileID: 346861625}
-    - target: {fileID: 6824446517921876096, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
-      propertyPath: m_ApplyRootMotion
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 6911411674770464373, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: floater
       value: 
@@ -53416,26 +53443,6 @@ PrefabInstance:
     - target: {fileID: 7143666008480823539, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: m_Name
       value: NPC1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7329515217725834280, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
-      propertyPath: gizmoSegments
-      value: 9
-      objectReference: {fileID: 0}
-    - target: {fileID: 7329515217725834280, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
-      propertyPath: gizmoHeightOffset
-      value: -0.78
-      objectReference: {fileID: 0}
-    - target: {fileID: 7329515217725834280, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
-      propertyPath: <TurnSpeed>k__BackingField
-      value: 300
-      objectReference: {fileID: 0}
-    - target: {fileID: 7329515217725834280, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
-      propertyPath: <MaxTurnAngle>k__BackingField
-      value: 60
-      objectReference: {fileID: 0}
-    - target: {fileID: 7329515217725834280, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
-      propertyPath: <WalkSpeedMult>k__BackingField
-      value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -58472,6 +58479,7 @@ PrefabInstance:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
+  - {fileID: 803420953}
   - {fileID: 6128841}
   - {fileID: 330585546}
   - {fileID: 410087041}

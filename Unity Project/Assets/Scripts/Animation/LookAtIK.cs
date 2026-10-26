@@ -88,7 +88,7 @@ public class LookAtIK : MonoBehaviour
     }
 #endif
 
-public IEnumerator LookAt(Vector3 pos)
+    public IEnumerator LookAt(Vector3 pos)
     {
         floater.position = pos;
 

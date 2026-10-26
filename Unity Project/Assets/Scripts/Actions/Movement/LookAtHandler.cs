@@ -25,13 +25,12 @@ public class LookAtHandler
 
     Coroutine lookRoutine;
     Coroutine watchRoutine;
-    LookSettings lookSettings;
 
     public LookAtHandler(NPC agent, Func<Vector3> getTargetPosition, LayerMask sightMask = default)
     {
         this.agent = agent;
         this.getTargetPosition = getTargetPosition;
-        this.sightMask = sightMask == default ? Physics.DefaultRaycastLayers : sightMask;
+        this.sightMask = sightMask == default ? ~0 : sightMask;
     }
 
     public LookAtHandler(NPC agent, TransOrPos target, LayerMask sightMask = default)

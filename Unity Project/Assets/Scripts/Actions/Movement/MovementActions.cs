@@ -2,8 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-using static Codice.Client.Common.WebApi.WebApiEndpoints;
-using static UnityEditor.PlayerSettings;
 
 static class MovementActions
 {
@@ -50,7 +48,6 @@ static class MovementActions
             while (agent.Nav.pathPending)
                 yield return null;
 
-            lookHandler.StartWatching();
 
             // If already in range or no path needed, turn to face the target
             if (!agent.Nav.hasPath || agent.Nav.remainingDistance <= agent.Nav.stoppingDistance + 0.05f)
@@ -60,6 +57,8 @@ static class MovementActions
             else
             {
                 walkRoutine = agent.StartCoroutine(WalkAndFace(agent, pos.position));
+                lookHandler.StartWatching();
+
                 yield return agent.StartCoroutine(Utils.MonitorMovement(agent.Nav));
                 if (walkRoutine != null)
                 {
