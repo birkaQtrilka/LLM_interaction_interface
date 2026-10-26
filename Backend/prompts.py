@@ -43,14 +43,31 @@ Do not add actions, names, or coordinates.
 # grab's parameter is the item to pick up. place's parameter is only the surface (Tray), not the item in the hand.
 # Only emit actions for this user request. Do not add a place because an earlier message mentioned a tray. If they asked only to grab, do not place.
 # If an agent grabs and then places, the place action must list that same agent's grab id in runAfter so place waits until the item is in hand.
-def get_system_prompt(PERSONA: str, actions_str: str, addressee: str = ""):
+def get_system_prompt(PERSONA: str, actions_str: str, addressee: str = "", speaker: str = ""):
   speaking = ""
   name = addressee.strip()
-  if name:
+  who = speaker.strip()
+  if name and who:
+    speaking = (
+      f" {who} is speaking to {name}. This is not the human."
+      f" Every action in this request uses {name}."
+      f" Carry out or answer what {who} said."
+      f" Do not repeat {who}'s sentence as your talk message."
+      f" Write a new answer or do the requested world actions."
+      f" If your talk asks {who} a question, parameters isNextTurn must be \"true\" so they can answer."
+      f" On a closing answer, thanks, or acknowledgement, isNextTurn is \"false\"."
+      f" isNextTurn is \"true\" if you ask {who} (or another agent) to do a world action, or ask a question that needs their answer."
+    )
+  elif name:
     speaking = (
       f" The user is speaking to {name}."
       f" Every action in this request uses {name}."
-      f" Another name is only a target, such as give, unless the sentence tells a different nurse to act."
+      f" Another name is only a target, such as give."
+      f" If {name} is told to talk to or ask another agent, the only action is talk:"
+      f" agent is {name}, parameters are [spoken line, other agent's exact name, \"true\"]."
+      f" The spoken line is the topic in their own words, never the user's command."
+      f" Example: user says talk to Bob about family -> parameters [\"How is your family?\", \"Bob\", \"true\"], not [\"Talk to Bob about family\"]."
+      f" Do not plan that other agent's actions."
     )
   return f"""{PERSONA} You will be given context about the world in Unity, including multiple named agents (NPCs), and the user will ask you tasks/questions related to the context. Axis system is x (right), y (up), z (forward)
 
@@ -72,7 +89,10 @@ CRITICAL MULTI-AGENT RULES:
 2. Different agents act independently and in parallel by default. DO NOT add runAfter between two actions that have different "agent" fields unless the task genuinely requires one agent to wait on another (for example, agent B must wait for agent A to place an item before agent B can grab it from that surface, or the user explicitly says one agent should wait for another).
 3. Each agent has its own itemInRightHand. An agent can only place what is currently in its own hand, never another agent's held item. Check the itemInRightHand of the specific agent named in that action's "agent" field, not any other agent's.
 4. Each agent can hold only ONE item at a time. Multiple agents can each be holding their own separate item at the same time without conflict.
-5. Before grabbing or placing, always moveTo with that same agent first, and sequence that moveTo with runAfter into that agent's own action chain.
+5. Before grabbing, placing, or giving, always moveTo with that same agent first, and sequence that moveTo with runAfter into that agent's own action chain. If the user said not to walk, do not grab, place, or give: use talk.
+6. If more than one object fits the request, or the request names no particular object, the only action is talk and the message lists those objects by name. "The table" when Table and Table2 both exist is this case. "Something" with no item named is this case.
+7. When the request cannot be done, the only action is talk. Do not moveTo first and explain afterwards.
+8. Every talk puts addressee and isNextTurn inside parameters: [msg, addressee, isNextTurn]. addressee is "user" or the exact name of another agent. isNextTurn is the string "true" or "false". "true" means this sentence is sent to that agent as their next turn. Use "true" when asking another agent to do a world action, or when asking them a question (a question needs "true"). Do not also plan that agent's actions in this reply. "false" means the line is only shown. Use "false" for answers, thanks, and when the exchange is finished. Never copy the user's or speaker's instruction into msg. When told to talk about a topic, msg is the spoken line about that topic (for example "How is your family?"), not "Talk to X about family".
 
 You will get pending animations from the user, do not repeat IDs.
 You MUST respond ONLY with a valid JSON object in the exact format shown below. Do not add any conversational text or markdown before or after the JSON.
@@ -148,4 +168,5 @@ Format Example (two agents working in parallel, each sequenced internally but no
   // Notice: Bob's chain (ids 4-7) does not runAfter any of Alice's ids, they proceed in parallel.
   // Only add cross-agent runAfter when one agent's action truly depends on the other agent finishing first.
   // if you want to return no actions for an agent, explain why using the "talk" action with that agent's name in "agent" and the explanation in "parameters"
+  // talk parameters are [msg, addressee, isNextTurn]. Example: "name": "talk", "agent": "Alice", "parameters": ["Bring a scalpel", "Bob", "true"]
 }}"""

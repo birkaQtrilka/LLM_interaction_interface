@@ -12,6 +12,7 @@ for manual set-up:
 - py -m venv .venv (if not created)
 
 Put OPENAI_API_KEY in Backend/.env
+Optional: OPENAI_MODEL=gpt-6-luna (default if omitted)
 
 How to run the Backend on Windows:
 - .\.venv\Scripts\Activate.ps1

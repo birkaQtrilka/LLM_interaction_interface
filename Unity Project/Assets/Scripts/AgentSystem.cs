@@ -15,6 +15,8 @@ public class AgentSystem : MonoBehaviour
     public AnimationLibrary AnimationLibrary => animationLibrary;
     public bool IsBusy { get; private set; }
     public ActionsResponse LastActions { get; private set; }
+    // True while one turn already holds IsBusy, so the two rounds inside it do not release the lock
+    bool hold;
 
     public void Init(LLMBackend llm, AnimationLibrary anim, ContextLibrary ctx)
     {
@@ -46,15 +48,20 @@ public class AgentSystem : MonoBehaviour
         yield return RunTurn(userPrompt);
     }
 
-    IEnumerator RunTurn(string userPrompt)
+    // spokenTo is the nurse who just heard a line, null means the player and look-cast picks the addressee
+    IEnumerator RunTurn(string userPrompt, string spokenTo = null, string speaker = null)
     {
-        LookCast look = Camera.main != null ? Camera.main.GetComponent<LookCast>() : null;
-        string addressee = look != null ? look.AddresseeName : null;
+        string addressee = spokenTo;
+        if (spokenTo == null)
+        {
+            LookCast look = Camera.main != null ? Camera.main.GetComponent<LookCast>() : null;
+            addressee = look != null ? look.AddresseeName : null;
+        }
 
         CoroutineResult<ActionsResponse> actionRes = new();
         if (sendAllContext)
         {
-            yield return StartCoroutine(GetActionsJson(userPrompt, ContextQuery.GetFullContext(), actionRes, addressee));
+            yield return StartCoroutine(GetActionsJson(userPrompt, ContextQuery.GetFullContext(), actionRes, addressee, speaker));
             if (actionRes.Status == ContextStatus.Failure) yield break;
         }
         else
@@ -63,16 +70,18 @@ public class AgentSystem : MonoBehaviour
             yield return StartCoroutine(GetContextJson(userPrompt, queryRes));
             if(queryRes.Status == ContextStatus.Failure) yield break;
 
-            yield return StartCoroutine(GetActionsJson(userPrompt, queryRes.Response, actionRes, addressee));
+            yield return StartCoroutine(GetActionsJson(userPrompt, queryRes.Response, actionRes, addressee, speaker));
             if (actionRes.Status == ContextStatus.Failure) yield break;
 
         }
-        contextLibrary.AddMessageToHistory(userPrompt);
+        // NPC handoffs are not player messages
+        if (spokenTo == null)
+            contextLibrary.AddMessageToHistory(userPrompt);
     }
 
     IEnumerator RunBusy(IEnumerator work, Action<string> onBusy = null)
     {
-        if (IsBusy)
+        if (IsBusy && !hold)
         {
             string err = "Still processing a previous message, wait until it's done";
             Debug.LogWarning(err);
@@ -80,15 +89,30 @@ public class AgentSystem : MonoBehaviour
             yield break;
         }
 
-        SetBusiness(true);
+        bool outer = !hold;
+        if (outer)
+        {
+            hold = true;
+            SetBusiness(true);
+        }
         try
         {
             yield return StartCoroutine(work);
         }
         finally
         {
-            SetBusiness(false);
+            if (outer)
+            {
+                hold = false;
+                SetBusiness(false);
+            }
         }
+    }
+
+    // Talk queues NPC-to-NPC lines here so the addressee gets a turn with speaker set
+    public IEnumerator RunHeardTurn(string message, string spokenTo, string speaker)
+    {
+        yield return RunBusy(RunTurn(message, spokenTo, speaker));
     }
 
     public IEnumerator GetContextJson(string userPrompt, CoroutineResult<ContextQuery> res = null)
@@ -115,7 +139,7 @@ public class AgentSystem : MonoBehaviour
         }
     }
 
-    public IEnumerator GetActionsJson(string userPrompt, ContextQuery context, CoroutineResult<ActionsResponse> res = null, string addressee = null)
+    public IEnumerator GetActionsJson(string userPrompt, ContextQuery context, CoroutineResult<ActionsResponse> res = null, string addressee = null, string speaker = null)
     {
         res ??= new();
         yield return RunBusy(Body(), res.SetError);
@@ -124,7 +148,7 @@ public class AgentSystem : MonoBehaviour
         {
             string world = contextLibrary.GetContext(context, animationLibrary.animations);
             Debug.Log($"Sending to backend Round 2:\n{world}\n{userPrompt}");
-            yield return StartCoroutine(llm.GetActions(userPrompt, world, res, addressee));
+            yield return StartCoroutine(llm.GetActions(userPrompt, world, res, addressee, speaker));
 
             if (res.Status == ContextStatus.Success)
             {
