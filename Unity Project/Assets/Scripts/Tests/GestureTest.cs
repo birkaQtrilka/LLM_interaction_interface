@@ -2,7 +2,8 @@ using UnityEngine;
 
 public class GestureTest : MyTest
 {
-
+    [TextArea]
+    [SerializeField] string script = "I want to do a nod[nod] gesture NOW";
     private void OnEnable()
     {
         NoParameterGesture();
@@ -26,7 +27,7 @@ public class GestureTest : MyTest
                 id = 0,
                 name = "talk",
                 agent = agent.name,
-                parameters = new string[] { "I want to do a nod[nod] gesture NOW", "user" }
+                parameters = new string[] { script, "user" }
             }
         );
     }
