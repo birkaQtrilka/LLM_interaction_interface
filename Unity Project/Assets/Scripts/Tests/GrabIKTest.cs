@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class GrabIKTest : MonoBehaviour
+public class GrabIKTest : MyTest
 {
     [SerializeField] GrabIK grab;
     [SerializeField] Transform testTarget;

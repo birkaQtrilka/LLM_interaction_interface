@@ -1,7 +1,9 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
-
+/// <summary>
+/// Registers and Dispatches the gestures
+/// </summary>
 public class DialoguePlayer : MonoBehaviour
 {
     [SerializeField] TMP_Text label;
@@ -9,6 +11,7 @@ public class DialoguePlayer : MonoBehaviour
     [SerializeField] float delayAfter = 1f;
     [SerializeField] float charsPerSecond = 30f;
     readonly GestureDispatcher dispatcher = new();
+
     private void Awake()
     {
         dispatcher.Register(new NodGesture());

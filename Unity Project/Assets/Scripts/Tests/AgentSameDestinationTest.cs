@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class AgentSameDestinationTest : MonoBehaviour
+public class AgentSameDestinationTest : MyTest
 {
     public enum TestType
     {

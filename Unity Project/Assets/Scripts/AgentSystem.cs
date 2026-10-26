@@ -222,4 +222,9 @@ public class AgentSystem : MonoBehaviour
     {
         return contextLibrary.spots.Find(a => a.GetName() == name)?.transform;
     }
+
+    public AnimationInstance GetAnim(int id)
+    {
+        return animationLibrary.animations.Find(a => a.data.id == id);
+    }
 }
