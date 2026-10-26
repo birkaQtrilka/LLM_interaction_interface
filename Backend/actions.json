@@ -2,7 +2,7 @@
   {
     "name": "moveTo",
     "args": "spotName: string",
-    "doc": "when user asks an agent to move to a specific spot or environment object in the world, use this action. spotName is the name of the spot or environment object. The 'agent' field on the action object identifies which NPC performs it."
+    "doc": "when user asks an agent to move to a specific spot or environment object in the world, use this action. spotName is the name of the spot or environment object, or an agent when giving something to them. It must be a name from the context. If the name is not there, use talk and do not substitute a different name. The 'agent' field on the action object identifies which NPC performs it."
   },
   {
     "name": "moveToPoint",
@@ -11,22 +11,22 @@
   },
   {
     "name": "talk",
-    "args": "msg: string, receiver: string",
-    "doc": "use this action when the user asks something or where a comment to some other action is appropriate. msg is the text to say. The 'agent' field on the action object identifies which NPC is speaking. The 'receiver' parameter is the name of the other NPC the agent is speaking to. If NPC talks to the user the 'receiver' parameter should be 'user'"
+    "args": "msg: string",
+    "doc": "use this action when the user asks something, where a comment is appropriate, or when one agent asks another agent to do something. msg is the sentence, and it is the only parameter. The 'agent' field is the NPC speaking. Every talk also has top-level 'addressee' and 'isNextTurn'. addressee is 'user' or the exact name of another agent. isNextTurn true sends msg to that agent as their next turn, and this reply must not also plan that agent's actions. A question to another agent must use isNextTurn true. isNextTurn false only shows the line. Use false for answers, thanks, and when the exchange is finished. Do not copy the user's command into msg. When told to talk about a topic, msg is what they say about that topic."
   },
   {
     "name": "grab",
     "args": "objectName: string",
-    "doc": "the agent named in the action's 'agent' field picks up a named object from the environment. DO NOT grab if that agent's itemInRightHand is already non-empty. DO NOT grab if the object has grabbable: false, regardless of what the name suggests. Always do moveTo for this agent to get close to the object first. Each agent can hold only ONE item at a time, but different agents can each hold their own item simultaneously."
+    "doc": "the agent named in the action's 'agent' field picks up a named object from the environment. DO NOT grab if that agent's itemInRightHand is already non-empty. DO NOT grab if the object has grabbable: false, regardless of what the name suggests. If grabbable is false, use talk only and do not moveTo that object first. If the user said not to walk, use talk and do not grab. Always do moveTo for this agent to get close to the object first. Each agent can hold only ONE item at a time, but different agents can each hold their own item simultaneously."
   },
   {
     "name": "place",
     "args": "objectNameToPlaceOnto: string",
-    "doc": "the agent named in the action's 'agent' field places the item currently in its own itemInRightHand onto the named environment object. Precondition: that agent's itemInRightHand must be non-empty. If it is empty, there is nothing for that agent to place, use talk instead. Always do moveTo for this agent to get close to the target object first."
+    "doc": "the agent named in the action's 'agent' field places the item currently in its own itemInRightHand onto the named environment object. Precondition: that agent's itemInRightHand must be non-empty. If it is empty, there is nothing for that agent to place, use talk instead. If canPlaceOn is false, use talk and do not place. Always do moveTo for this agent to get close to the target object first."
   },
   {
     "name": "give",
     "args": "agentToGive: string",
-    "doc": "the agent named in the action's 'agent' field gives the item currently in its own itemInRightHand to the agentToGive in parameters. Precondition: that agent's itemInRightHand must be non-empty. If it is empty, there is nothing for that agent to place, use talk instead. Always do moveTo for this agent to get close to agentToGive first."
+    "doc": "the agent named in the action's 'agent' field gives the item currently in its own itemInRightHand to the agentToGive in parameters. Precondition: that agent's itemInRightHand must be non-empty. If it is empty, there is nothing for that agent to give, use talk instead. If agentToGive is not in the agent list, use talk only and do not grab first. Always do moveTo for this agent to get close to agentToGive first."
   }
 ]

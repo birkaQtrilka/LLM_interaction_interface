@@ -348,7 +348,7 @@ public class PromptConsistencyTests
     // A way of acting is the action names in runAfter order
     // Parameters stay on the trial line, so two fetches of different items are one way
     // Talk next to a real plan is a comment, and talk alone is its own way
-    // The spoken sentence stays on that way, so two different replies are not collapsed
+    // Two wordings of a talk-only reply are one way. The sentence stays on the trial line
     static string Behavior(ActionData[] actions)
     {
         List<Step> steps = Order(actions);
@@ -359,7 +359,7 @@ public class PromptConsistencyTests
         {
             if (step.action.name != "talk") hasWork = true;
         }
-        if (!hasWork) return Join(steps, dropTalk: false, withParameters: true, talkText: true);
+        if (!hasWork) return "talk";
 
         return Join(steps, dropTalk: true, withParameters: false, talkText: false);
     }

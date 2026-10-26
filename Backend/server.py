@@ -1,12 +1,12 @@
 ﻿import json
 import os
+import re
 import time
 import uuid
 from datetime import datetime
 from pathlib import Path
 
 import httpx
-from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 
 from schemas import (
@@ -15,8 +15,7 @@ from schemas import (
     FeedbackRequestBody, ErrorRequestBody,
 )
 from prompts import PERSONA, CONTEXT_CATALOG, get_system_prompt
-BASE_DIR = Path(__file__).resolve().parent
-load_dotenv(BASE_DIR / ".env")
+from settings import BASE_DIR, OPENAI_MODEL
 
 with open(BASE_DIR / "actions.json", "r", encoding="utf-8") as f:
     ACTIONS = f.read()
@@ -71,7 +70,7 @@ def elapsed_s(started: float) -> float:
     # Seconds since the request arrived, sampled when the model call returns
     return round(time.perf_counter() - started, 3)
 
-def append_turn(session_id: str, endpoint: str, system: str, user: str, response: object, llm_s: float, directory: str = "", description: str = "") -> None:
+def append_turn(session_id: str, endpoint: str, system: str, user: str, response: object, llm_s: float, directory: str = "", description: str = "", rejected: list | None = None) -> None:
     if not session_id:
         return
     path = session_path(session_id, directory)
@@ -90,6 +89,9 @@ def append_turn(session_id: str, endpoint: str, system: str, user: str, response
     }
     if LOG_SYSTEM:
         turn["system"] = system
+    # The reply is the corrected plan, and this keeps the chain the model actually returned
+    if rejected:
+        turn["rejected"] = rejected
     data["turns"].append(turn)
     write_session(path, data)
 
@@ -102,7 +104,7 @@ def openai_json(messages: list[dict]) -> tuple[dict, dict]:
         "https://api.openai.com/v1/chat/completions",
         headers={"Authorization": f"Bearer {api_key}"},
         json={
-            "model": "gpt-4o-mini",
+            "model": OPENAI_MODEL,
             "messages": messages,
             "response_format": {"type": "json_object"},
         },
@@ -129,13 +131,18 @@ def flags_from(data: object) -> dict:
 
 
 
-def build_messages(user_text: str, world: str, addressee: str = "") -> list[dict]:
-    user = f"Context:\n{world}\n\nUser request: {user_text}"
-        
+def build_messages(user_text: str, world: str, addressee: str = "", speaker: str = "") -> list[dict]:
+    who = speaker.strip()
+    if who and addressee.strip():
+        request = f"{who} says to {addressee.strip()}: {user_text}"
+    else:
+        request = f"User request: {user_text}"
+    user = f"Context:\n{world}\n\n{request}"
+
     print("------------- SYSTEM -------------------")
 
-    system = get_system_prompt(PERSONA, ACTIONS, addressee)
-    print(system);
+    system = get_system_prompt(PERSONA, ACTIONS, addressee, speaker)
+    print(system)
     print("------------- USER -------------------")
     print(user)
     return [
@@ -189,7 +196,7 @@ def turn(body: ActionsRequestBody) -> ActionsResponse:
     started = time.perf_counter()
     if body.session_id:
         session_path(body.session_id, body.log_directory)
-    messages = build_messages(body.message, body.world, body.addressee)
+    messages = build_messages(body.message, body.world, body.addressee, body.speaker)
     system = messages[0]["content"]
     user = messages[1]["content"]
     try:
@@ -213,11 +220,22 @@ def turn(body: ActionsRequestBody) -> ActionsResponse:
         if not isinstance(run_after, list):
             run_after = [run_after]
             
+        # A string "false" must stay false. bool("false") is True
+        raw_next = item.get("isNextTurn", False)
+        if isinstance(raw_next, str):
+            is_next = raw_next.strip().lower() == "true"
+        elif isinstance(raw_next, bool):
+            is_next = raw_next
+        else:
+            is_next = False
+
         actions.append(
             ActionData(
                 id=int(item.get("id", 0)),
                 name=str(item.get("name") or ""),
                 agent=str(item.get("agent") or "AAAA"),
+                addressee=str(item.get("addressee") or ""),
+                isNextTurn=is_next,
                 parameters=[str(p) for p in params],
                 runAfter=[int(r) for r in run_after],
                 delayBefore=float(item.get("delayBefore", 0.0))
