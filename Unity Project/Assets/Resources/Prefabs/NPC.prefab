@@ -43232,7 +43232,7 @@ MonoBehaviour:
   <LookSettings>k__BackingField:
     MaxSightDistance: 6
     CheckInterval: 0.1
-    ItemTolerance: 0.5
+    ItemTolerance: 1
   <WalkSpeedMult>k__BackingField: 3
   <TurnSpeed>k__BackingField: 300
   <MaxTurnAngle>k__BackingField: 60
