@@ -19,7 +19,7 @@ public class Talk : IAgentAction
     public string TryBuild(ActionData action, AgentSystem context, NPC agent, out AnimAction result)
     {
         result = default;
-        if (action.parameters.Length < 2) return "talk requires 2 parameters: message, receiver";
+        if (action.parameters.Length < 2) return "talk requires 3 parameters: message, receiver";
 
         string msg = action.parameters[0];
         // parameters: [message, addressee?, isNextTurn?]. Empty or missing addressee is the player
@@ -39,31 +39,28 @@ public class Talk : IAgentAction
         string speaker = action.agent;
         void start()
         {
-            if (context.chatManager == null)
-                Debug.LogWarning("Chat is null");
-            else if (other == null)
+            string receiver = "you";
+            if (other == null)
             {
                 Transform player = context.contextLibrary.Player;
-                if (player != null)
-                    agent.StartCoroutine(MovementActions.TurnTowards(agent, player.position));
-                context.chatManager.AddChat($"{speaker} to you: {msg}");
+                if (player != null) agent.StartCoroutine(MovementActions.TurnTowards(agent, player.position));
+                else Debug.LogWarning("Player transform is null");
             }
             else
             {
+                receiver = other.name;
                 agent.StartCoroutine(MovementActions.TurnTowards(agent, other.transform.position));
             }
             ParsedLine line = LineParser.Parse(msg);
             
-            context.chatManager.AddChat($"{action.agent} to {other.name}: {line.CleanText}");
-            if(context.AnimationLibrary.DialoguePlayer == null)
-            {
-                Debug.LogWarning("DialoguePlayer is null");
-                return;
-            }
-            agent.StartCoroutine( context.AnimationLibrary.DialoguePlayer.Play(line, context, action) );
+            if (context.chatManager == null) context.chatManager.AddChat($"{action.agent} to {receiver}: {line.CleanText}");
 
-            if (sendOn)
-                EnqueueHeard(context, msg, heardBy, speaker);
+            if (context.AnimationLibrary.DialoguePlayer == null)
+                Debug.LogWarning("DialoguePlayer is null");
+            else 
+                agent.StartCoroutine( context.AnimationLibrary.DialoguePlayer.Play(line, context, action) );
+            if (sendOn) EnqueueHeard(context, msg, heardBy, speaker);
+
         }
 
         result = new AnimAction(action, start, null, null);
