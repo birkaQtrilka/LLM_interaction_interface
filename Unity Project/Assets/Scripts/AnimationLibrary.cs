@@ -141,6 +141,7 @@ public class AnimationLibrary : MonoBehaviour
     {
         if (anim.start != null)
         {
+            Debug.Log($"Starting animation {anim.data.name} (id: {anim.data.id})");
             anim.start.Invoke();
             anim.start = null;
         }
@@ -166,6 +167,14 @@ public class AnimationLibrary : MonoBehaviour
         return anim;
     }
 
+    public string ShowAnimationActions()
+    {
+        var jsonObjects = animations
+            .Where(animation => animation != null && animation.data != null)
+            .Select(animation => JsonUtility.ToJson(animation.data, true));
+
+        return "[\n" + string.Join(",\n", jsonObjects) + "\n]";
+    }
     //public AnimationClip GetGestureClip(string name)
     //{
     //    return clips.FirstOrDefault(c => c.name == name);

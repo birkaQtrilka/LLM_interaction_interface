@@ -1,27 +1,79 @@
+using System.Collections;
 using System.Linq;
 using UnityEngine;
+
+public enum NPC_AnimLayer
+{
+    Locomotion = 0,
+    Arms = 1,
+    Gestures = 2,
+    ItemUse = 3,
+}
 
 public class Use : IAgentAction
 {
     public string Name => "use";
-
+    // assuming item can be used only one way, and npc has one animation for using it, and the item has one animation for being used
     public string TryBuild(ActionData action, AgentSystem context, NPC agent, out AnimAction result)
     {
         result = default;
         var param = action.parameters;
         if (param.Length != 1) return "requires 1 parameter: useOn (item the object in hand should be used on)";
 
-        Transform useOn = context.GetObject(param[0])?.transform ?? context.GetAgent(param[0])?.transform;
-        if (useOn == null) return $"could not find object or agent with name '{param[0]}'";
-        var item = agent.GetItem(right: true);
-        if (item == null) return $"agent '{agent.name}' is not holding an item in their right hand";
-        ContextItem itemInHand = context.GetObject(item.name);
-        if (itemInHand == null) return $"Item: '{item}' is not saved in environment objects";
-        if(!itemInHand.usableOn.Contains(useOn)) return $"Item: '{item}' cannot be used on '{useOn.name}'";
+        ContextItem itemInHand = null;
+        int nameHash = -1;
 
+        void start()
+        {
+            (string err, Transform useOn, ContextItem it) = Validate(param[0], context, agent);
+            if (err != null) throw new System.Exception(err);
+            itemInHand = it;
+            nameHash = Animator.StringToHash(itemInHand.GetName());
+            agent.Anim.Play(nameHash, (int)NPC_AnimLayer.ItemUse);
+            agent.GrabReceiver.EventRelay += OnEvent;
+
+        }
+
+        void OnEvent(string name)
+        {
+            agent.GrabReceiver.EventRelay -= OnEvent;
+            if(itemInHand.transform.TryGetComponent<Animator>(out var anim))
+            {
+                anim.SetTrigger("Use");// can be Play(name) later
+            }
+            else 
+                Debug.LogWarning($"Item: '{itemInHand.GetName()}' does not have an Animator component to play the 'Use' animation");
+        }
+        IEnumerator behavior()
+        {
+            yield return new WaitUntil(() => nameHash != -1);
+            yield return Utils.MonitorAnimatorState(agent.Anim, nameHash, (int)NPC_AnimLayer.ItemUse);
+        }
+        void end()
+        {
+            agent.GrabReceiver.EventRelay -= OnEvent;
+        }
+
+        result = new AnimAction(
+            action, 
+            start, 
+            behavior(), 
+            end
+        );
 
         // play animation
         return null;
     }
 
+    (string err, Transform useOn, ContextItem itemInHand) Validate(string param, AgentSystem context, NPC agent)
+    {
+        Transform useOn = context.GetObject(param)?.transform ?? context.GetAgent(param)?.transform;
+        if (useOn == null) return ($"could not find object or agent with name '{param}'", null, null);
+        var item = agent.GetItem(right: true);
+        if (item == null) return ($"agent '{agent.name}' is not holding an item in their right hand", null, null);
+        ContextItem itemInHand = context.GetObject(item.name);
+        if (itemInHand == null) return ($"Item: '{item}' is not saved in environment objects", null, null);
+        if (!itemInHand.usableOn.Contains(useOn)) return ($"Item: '{item}' cannot be used on '{useOn.name}'", null, null);
+        return (null, useOn, itemInHand);
+    }
 }

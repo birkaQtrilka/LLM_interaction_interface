@@ -9,7 +9,7 @@ public class ContextItem
     public float neighborDistanceThreshold = 1f;
     public bool grabbable = false;
     public Transform[] usableOn;
-    public Transform[] neighbors;
+    [ReadOnly] public Transform[] neighbors;
 
     [HideInInspector] public Bounds boundingBox;
 
