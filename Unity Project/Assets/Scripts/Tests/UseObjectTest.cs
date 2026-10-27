@@ -27,7 +27,7 @@ public class UseObjectTest : MyTest
 
         var agent = agents[0];
         int id = 0;
-        string resl;
+        string res;
         res = system.AnimationLibrary.PlayAnimation(system,
             new ActionData
             {
