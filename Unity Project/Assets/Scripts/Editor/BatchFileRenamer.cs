@@ -15,7 +15,7 @@ public class BatchFileRenamerWindow : EditorWindow
     private Vector2 scrollPosition;
 
     [MenuItem("Tools/Batch File Renamer")]
-    public static void ShowWindow()
+    private static void ShowWindow()
     {
         GetWindow<BatchFileRenamerWindow>("Batch File Renamer");
     }
@@ -24,243 +24,131 @@ public class BatchFileRenamerWindow : EditorWindow
     {
         EditorGUILayout.LabelField(
             "Batch File Renamer",
-            EditorStyles.boldLabel
-        );
-
-        EditorGUILayout.Space(5);
+            EditorStyles.boldLabel);
 
         targetFolder = (DefaultAsset)EditorGUILayout.ObjectField(
-            "Target Directory",
-            targetFolder,
-            typeof(DefaultAsset),
-            false
-        );
+            "Target Directory", targetFolder,
+            typeof(DefaultAsset), false);
 
         toRemove = EditorGUILayout.TextField(
-            "Text to Remove",
-            toRemove
-        );
+            "Text to Remove", toRemove);
 
         toReplace = EditorGUILayout.TextField(
-            "Replacement Text",
-            toReplace
-        );
+            "Replacement Text", toReplace);
 
         includeSubdirectories = EditorGUILayout.Toggle(
-            "Include Subdirectories",
-            includeSubdirectories
-        );
+            "Include Subdirectories", includeSubdirectories);
 
-        EditorGUILayout.Space(10);
+        string folder = targetFolder != null
+            ? AssetDatabase.GetAssetPath(targetFolder)
+            : null;
 
-        string folderPath = GetFolderPath();
-
-        if (string.IsNullOrEmpty(folderPath))
+        if (string.IsNullOrEmpty(folder) ||
+            !AssetDatabase.IsValidFolder(folder))
         {
             EditorGUILayout.HelpBox(
-                "Select a folder inside your Unity project.",
-                MessageType.Info
-            );
+                "Select a folder inside Assets.",
+                MessageType.Info);
             return;
         }
 
         if (string.IsNullOrEmpty(toRemove))
         {
             EditorGUILayout.HelpBox(
-                "Enter the text you want to remove.",
-                MessageType.Warning
-            );
+                "Enter text to remove.",
+                MessageType.Warning);
             return;
         }
 
-        string[] files = GetFiles(folderPath);
+        SearchOption searchOption = includeSubdirectories
+            ? SearchOption.AllDirectories
+            : SearchOption.TopDirectoryOnly;
 
-        var renameOperations = files
+        var files = Directory.GetFiles(folder, "*", searchOption)
+            .Where(path => !path.EndsWith(
+                ".meta", StringComparison.OrdinalIgnoreCase))
+            .Select(path => path.Replace('\\', '/'))
+            .Where(path =>
+                Path.GetFileName(path).Contains(toRemove))
             .Select(path => new
             {
-                OldPath = path,
+                Path = path,
                 OldName = Path.GetFileName(path),
-                Directory = Path.GetDirectoryName(path)
+                NewName = Path.GetFileName(path)
+                    .Replace(toRemove, toReplace)
             })
-            .Where(file => file.OldName.Contains(toRemove))
-            .Select(file => new
-            {
-                file.OldPath,
-                file.OldName,
-                NewName = file.OldName.Replace(
-                    toRemove,
-                    toReplace
-                ),
-                file.Directory
-            })
-            .Where(file => file.OldName != file.NewName)
+            .Where(x => x.OldName != x.NewName)
             .ToList();
 
         EditorGUILayout.LabelField(
-            $"Files to rename: {renameOperations.Count}"
-        );
-
-        EditorGUILayout.Space(5);
+            $"Files to rename: {files.Count}");
 
         scrollPosition = EditorGUILayout.BeginScrollView(
-            scrollPosition,
-            GUILayout.MinHeight(100),
-            GUILayout.MaxHeight(300)
-        );
+            scrollPosition, GUILayout.Height(220));
 
-        foreach (var operation in renameOperations)
+        foreach (var file in files)
         {
+            EditorGUILayout.LabelField(file.OldName);
             EditorGUILayout.LabelField(
-                operation.OldName,
-                EditorStyles.miniLabel
-            );
-
-            EditorGUILayout.LabelField(
-                "-> " + operation.NewName,
-                EditorStyles.boldLabel
-            );
-
+                "→ " + file.NewName,
+                EditorStyles.boldLabel);
             EditorGUILayout.Space(3);
         }
 
         EditorGUILayout.EndScrollView();
 
-        EditorGUILayout.Space(10);
-
-        using (new EditorGUI.DisabledScope(
-                   renameOperations.Count == 0))
+        using (new EditorGUI.DisabledScope(files.Count == 0))
         {
             if (GUILayout.Button("Rename Files", GUILayout.Height(30)))
             {
-                RenameFiles(renameOperations.Select(x =>
-                    (x.OldPath, x.NewName)).ToArray());
+                RenameAssets(files.Select(x =>
+                    (x.Path, x.NewName)).ToArray());
             }
         }
     }
 
-    private string GetFolderPath()
+    private void RenameAssets((string path, string newName)[] files)
     {
-        if (targetFolder == null)
-            return null;
-
-        string path = AssetDatabase.GetAssetPath(targetFolder);
-
-        if (AssetDatabase.IsValidFolder(path))
-            return path;
-
-        return null;
-    }
-
-    private string[] GetFiles(string folderPath)
-    {
-        var searchOption = includeSubdirectories
-            ? SearchOption.AllDirectories
-            : SearchOption.TopDirectoryOnly;
-
-        return Directory.GetFiles(folderPath, "*", searchOption)
-            .Where(path =>
-                !path.EndsWith(".meta",
-                    StringComparison.OrdinalIgnoreCase))
-            .ToArray();
-    }
-
-    private void RenameFiles((string oldPath, string newName)[] operations)
-    {
-        // Preflight: check all destinations before renaming anything.
-        foreach (var operation in operations)
-        {
-            string directory = Path.GetDirectoryName(operation.oldPath);
-            string newPath = Path.Combine(directory, operation.newName);
-
-            if (File.Exists(newPath) || Directory.Exists(newPath))
-            {
-                // A destination may be another file that is also being
-                // renamed, so check whether it is a source in this batch.
-                bool isBatchSource = operations.Any(x =>
-                    string.Equals(
-                        x.oldPath,
-                        newPath,
-                        StringComparison.OrdinalIgnoreCase));
-
-                if (!isBatchSource)
-                {
-                    EditorUtility.DisplayDialog(
-                        "Rename Cancelled",
-                        $"Destination already exists:\n{newPath}",
-                        "OK"
-                    );
-                    return;
-                }
-            }
-        }
-
         if (!EditorUtility.DisplayDialog(
-                "Confirm Rename",
-                $"Rename {operations.Length} file(s)?\n\n" +
-                "This operation changes filenames on disk.",
-                "Rename",
-                "Cancel"))
-        {
+            "Confirm Rename",
+            $"Rename {files.Length} assets using Unity's AssetDatabase?",
+            "Rename", "Cancel"))
             return;
-        }
 
         int renamed = 0;
 
         try
         {
-            foreach (var operation in operations)
+            AssetDatabase.StartAssetEditing();
+
+            foreach (var file in files)
             {
-                string directory =
-                    Path.GetDirectoryName(operation.oldPath);
+                if (!File.Exists(file.path))
+                    continue;
 
-                string newPath = Path.Combine(
-                    directory,
-                    operation.newName
-                );
+                string error = AssetDatabase.RenameAsset(
+                    file.path, file.newName);
 
-                if (string.Equals(
-                        operation.oldPath,
-                        newPath,
-                        StringComparison.Ordinal))
+                if (!string.IsNullOrEmpty(error))
                 {
+                    Debug.LogError(
+                        $"Could not rename '{file.path}': {error}");
                     continue;
                 }
 
-                if (File.Exists(newPath) || Directory.Exists(newPath))
-                {
-                    throw new IOException(
-                        $"Destination already exists: {newPath}"
-                    );
-                }
-
-                File.Move(operation.oldPath, newPath);
                 renamed++;
             }
         }
-        catch (Exception exception)
+        finally
         {
-            Debug.LogError(
-                $"Batch rename stopped after {renamed} file(s).\n" +
-                exception
-            );
-
-            EditorUtility.DisplayDialog(
-                "Rename Partially Completed",
-                $"{renamed} file(s) renamed before an error occurred.\n" +
-                "Check the Console for details.",
-                "OK"
-            );
-
+            AssetDatabase.StopAssetEditing();
             AssetDatabase.Refresh();
-            return;
         }
 
-        AssetDatabase.Refresh();
-
         EditorUtility.DisplayDialog(
-            "Rename Complete",
-            $"Successfully renamed {renamed} file(s).",
-            "OK"
-        );
+            "Rename Finished",
+            $"Successfully renamed {renamed} asset(s).\n" +
+            "Check the Console for any errors.",
+            "OK");
     }
 }
