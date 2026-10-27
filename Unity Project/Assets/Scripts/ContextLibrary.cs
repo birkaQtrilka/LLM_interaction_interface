@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public struct ItemDataQuery
@@ -161,6 +162,18 @@ public class ContextLibrary : MonoBehaviour
         {
             dataParts.Add($"rotation: {item.transform.eulerAngles}");
         }
+
+        if(item.usableOn != null && item.usableOn.Length > 0)
+        {
+            dataParts.Add($"usable: true");
+            dataParts.Add($"usableOn: [{string.Join(", ", item.usableOn.Select(x=>x.name))}]");
+        }
+        else
+        {
+            dataParts.Add($"usable: false");
+        }
+
+        dataParts.Add($"grabbable: {item.grabbable}");
 
         if (q.inclBounds)
         {

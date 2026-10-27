@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -32,6 +33,7 @@ public class NPC : MonoBehaviour
     public bool RightHandTaken => RightHand.childCount > 0;
 
     public bool LeftHandTaken => LeftHand.childCount > 0;
+
 
     public void GrabItem(Transform item, bool right)
     {

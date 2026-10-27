@@ -5,7 +5,7 @@ public class Grab : IAgentAction
     public string TryBuild(ActionData action, AgentSystem context, NPC agent, out AnimAction result)
     {
         result = default;
-        if (action.parameters.Length < 1) return "grab requires 1 parameter: object name";
+        if (action.parameters.Length != 1) return "grab requires 1 parameter: object name";
 
         var item = context.GetObject(action.parameters[0]);
         if (item == null) return $"Couldn't find object with name {action.parameters[0]}";

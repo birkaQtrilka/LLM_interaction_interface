@@ -7,7 +7,7 @@ public class MoveTo : IAgentAction
     public string TryBuild(ActionData action, AgentSystem context, NPC agent, out AnimAction result)
     {
         result = default;
-        if (action.parameters.Length < 1) return "moveTo requires 1 parameter: target name";
+        if (action.parameters.Length != 1) return "moveTo requires 1 parameter: target name";
 
         string name = action.parameters[0];
         Transform obj = context.GetSpot(name)?.transform

@@ -8,7 +8,7 @@ public class MoveToPoint : IAgentAction
     {
         result = default;
         var param = action.parameters;
-        if (param.Length < 3) return "moveToPoint requires 3 parameters: x, y, z";
+        if (param.Length != 3) return "moveToPoint requires 3 parameters: x, y, z";
 
         if (!float.TryParse(param[0], out float x) ||
             !float.TryParse(param[1], out float y) ||

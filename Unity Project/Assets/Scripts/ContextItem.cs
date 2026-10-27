@@ -2,19 +2,17 @@ using UnityEngine;
 using System.Collections.Generic;
 
 [System.Serializable]
-public class ContextItem
+public class ContextItem 
 {
     public Transform transform;
     public string description;
     public float neighborDistanceThreshold = 1f;
-
+    public bool grabbable = false;
+    public Transform[] usableOn;
     public Transform[] neighbors;
 
     [HideInInspector] public Bounds boundingBox;
 
-
-    // Optional: LayerMask to optimize physical overlap queries
-    //public LayerMask neighborLayerMask = ~0;
 
     public string GetName() => transform.name;
 
