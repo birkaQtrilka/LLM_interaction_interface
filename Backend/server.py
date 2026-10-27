@@ -219,23 +219,12 @@ def turn(body: ActionsRequestBody) -> ActionsResponse:
         run_after = item.get("runAfter") or []
         if not isinstance(run_after, list):
             run_after = [run_after]
-            
-        # A string "false" must stay false. bool("false") is True
-        raw_next = item.get("isNextTurn", False)
-        if isinstance(raw_next, str):
-            is_next = raw_next.strip().lower() == "true"
-        elif isinstance(raw_next, bool):
-            is_next = raw_next
-        else:
-            is_next = False
 
         actions.append(
             ActionData(
                 id=int(item.get("id", 0)),
                 name=str(item.get("name") or ""),
                 agent=str(item.get("agent") or "AAAA"),
-                addressee=str(item.get("addressee") or ""),
-                isNextTurn=is_next,
                 parameters=[str(p) for p in params],
                 runAfter=[int(r) for r in run_after],
                 delayBefore=float(item.get("delayBefore", 0.0))

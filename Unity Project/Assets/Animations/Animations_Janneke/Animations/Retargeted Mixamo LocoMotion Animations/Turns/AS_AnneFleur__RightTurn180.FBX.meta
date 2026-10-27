@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 44658826c2b6fda43980cb1d5e4faa88
+guid: a71765d89ba38794c917af2369216f26
 ModelImporter:
   serializedVersion: 24600
   internalIDToNameTable: []
@@ -16,7 +16,7 @@ ModelImporter:
     resampleCurves: 1
     optimizeGameObjects: 0
     removeConstantScaleCurves: 0
-    motionNodeName: 
+    motionNodeName: root
     animationImportErrors: 
     animationImportWarnings: 
     animationRetargetingWarnings: 
@@ -32,19 +32,19 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: AS_AnneFleur_RightTurn90
+      name: AS_AnneFleur_RightTurn180
       takeName: Unreal Take
       internalID: 8993902097722301239
       firstFrame: 1
-      lastFrame: 28
+      lastFrame: 49
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
-      loopBlend: 0
+      loopTime: 0
+      loopBlend: 1
       loopBlendOrientation: 0
       loopBlendPositionY: 0
       loopBlendPositionXZ: 0

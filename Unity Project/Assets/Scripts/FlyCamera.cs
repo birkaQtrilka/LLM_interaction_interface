@@ -1,3 +1,4 @@
+
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -6,8 +7,12 @@ public class FlyCamera : MonoBehaviour
 {
     [SerializeField] float moveSpeed = 8f;
     [SerializeField] float lookSensitivity = 0.15f;
+
     // Seconds of glide after the move keys are released. 0 stops at once
     [SerializeField] float moveMomentum = 0.12f;
+
+    [Header("Vertical Movement")]
+    [SerializeField] bool enableVerticalMovement = false;
 
     float yaw;
     float pitch;
@@ -32,6 +37,7 @@ public class FlyCamera : MonoBehaviour
         {
             looking = !PointerOverUi();
         }
+
         if (mouse.leftButton.wasReleasedThisFrame)
         {
             looking = false;
@@ -50,15 +56,28 @@ public class FlyCamera : MonoBehaviour
         transform.rotation = Quaternion.Euler(pitch, yaw, 0f);
 
         Vector3 wish = Vector3.zero;
+
         if (keyboard.wKey.isPressed) wish += Vector3.forward;
         if (keyboard.sKey.isPressed) wish += Vector3.back;
         if (keyboard.aKey.isPressed) wish += Vector3.left;
         if (keyboard.dKey.isPressed) wish += Vector3.right;
+
+        // Optional vertical movement: E up, Q down.
+        if (enableVerticalMovement)
+        {
+            if (keyboard.eKey.isPressed) wish += Vector3.up;
+            if (keyboard.qKey.isPressed) wish += Vector3.down;
+        }
+
         if (wish.sqrMagnitude > 1f) wish.Normalize();
         wish *= moveSpeed;
 
-        float blend = moveMomentum <= 0f ? 1f : 1f - Mathf.Exp(-Time.deltaTime / moveMomentum);
+        float blend = moveMomentum <= 0f
+            ? 1f
+            : 1f - Mathf.Exp(-Time.deltaTime / moveMomentum);
+
         velocity = Vector3.Lerp(velocity, wish, blend);
+
         if (velocity.sqrMagnitude < 0.0001f) return;
 
         transform.Translate(velocity * Time.deltaTime, Space.Self);
@@ -67,6 +86,7 @@ public class FlyCamera : MonoBehaviour
     static bool PointerOverUi()
     {
         EventSystem eventSystem = EventSystem.current;
-        return eventSystem != null && eventSystem.IsPointerOverGameObject();
+        return eventSystem != null &&
+               eventSystem.IsPointerOverGameObject();
     }
 }

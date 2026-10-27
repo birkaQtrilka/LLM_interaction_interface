@@ -11,8 +11,8 @@
   },
   {
     "name": "talk",
-    "args": "msg: string",
-    "doc": "use this action when the user asks something, where a comment is appropriate, or when one agent asks another agent to do something. msg is the sentence, and it is the only parameter. The 'agent' field is the NPC speaking. Every talk also has top-level 'addressee' and 'isNextTurn'. addressee is 'user' or the exact name of another agent. isNextTurn true sends msg to that agent as their next turn, and this reply must not also plan that agent's actions. A question to another agent must use isNextTurn true. isNextTurn false only shows the line. Use false for answers, thanks, and when the exchange is finished. Do not copy the user's command into msg. When told to talk about a topic, msg is what they say about that topic."
+    "args": "msg: string, addressee: string, isNextTurn: string",
+    "doc": "use this action when the user asks something, where a comment is appropriate, or when one agent asks another agent to do something. parameters are [msg, addressee, isNextTurn]. msg is the spoken sentence. addressee is 'user' or the exact name of another agent. isNextTurn is 'true' or 'false' as a string. 'true' sends msg to that agent as their next turn, and this reply must not also plan that agent's actions. A question to another agent must use 'true'. 'false' only shows the line. Use 'false' for answers, thanks, and when the exchange is finished. The 'agent' field is the NPC speaking. Do not copy the user's command into msg. When told to talk about a topic, msg is what they say about that topic."
   },
   {
     "name": "grab",

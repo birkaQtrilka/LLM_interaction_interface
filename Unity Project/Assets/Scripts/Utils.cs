@@ -44,53 +44,63 @@ public static class Utils
         return 0f;
     }
 
-    public static IEnumerator MonitorAnimatorState(Animator animator, string targetStateName, int layer = 0, float timeout = 5f)
+    public static IEnumerator MonitorAnimatorState(
+        Animator animator,
+        int targetStateNameHash,
+        int layer = 0,
+        float timeout = 5f,
+        float exitAtNormalizedTime = 1f)
     {
-        int hash = Animator.StringToHash(targetStateName);
         float deadline = Time.time + timeout;
 
-        // 1. Wait to ENTER the target state (or start transitioning to it)
-        // This solves the 1-frame delay issue of SetTrigger.
-        while (true)
+        // Wait until the target state is active.
+        while (Time.time < deadline)
         {
-            if (Time.time > deadline)
-            {
-                Debug.LogWarning($"Timed out waiting to enter state {targetStateName} on {animator.name}");
+            var current = animator.GetCurrentAnimatorStateInfo(layer);
+
+            if (current.shortNameHash == targetStateNameHash)
+                break;
+
+            yield return null;
+        }
+
+        if (Time.time >= deadline)
+        {
+            Debug.LogWarning(
+                $"Timed out waiting for {targetStateNameHash} on {animator.name}"
+            );
+            yield break;
+        }
+
+        // Wait until the desired point in the animation.
+        while (Time.time < deadline)
+        {
+            var current = animator.GetCurrentAnimatorStateInfo(layer);
+
+            if (current.shortNameHash != targetStateNameHash)
                 yield break;
-            }
 
-            var currentInfo = animator.GetCurrentAnimatorStateInfo(layer);
-            var nextInfo = animator.GetNextAnimatorStateInfo(layer);
-
-            if (currentInfo.shortNameHash == hash || nextInfo.shortNameHash == hash)
-            {
-                break;
-            }
+            if (current.normalizedTime >= exitAtNormalizedTime)
+                yield break;
 
             yield return null;
         }
 
-        // 2. Wait to EXIT the target state (or for the animation to finish)
-        while (true)
-        {
-            var currentInfo = animator.GetCurrentAnimatorStateInfo(layer);
-            var nextInfo = animator.GetNextAnimatorStateInfo(layer);
-
-            // Condition A: We are currently in the state, but it has finished playing (for non-looping animations)
-            if (currentInfo.shortNameHash == hash && currentInfo.normalizedTime >= 1f && !animator.IsInTransition(layer))
-                break;
-
-            // Condition B: We are transitioning OUT of the target state to a different state
-            if (animator.IsInTransition(layer) && nextInfo.shortNameHash != hash)
-                break;
-
-            // Condition C: Something else forcibly overrode the state completely
-            if (currentInfo.shortNameHash != hash && !animator.IsInTransition(layer))
-                break;
-
-            yield return null;
-        }
+        Debug.LogWarning(
+            $"Timed out waiting to exit {targetStateNameHash} on {animator.name}"
+        );
     }
+    public static IEnumerator MonitorAnimatorState(
+        Animator animator,
+        string targetStateName,
+        int layer = 0,
+        float timeout = 5f,
+        float exitAtNormalizedTime = 1f)
+    {
+        int hash = Animator.StringToHash(targetStateName);
+        yield return MonitorAnimatorState(animator, hash, layer, timeout, exitAtNormalizedTime);
+    }
+
 
     public static IEnumerator MonitorFlag(Flag flag, float timeout = 5f)
     {

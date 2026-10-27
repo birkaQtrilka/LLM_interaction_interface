@@ -6,6 +6,9 @@ using UnityEngine;
 
 public class AnimationLibrary : MonoBehaviour
 {
+    [field: SerializeField] public DialoguePlayer DialoguePlayer {get; private set; }
+
+    //public List<AnimationClip> clips = new();
     public List<AnimationInstance> animations = new();
     public ulong id;
 
@@ -74,7 +77,11 @@ public class AnimationLibrary : MonoBehaviour
         if (agent == null) return $"Couldn't find agent with name {action.agent}";
 
         string error = handler.TryBuild(action, context, agent, out AnimAction result);
-        if (error != null) return error;
+        if (error != null) 
+        { 
+            Debug.LogError(error);
+            return error;
+        }
 
         return ExecuteAction(result);
     }
@@ -159,12 +166,8 @@ public class AnimationLibrary : MonoBehaviour
         return anim;
     }
 
-    Vector3 ToVec3(string px, string py, string pz)
-    {
-        float.TryParse(px, out float x);
-        float.TryParse(py, out float y);
-        float.TryParse(pz, out float z);
-        return new Vector3(x, y, z);
-    }
-
+    //public AnimationClip GetGestureClip(string name)
+    //{
+    //    return clips.FirstOrDefault(c => c.name == name);
+    //}
 }
