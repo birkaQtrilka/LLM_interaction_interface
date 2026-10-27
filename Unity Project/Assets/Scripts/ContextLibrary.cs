@@ -30,9 +30,10 @@ public class ContextLibrary : MonoBehaviour
 
     private void OnValidate()
     {
-        if(Player == null)
+        if (Player == null)
         {
-            Player = FindAnyObjectByType<Camera>().transform;
+            Player = FindAnyObjectByType<Camera>()?.transform;
+            // TODO: Maybe catch exception if no Camera is found
         }
     }
 
