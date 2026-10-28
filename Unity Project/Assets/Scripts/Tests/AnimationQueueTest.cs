@@ -3,6 +3,7 @@ using UnityEngine;
 public class AnimationQueueTest : MyTest
 {
     [SerializeField] TestNames testName;
+    [SerializeField] string toGrab = "phone";
     [SerializeField] AnimationLibrary animationLibrary;
     [SerializeField] AgentSystem AgentSystem;
     public enum TestNames
@@ -57,7 +58,7 @@ public class AnimationQueueTest : MyTest
             id = 1,
             name = "moveTo",
             agent = agent.name,
-            parameters = new string[] { "phone" },
+            parameters = new string[] { toGrab },
             runAfter = new int[] { },
             delayBefore = 0
         });
@@ -66,7 +67,7 @@ public class AnimationQueueTest : MyTest
             id = 2,
             name = "grab",
             agent = agent.name,
-            parameters = new string[] { "phone" },
+            parameters = new string[] { toGrab },
             runAfter = new int[1] { 1 },
             delayBefore = 0
         });
@@ -83,7 +84,7 @@ public class AnimationQueueTest : MyTest
             id = 1,
             name = "moveTo",
             agent = agent.name,
-            parameters = new string[] { "phone" },
+            parameters = new string[] { toGrab },
             runAfter = new int[] { },
             delayBefore = 0
         });
@@ -92,7 +93,7 @@ public class AnimationQueueTest : MyTest
             id = 2,
             name = "grab",
             agent = agent.name,
-            parameters = new string[] { "phone" },
+            parameters = new string[] { toGrab },
             runAfter = new int[1] { 1 },
             delayBefore = 0
         });

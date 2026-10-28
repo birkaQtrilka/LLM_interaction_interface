@@ -194,6 +194,7 @@ GameObject:
   m_Component:
   - component: {fileID: 52645841}
   - component: {fileID: 52645842}
+  - component: {fileID: 52645843}
   m_Layer: 0
   m_Name: Brick
   m_TagString: Root
@@ -229,6 +230,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 061cbe18bd27e4e40adab218c87b1cb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Scripts::EnvironmentItemTag
+--- !u!114 &52645843
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 52645840}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a54fccf5db110945939d6670b0bc28c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::GrabbableItem
+  profile: {fileID: 11400000, guid: 28f53cd2e48ce7c44bc5a4410e71ff49, type: 2}
+  gripPoint: {fileID: 52645841}
+  Holder: {fileID: 0}
 --- !u!1 &163989115
 GameObject:
   m_ObjectHideFlags: 0
@@ -395,6 +411,56 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &175758258
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 175758259}
+  - component: {fileID: 175758260}
+  m_Layer: 0
+  m_Name: GrabIK
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &175758259
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 175758258}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 737304171}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &175758260
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 175758258}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 820e14b0cf295d6418546e441829d161, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::GrabIKTest
+  npc: {fileID: 1881582816}
+  testTarget: {fileID: 597435658}
+  toGrab: Laptop
+  animationLibrary: {fileID: 2033616363}
+  agentSystem: {fileID: 967212466}
+  agentTestTimeout: 30
 --- !u!1 &185781572
 GameObject:
   m_ObjectHideFlags: 0
@@ -1007,7 +1073,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &342554028
 Transform:
   m_ObjectHideFlags: 0
@@ -1595,6 +1661,7 @@ GameObject:
   m_Component:
   - component: {fileID: 597435656}
   - component: {fileID: 597435657}
+  - component: {fileID: 597435658}
   m_Layer: 0
   m_Name: Laptop
   m_TagString: Untagged
@@ -1641,6 +1708,21 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &597435658
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 597435655}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a54fccf5db110945939d6670b0bc28c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::GrabbableItem
+  profile: {fileID: 11400000, guid: 36765cbd588629e4faafde46885dfd1a, type: 2}
+  gripPoint: {fileID: 597435656}
+  Holder: {fileID: 0}
 --- !u!114 &620770199 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7537126478522663282, guid: 422450b9b75ea43669bd49a79e72a1a5, type: 3}
@@ -1668,7 +1750,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &637763068
 Transform:
   m_ObjectHideFlags: 0
@@ -1950,6 +2032,7 @@ Transform:
   - {fileID: 1916714151}
   - {fileID: 854060013}
   - {fileID: 342554028}
+  - {fileID: 175758259}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &803420952
@@ -2789,6 +2872,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1074326910}
   - component: {fileID: 1074326911}
+  - component: {fileID: 1074326912}
   m_Layer: 0
   m_Name: phone
   m_TagString: Root
@@ -2824,6 +2908,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 061cbe18bd27e4e40adab218c87b1cb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Scripts::EnvironmentItemTag
+--- !u!114 &1074326912
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1074326909}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a54fccf5db110945939d6670b0bc28c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::GrabbableItem
+  profile: {fileID: 11400000, guid: 28f53cd2e48ce7c44bc5a4410e71ff49, type: 2}
+  gripPoint: {fileID: 1074326910}
+  Holder: {fileID: 0}
 --- !u!1 &1165020437
 GameObject:
   m_ObjectHideFlags: 0
@@ -3163,7 +3262,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e285b68e3f53884abf99cd6a430d842, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AnimationQueueTest
-  testName: 2
+  testName: 1
+  toGrab: Laptop
   animationLibrary: {fileID: 2033616363}
   AgentSystem: {fileID: 967212466}
 --- !u!4 &1428820120

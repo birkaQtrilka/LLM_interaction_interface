@@ -15,38 +15,28 @@ public class Give : IAgentAction
         Transform tempTransf = new GameObject("Temp1").transform;
 
         Flag interchanged = new();
+
         void start()
         {
             agent.Anim.SetBool("Give", true);
             otherAgent.StartCoroutine(MovementActions.TurnTowards(otherAgent, agent.transform.position));
         }
 
+        void finishHandoff()
+        {
+            agent.Anim.SetBool("Give", false);
+            interchanged.value = true;
+        }
+
         IEnumerator onRaise()
         {
             yield return null;
-            otherAgent.GrabReceiver.OnGrabPoint += snapObjectToHand;
-
-            Transform item = agent.GetItem(right: true);
-            tempTransf.position = item.position;
-
-            GrabIK grabAnimator = otherAgent.GetComponentInChildren<GrabIK>();
-            yield return otherAgent.StartCoroutine(grabAnimator.TriggerGrabRoutine(tempTransf));
+            GrabbableItem item = agent.Hand.Held;
+            if (item != null)
+                yield return otherAgent.StartCoroutine(otherAgent.Hand.Grab(item, finishHandoff));
+            finishHandoff();   // safe to call twice, and it stops the chain from hanging if nothing was held
         }
 
-        void snapObjectToHand()
-        {
-            Transform item = agent.ReleaseItem(right: true);
-            otherAgent.GrabItem(item, right: true);
-            agent.Anim.SetBool("Give", false);
-            interchanged.value = true;
-            otherAgent.GrabReceiver.OnGrabPoint -= snapObjectToHand;
-        }
-
-        void end()
-        {
-            otherAgent.GrabReceiver.OnGrabPoint -= snapObjectToHand;
-            GameObject.Destroy(tempTransf.gameObject);
-        }
 
         IEnumerator animationChain =
             Utils.MonitorAnimatorState(agent.Anim, "Give_Raise", 1)
@@ -54,7 +44,7 @@ public class Give : IAgentAction
             .OnCrEnd(Utils.MonitorFlag(interchanged))
             .OnCrEnd(Utils.MonitorAnimatorState(agent.Anim, "Give_lower", 1));
 
-        result = new AnimAction(action, start, animationChain, end);
+        result = new AnimAction(action, start, animationChain, null);
         return null;
     }
 }

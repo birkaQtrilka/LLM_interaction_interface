@@ -242,7 +242,7 @@ public class ContextLibrary : MonoBehaviour
                 includeDescription: true
             )
         );
-            Transform rightHandItem = agent.GetItem(right: true);
+            Transform rightHandItem = agent.GetItem();
             npcDataParts.Add($"itemInRightHand: {(rightHandItem == null ? "None" : rightHandItem.name)}");
             npcs.Add( $"{{{string.Join(", ", npcDataParts)}}}");
             npcDataParts.Clear();

@@ -347,7 +347,7 @@ public class UserTestLoop : MonoBehaviour
     bool IsHolding(string itemName, NPC npc)
     {
         if (npc == null) return false;
-        Transform right = npc.GetItem(true);
+        Transform right = npc.GetItem();
         return NameIs(right, itemName);
     }
 

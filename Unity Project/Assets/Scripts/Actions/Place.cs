@@ -16,51 +16,43 @@ public class Place : IAgentAction
         ContextItem obj = context.GetObject(action.parameters[0]);
         if (obj == null) return $"Couldn't find object with name {action.parameters[0]}";
 
-        Vector3 placePos = Vector3.zero;
-        Transform tempTransf = new GameObject("Temp").transform;
-        Flag hasReleased = new();
-        void start()
+        Transform target = new GameObject("PlaceTarget").transform;
+
+        IEnumerator place()
         {
-            agent.GrabReceiver.OnGrabPoint += releaseItem;
-            Transform itemTr = agent.GetItem(right: true);
-            if (itemTr == null)
+            GrabbableItem held = agent.Hand.Held;
+            if (held == null)
             {
                 Debug.LogWarning("Agent tried to place an item but wasn't holding anything!");
-                hasReleased.value = true;
-                return;
+                yield break;
             }
-            ContextItem item = context.GetObject(itemTr.name);
 
-            if (item != null)
+            ContextItem item = context.GetObject(held.name);
+            if (item == null)
             {
-                placePos = PlaceOnTop(item, obj, context);
-                tempTransf.position = placePos;
-            }
-            else
                 Debug.LogWarning("Agent tried to place an item but it wasn't in the environment list!");
-            hasReleased.value = true;
-            Debug.Log("Start ended");
-        }
+                yield break;
+            }
 
-        IEnumerator afterSuccessStart()
-        {
-            GrabIK grabAnimator = agent.GetComponentInChildren<GrabIK>();
-            return grabAnimator.TriggerGrabRoutine(tempTransf);
-        }
+            Vector3 placePos = PlaceOnTop(item, obj, context);
+            Quaternion placeRot = Quaternion.identity;
 
-        void releaseItem()
-        {
-            Transform itemTr = agent.ReleaseItem(right: true);
-            itemTr.SetPositionAndRotation(placePos, Quaternion.identity);
-            GameObject.Destroy(tempTransf.gameObject);
+            // Aim the hand so the item pivot ends up at placePos, not the grip point
+            Transform grip = held.GripTarget;
+            Vector3 gripLocal = held.transform.InverseTransformPoint(grip.position);
+            target.SetPositionAndRotation(
+                placePos + placeRot * gripLocal,
+                placeRot * Quaternion.Inverse(held.transform.rotation) * grip.rotation);
+
+            yield return agent.Hand.ReleaseAt(target, tr => tr.SetPositionAndRotation(placePos, placeRot));
         }
 
         void end()
         {
-            agent.GrabReceiver.OnGrabPoint -= releaseItem;
+            if (target != null) GameObject.Destroy(target.gameObject);
         }
 
-        result = new AnimAction(action, start, Utils.MonitorFlag(hasReleased).OnCrEnd(afterSuccessStart()), end);
+        result = new AnimAction(action, null, place(), end);
         return null;
     }
 

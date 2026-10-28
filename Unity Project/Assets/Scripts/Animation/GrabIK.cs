@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Animations.Rigging;
 using UnityEngine.Events;
+using static Unity.U2D.Physics.PhysicsShape;
 
 public class GrabIK : MonoBehaviour
 {
@@ -26,23 +28,12 @@ public class GrabIK : MonoBehaviour
     [SerializeField, Range(0.5f, 1f)] private float leanStartRatio = 0.75f;
     [SerializeField, Range(0.1f, 1f)] private float maxLeanWeight = 0.85f;
 
-    [Header("Motion Settings")]
-    [SerializeField] private float reachDuration = 0.6f;
-    [SerializeField] private float returnDuration = 0.5f;
-    [SerializeField] private AnimationCurve reachCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
-    [SerializeField] private AnimationCurve returnCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
-    [SerializeField] Quaternion grabOffset;
-
-    [Header("Attachment")]
-    [SerializeField] private Transform holdPoint;
-
-    [field: SerializeField] public UnityEvent OnGrab { get; private set; }
-
     [Header("Debug")]
     [SerializeField] private bool gizmos;
 
     private float armLength;
     private bool isGrabbing;
+    public bool IsReaching => isGrabbing;
 
     private void Awake()
     {
@@ -54,113 +45,72 @@ public class GrabIK : MonoBehaviour
 
     }
     
-    public void TriggerGrab(Transform targetItem)
-    {
-        StartCoroutine( TriggerGrabRoutine(targetItem));
-    }
 
-    public IEnumerator TriggerGrabRoutine(Transform targetItem)
+    public IEnumerator ReachRoutine(Transform gripTarget, GrabProfile profile, Action onContact = null)
     {
-        if (!isGrabbing && targetItem != null)
+        if (isGrabbing || gripTarget == null || armRig == null)
         {
-            yield return StartCoroutine(GrabRoutine(targetItem));
+            Debug.LogWarning($"Cannot start reach. isGrabbing: {isGrabbing}, target: {gripTarget}");
+            yield break;
         }
-        else
-        {
-            Debug.LogWarning($"Cannot start GrabIK. isGrabbing: {isGrabbing}, targetItem: {targetItem}");
-        }
-    }
 
-    private IEnumerator GrabRoutine(Transform item)
-    {
         isGrabbing = true;
 
-        hand.GetPositionAndRotation(out Vector3 initialHandPos, out Quaternion initialHandRot);
-        handTarget.SetPositionAndRotation(initialHandPos, initialHandRot);
-        item.GetPositionAndRotation(out Vector3 targetItemPos, out Quaternion targetItemRot);
+        hand.GetPositionAndRotation(out Vector3 startPos, out Quaternion startRot);
+        handTarget.SetPositionAndRotation(startPos, startRot);
 
-        Quaternion finalTargetRot = targetItemRot;
+        Vector3 targetPos = gripTarget.position;
+        Quaternion targetRot = gripTarget.rotation * Quaternion.Euler(profile.handRotationOffsetEuler);
 
-        float distanceToTarget = Vector3.Distance(upperArm.position, targetItemPos);
-        float comfortableReach = armLength * leanStartRatio;
-
-        // Calculate lean weight proportional to overextension
-        float targetLeanWeight = 0f;
-        if (distanceToTarget > comfortableReach)
-        {
-            float overReach = distanceToTarget - comfortableReach;
-            float maxOverReach = armLength * (1f - leanStartRatio) + 0.3f;
-            targetLeanWeight = Mathf.Clamp01(overReach / maxOverReach) * maxLeanWeight;
-        }
-
-        if (spineAimTarget != null)
-        {
-            spineAimTarget.position = targetItemPos;
-        }
+        float targetLean = CalculateLeanWeight(targetPos);
+        if (spineAimTarget != null) spineAimTarget.position = targetPos;
 
         // ================= REACH PHASE =================
         float elapsed = 0f;
-        while (elapsed < reachDuration)
+        while (elapsed < profile.reachDuration)
         {
             elapsed += Time.deltaTime;
-            float rawT = Mathf.Clamp01(elapsed / reachDuration);
-            float curvedT = reachCurve.Evaluate(rawT);
+            float t = profile.reachCurve.Evaluate(Mathf.Clamp01(elapsed / profile.reachDuration));
 
             handTarget.SetPositionAndRotation(
-                Vector3.Lerp(initialHandPos, targetItemPos, curvedT),
-                Quaternion.Slerp(initialHandRot, finalTargetRot, curvedT)
-            );
+                Vector3.Lerp(startPos, targetPos, t),
+                Quaternion.Slerp(startRot, targetRot, t));
 
-            armRig.weight = curvedT;
+            armRig.weight = t;
             if (spineAimConstraint != null)
-            {
-                spineAimConstraint.weight = Mathf.Lerp(0f, targetLeanWeight, curvedT);
-            }
+                spineAimConstraint.weight = Mathf.Lerp(0f, targetLean, t);
 
             yield return null;
         }
 
-        handTarget.SetPositionAndRotation(targetItemPos, finalTargetRot);
+        handTarget.SetPositionAndRotation(targetPos, targetRot);
         armRig.weight = 1f;
-        if (spineAimConstraint != null) spineAimConstraint.weight = targetLeanWeight;
+        if (spineAimConstraint != null) spineAimConstraint.weight = targetLean;
 
+        // One frame so the IK is applied, then the contact moment
         yield return null;
+        onContact?.Invoke();
 
-        OnGrab.Invoke();
-        if (Vector3.Distance(hand.position, targetItemPos) > 0.2f)
-        {
-            Debug.LogWarning("Item is too far, teleportation will be visible");
-        }
-
-        // ================= RETURN PHASE =================
-        handTarget.GetPositionAndRotation(out Vector3 reachEndPos, out Quaternion reachEndRot);
-        float finalLeanWeight = spineAimConstraint != null ? spineAimConstraint.weight : 0f;
-
+        // ============ HAND OFF TO THE HOLD ANIMATION ============
+        // No return to the start pose anymore. The IK fades out and the
+        // animator's hold clip takes over the arm.
+        float blendDuration = Mathf.Max(0.01f, profile.ikBlendOutDuration);
         elapsed = 0f;
-        while (elapsed < returnDuration)
+        while (elapsed < blendDuration)
         {
             elapsed += Time.deltaTime;
-            float rawT = Mathf.Clamp01(elapsed / returnDuration);
-            float curvedT = returnCurve.Evaluate(rawT);
+            float t = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(elapsed / blendDuration));
 
-            handTarget.SetPositionAndRotation(
-                Vector3.Lerp(reachEndPos, initialHandPos, curvedT),
-                Quaternion.Slerp(reachEndRot, initialHandRot, curvedT)
-            );
-
-            armRig.weight = 1f - curvedT;
+            armRig.weight = Mathf.Lerp(1f, 0f, t);
             if (spineAimConstraint != null)
-            {
-                spineAimConstraint.weight = Mathf.Lerp(finalLeanWeight, 0f, curvedT);
-            }
+                spineAimConstraint.weight = Mathf.Lerp(targetLean, 0f, t);
 
             yield return null;
         }
 
-        // Reset state
         armRig.weight = 0f;
         if (spineAimConstraint != null) spineAimConstraint.weight = 0f;
-        handTarget.SetPositionAndRotation(initialHandPos, initialHandRot);
+        handTarget.SetPositionAndRotation(startPos, startRot);
         isGrabbing = false;
     }
 
@@ -175,5 +125,16 @@ public class GrabIK : MonoBehaviour
         Gizmos.DrawWireSphere(upperArm.position, length * leanStartRatio);
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(upperArm.position, length);
+    }
+
+    private float CalculateLeanWeight(Vector3 targetPos)
+    {
+        float distanceToTarget = Vector3.Distance(upperArm.position, targetPos);
+        float comfortableReach = armLength * leanStartRatio;
+        if (distanceToTarget <= comfortableReach) return 0f;
+
+        float overReach = distanceToTarget + comfortableReach * -1f;
+        float maxOverReach = armLength * Mathf.Lerp(1f, 0f, leanStartRatio) + 0.3f;
+        return Mathf.Clamp01(overReach / maxOverReach) * maxLeanWeight;
     }
 }

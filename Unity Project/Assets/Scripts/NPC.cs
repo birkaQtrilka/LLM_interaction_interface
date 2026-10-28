@@ -7,7 +7,6 @@ using UnityEngine.AI;
 public class NPC : MonoBehaviour
 {
     [field: SerializeField] public Transform RightHand { get; private set; }
-    [field: SerializeField] public Transform LeftHand { get; private set; }
     [field: SerializeField] public Transform Head { get; private set; }
     [field: SerializeField] public NavMeshAgent Nav { get; private set; }
     [field: SerializeField] public GrabReceiver GrabReceiver { get; private set; }
@@ -26,26 +25,23 @@ public class NPC : MonoBehaviour
     [SerializeField] private float gizmoHeightOffset = -0.1f;
     [SerializeField] private float gizmoRadius = 1.5f;
     [SerializeField, Range(8, 64)] private int gizmoSegments = 32;
-
+    [field: SerializeField] public HandController Hand { get; private set; }
 
     public event Action<Collision> OnCollide;
+    public bool RightHandTaken => Hand != null && Hand.Held != null;
 
-    public bool RightHandTaken => RightHand.childCount > 0;
-
-    public bool LeftHandTaken => LeftHand.childCount > 0;
-
-
-    public void GrabItem(Transform item, bool right)
+    public void GrabItem(Transform item)
     {
-        if (right && !RightHandTaken)
+        if (!RightHandTaken)
         {
-            item.SetParent(RightHand);
-            item.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
-        }
-        else if (!right && !LeftHandTaken)
-        {
-            item.SetParent(LeftHand);
-            item.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+            GrabbableItem grabbable = item.GetComponent<GrabbableItem>();
+            if (grabbable == null || grabbable.profile == null)
+            {
+                Debug.LogWarning($"{item.name} is not grabbable");
+                return;
+            }
+            if (RightHandTaken) { Debug.LogWarning("Hand is full"); return; }
+            Hand.AttachInstant(grabbable);
         }
         else
         {
@@ -53,24 +49,21 @@ public class NPC : MonoBehaviour
         }
     }
 
-    public Transform ReleaseItem(bool right)
+    public Transform ReleaseItem()
     {
-        var item = GetItem(right);
+        var item = GetItem();
         if (item == null) return null;
-        item.SetParent(null);
+        Hand.ForceRelease();
         return item;
     }
 
-    public Transform GetItem(bool right)
+    public Transform GetItem()
     {
-        if (right && RightHandTaken)
+        if (RightHandTaken)
         {
-            return RightHand.GetChild(0);
+            return Hand.Held.transform;
         }
-        else if (!right && LeftHandTaken)
-        {
-            return LeftHand.GetChild(0);
-        }
+
         return null;
     }
 

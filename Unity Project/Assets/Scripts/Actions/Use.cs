@@ -69,7 +69,7 @@ public class Use : IAgentAction
     {
         Transform useOn = context.GetObject(param)?.transform ?? context.GetAgent(param)?.transform;
         if (useOn == null) return ($"could not find object or agent with name '{param}'", null, null);
-        var item = agent.GetItem(right: true);
+        var item = agent.GetItem();
         if (item == null) return ($"agent '{agent.name}' is not holding an item in their right hand", null, null);
         ContextItem itemInHand = context.GetObject(item.name);
         if (itemInHand == null) return ($"Item: '{item}' is not saved in environment objects", null, null);
