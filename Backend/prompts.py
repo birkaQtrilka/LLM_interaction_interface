@@ -43,7 +43,7 @@ Do not add actions, names, or coordinates.
 # grab's parameter is the item to pick up. place's parameter is only the surface (Tray), not the item in the hand.
 # Only emit actions for this user request. Do not add a place because an earlier message mentioned a tray. If they asked only to grab, do not place.
 # If an agent grabs and then places, the place action must list that same agent's grab id in runAfter so place waits until the item is in hand.
-def get_system_prompt(PERSONA: str, actions_str: str, addressee: str = "", speaker: str = ""):
+def get_system_prompt(PERSONA: str, actions_str: str, gestures_str: str, addressee: str = "", speaker: str = ""):
   speaking = ""
   name = addressee.strip()
   who = speaker.strip()
