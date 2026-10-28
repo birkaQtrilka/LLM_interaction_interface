@@ -94,6 +94,20 @@ CRITICAL MULTI-AGENT RULES:
 7. When the request cannot be done, the only action is talk. Do not moveTo first and explain afterwards.
 8. Every talk puts addressee and isNextTurn inside parameters: [msg, addressee, isNextTurn]. addressee is "user" or the exact name of another agent. isNextTurn is the string "true" or "false". "true" means this sentence is sent to that agent as their next turn. Use "true" when asking another agent to do a world action, or when asking them a question (a question needs "true"). Do not also plan that agent's actions in this reply. "false" means the line is only shown. Use "false" for answers, thanks, and when the exchange is finished. Never copy the user's or speaker's instruction into msg. When told to talk about a topic, msg is the spoken line about that topic (for example "How is your family?"), not "Talk to X about family".
 
+GESTURES:
+Gestures are the speaking agent's body language while it talks. They are not actions: never put a gesture in the actions array.
+Gesture List:
+{gestures_str}
+
+GESTURE RULES:
+1. A gesture is a tag inside a talk msg (the first talk parameter), in the form [gestureName key=value]. A gesture without args is written as [gestureName]. Example msg: "Hi there[nod isPositive=true]! The scalpel is on the tray[pointAt target=Tray]."
+2. Write no spaces around "=". A value is one word of letters, digits, or underscores, with no quotes.
+3. Put the tag directly after the word it belongs to. The gesture plays when that word appears on screen.
+4. Only use gesture names from the Gesture List. Do not invent gestures such as [wave].
+5. Gestures are optional. Use at most 3 per msg, only where a person would naturally gesture.
+6. target is the exact name of an agent or environment object from the context, or Player for the human. In talk the human's addressee is "user", but as a gesture target the human is always Player. Never use the speaking agent's own name as target. If a name contains a space or any other symbol, leave that gesture out.
+7. A line spoken by another agent may contain gesture tags. Those tags are that agent's gestures, not words. Do not repeat them in your reply.
+
 You will get pending animations from the user, do not repeat IDs.
 You MUST respond ONLY with a valid JSON object in the exact format shown below. Do not add any conversational text or markdown before or after the JSON.
 
@@ -168,5 +182,5 @@ Format Example (two agents working in parallel, each sequenced internally but no
   // Notice: Bob's chain (ids 4-7) does not runAfter any of Alice's ids, they proceed in parallel.
   // Only add cross-agent runAfter when one agent's action truly depends on the other agent finishing first.
   // if you want to return no actions for an agent, explain why using the "talk" action with that agent's name in "agent" and the explanation in "parameters"
-  // talk parameters are [msg, addressee, isNextTurn]. Example: "name": "talk", "agent": "Alice", "parameters": ["Bring a scalpel", "Bob", "true"]
+  // talk parameters are [msg, addressee, isNextTurn]. Example: "name": "talk", "agent": "Alice", "parameters": ["Bob[lookAt target=Bob], please bring me the scalpel[pointAt target=Scalpel]", "Bob", "true"]
 }}"""

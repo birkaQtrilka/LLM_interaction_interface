@@ -468,6 +468,37 @@ MonoBehaviour:
   baseUrl: http://127.0.0.1:8000
   sessionDescription: 
   logDirectory: user-tests-r1
+--- !u!1 &543175604
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 543175605}
+  m_Layer: 0
+  m_Name: LookAtFloaterDr. Sam
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &543175605
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 543175604}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &592141843
 GameObject:
   m_ObjectHideFlags: 0
@@ -1625,7 +1656,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshSurface
   m_SerializedVersion: 0
-  m_AgentTypeID: 0
+  m_AgentTypeID: -1372625422
   m_CollectObjects: 0
   m_Size: {x: 10, y: 10, z: 10}
   m_Center: {x: 0, y: 2, z: 0}
@@ -1642,8 +1673,39 @@ MonoBehaviour:
   m_OverrideVoxelSize: 0
   m_VoxelSize: 0.033333335
   m_MinRegionArea: 0.6
-  m_NavMeshData: {fileID: 23800000, guid: 780ef7dd25a9d0c418971772e4267764, type: 2}
+  m_NavMeshData: {fileID: 23800000, guid: 619efdfb3b82b45428728bedaa833d1f, type: 2}
   m_BuildHeightMesh: 0
+--- !u!1 &1275034394
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1275034395}
+  m_Layer: 0
+  m_Name: LookAtFloaterNurse Sasha
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1275034395
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1275034394}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1515485807
 GameObject:
   m_ObjectHideFlags: 0
@@ -2050,6 +2112,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e39329e201a485743aaff748691caf07, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AnimationLibrary
+  <DialoguePlayer>k__BackingField: {fileID: 0}
   animations: []
   id: 0
 --- !u!1 &2130469907
@@ -2170,3 +2233,5 @@ SceneRoots:
   - {fileID: 920100002}
   - {fileID: 716580594}
   - {fileID: 1911189017}
+  - {fileID: 543175605}
+  - {fileID: 1275034395}

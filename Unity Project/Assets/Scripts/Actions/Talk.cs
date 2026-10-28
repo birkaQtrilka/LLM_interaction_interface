@@ -53,7 +53,7 @@ public class Talk : IAgentAction
             }
             ParsedLine line = LineParser.Parse(msg);
             
-            if (context.chatManager == null) context.chatManager.AddChat($"{action.agent} to {receiver}: {line.CleanText}");
+            if (context.chatManager != null) context.chatManager.AddChat($"{action.agent} to {receiver}: {line.CleanText}");
 
             if (context.AnimationLibrary.DialoguePlayer == null)
                 Debug.LogWarning("DialoguePlayer is null");
