@@ -35,6 +35,15 @@ public class GrabIKTest : MyTest
     public void TestGrabAndUse()
     {
         if (!CanRun() || !HasTarget()) return;
+        void release(AnimationInstance anim)
+        {
+            if (anim.data.name == "use")
+            {
+                npc.Hand.ReleaseAt(null, tr => Debug.Log($"Released {tr.name}"));
+            }
+            animationLibrary.AnimationStarted -= release;
+        }
+        animationLibrary.AnimationStarted += release;
 
         ResetTestPosition();
         string err = animationLibrary.PlayAnimation(agentSystem, new ActionData

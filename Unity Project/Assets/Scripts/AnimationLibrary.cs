@@ -13,7 +13,8 @@ public class AnimationLibrary : MonoBehaviour
     public ulong id;
 
     readonly Dictionary<string, IAgentAction> registry = new();
-
+    public event Action<AnimationInstance> AnimationStarted;
+    public event Action<AnimationInstance> AnimationEnded;
     private void Awake()
     {
         BuildRegistry();
@@ -142,14 +143,16 @@ public class AnimationLibrary : MonoBehaviour
         if (anim.start != null)
         {
             Debug.Log($"Starting animation {anim.data.name} (id: {anim.data.id})");
-            anim.start.Invoke();
+            anim.start?.Invoke();
             anim.start = null;
+            AnimationStarted.Invoke(anim);
         }
 
         if (anim.behavior != null)
         {
             yield return anim.behavior;
         }
+        AnimationEnded?.Invoke(anim);
 
         anim.end?.Invoke();
         anim.isFinished = true;
