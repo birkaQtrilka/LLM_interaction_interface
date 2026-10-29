@@ -406,7 +406,7 @@ AnimatorController:
     m_Mask: {fileID: 0}
     m_Motions: []
     m_Behaviours: []
-    m_BlendingMode: 0
+    m_BlendingMode: 1
     m_SyncedLayerIndex: -1
     m_DefaultWeight: 1
     m_IKPass: 0
@@ -787,7 +787,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Laptop
+  m_Name: Tray
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions:
@@ -801,7 +801,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: 269a14e7490bfa24f8f27257f4e6c4df, type: 2}
+  m_Motion: {fileID: 8993902097722301239, guid: 45f741ff3c5dec44e883f2477d8f9117, type: 3}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -1140,7 +1140,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 8993902097722301239, guid: 2d8458302563954429467e1e87f6c5dc, type: 3}
+  m_Motion: {fileID: 8993902097722301239, guid: d13772c12e155b54a80e71598904025c, type: 3}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 

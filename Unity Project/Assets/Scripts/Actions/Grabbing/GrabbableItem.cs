@@ -3,25 +3,15 @@ using UnityEngine;
 public class GrabbableItem : MonoBehaviour
 {
     public GrabProfile profile;
-    public Transform gripPoint;
-    public Transform GripTarget => gripPoint != null ? gripPoint : transform;
+    [SerializeField] private Transform gripTarget; // your grab point transform
+    public Transform GripTarget => gripTarget != null ? gripTarget : transform;
 
-    [HideInInspector] public HandController Holder;
+    [Header("Debug")]
+    [Tooltip("Re-applies the grip point pose every frame while held so you can tweak the grab point live in Play mode.")]
+    public bool liveTweakGrabPoint = false;
 
-    Rigidbody rb;
+    public HandController Holder { get; set; }
+    public bool IsHeld { get; private set; }
 
-    public void SetHeld(bool held)
-    {
-        if (rb == null) TryGetComponent(out rb);
-        if (rb != null) rb.isKinematic = held;
-    }
-
-    void OnDrawGizmosSelected()
-    {
-        Transform g = GripTarget;
-        Gizmos.color = Color.blue; Gizmos.DrawRay(g.position, g.forward * 0.08f);
-        Gizmos.color = Color.green; Gizmos.DrawRay(g.position, g.up * 0.05f);
-        Gizmos.color = Color.red; Gizmos.DrawRay(g.position, g.right * 0.05f);
-        Gizmos.color = Color.yellow; Gizmos.DrawWireSphere(g.position, 0.015f);
-    }
+    public void SetHeld(bool held) => IsHeld = held;
 }

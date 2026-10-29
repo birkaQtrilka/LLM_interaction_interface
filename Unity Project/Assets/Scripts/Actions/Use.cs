@@ -30,21 +30,28 @@ public class Use : IAgentAction
             itemInHand = it;
             nameHash = Animator.StringToHash(itemInHand.GetName());
             agent.Anim.Play(nameHash, (int)NPC_AnimLayer.ItemUse);
-            agent.GrabReceiver.EventRelay += OnEvent;
 
-        }
-
-        void OnEvent(string name)
-        {
-            agent.GrabReceiver.EventRelay -= OnEvent;
-            var anim = itemInHand.transform.GetComponentInChildren<Animator>();
-            if (anim != null)
+            var itemAnim = itemInHand.transform.GetComponentInChildren<Animator>();
+            if (itemAnim != null)
             {
-                anim.SetTrigger("Use");// can be Play(name) later
+                itemAnim.SetTrigger("Use");// can be Play(name) later
             }
-            else 
-                Debug.LogWarning($"Item: '{itemInHand.GetName()}' does not have an Animator component to play the 'Use' animation");
+            else Debug.LogWarning($"Item: '{itemInHand.GetName()}' does not have an Animator component to play the 'Use' animation");
+            //agent.GrabReceiver.EventRelay += OnEvent;
+
         }
+
+        //void OnEvent(string name)
+        //{
+        //    agent.GrabReceiver.EventRelay -= OnEvent;
+        //    var anim = itemInHand.transform.GetComponentInChildren<Animator>();
+        //    if (anim != null)
+        //    {
+        //        anim.SetTrigger("Use");// can be Play(name) later
+        //    }
+        //    else 
+        //        Debug.LogWarning($"Item: '{itemInHand.GetName()}' does not have an Animator component to play the 'Use' animation");
+        //}
         IEnumerator behavior()
         {
             yield return new WaitUntil(() => nameHash != -1);
@@ -52,7 +59,7 @@ public class Use : IAgentAction
         }
         void end()
         {
-            agent.GrabReceiver.EventRelay -= OnEvent;
+            //agent.GrabReceiver.EventRelay -= OnEvent;
         }
         // hold starts from down, it needs to be like idle where it's just in one spot 
         result = new AnimAction(
