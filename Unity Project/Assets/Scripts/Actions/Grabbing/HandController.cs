@@ -113,9 +113,16 @@ public class HandController : MonoBehaviour
         Held = item;
         item.Holder = this;
         item.SetHeld(true);
-        item.transform.SetParent(holdPoint, false);
-        item.transform.SetLocalPositionAndRotation(p.holdLocalPosition, Quaternion.Euler(p.holdLocalEuler));
+
+        Transform tr = item.transform;
+        Matrix4x4 offset = PoseUtil.Local(p.handOffsetPosition, p.handOffsetEuler);
+        Matrix4x4 gripInItem = PoseUtil.Pose(tr).inverse * PoseUtil.Pose(item.GripTarget);
+        Matrix4x4 itemPose = PoseUtil.Pose(holdPoint) * offset.inverse * gripInItem.inverse;
+
+        itemPose.ApplyTo(tr);
+        tr.SetParent(holdPoint, true);
         anim.SetBool("Holding", true);
+        StartCoroutine(DebugAfterAttach(item));
     }
 
     Transform Detach()
@@ -128,5 +135,18 @@ public class HandController : MonoBehaviour
         Held = null;
         anim.SetBool("Holding", false);
         return tr;
+    }
+
+    IEnumerator DebugAfterAttach(GrabbableItem item)
+    {
+        Transform grip = item.GripTarget;
+        Debug.Log($"Attach frame: distance grip to holdPoint = {Vector3.Distance(grip.position, holdPoint.position):F3}, " +
+                  $"holdPoint lossyScale = {holdPoint.lossyScale}, item lossyScale = {item.transform.lossyScale}, " +
+                  $"grip is child of item: {grip.IsChildOf(item.transform)}");
+
+        yield return null;
+        yield return null;
+
+        Debug.Log($"Two frames later: distance grip to holdPoint = {Vector3.Distance(grip.position, holdPoint.position):F3}");
     }
 }

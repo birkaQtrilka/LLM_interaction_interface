@@ -15,7 +15,7 @@ MonoBehaviour:
   grabClip: {fileID: 8993902097722301239, guid: e4c054494f14d3d419a52571be1f1733, type: 3}
   holdClip: {fileID: 8993902097722301239, guid: a178a01da87a0884ba281e735dce238a, type: 3}
   releaseClip: {fileID: 0}
-  reachDuration: 0.6
+  reachDuration: 2
   reachCurve:
     serializedVersion: 2
     m_Curve:
@@ -40,8 +40,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  handRotationOffsetEuler: {x: 0, y: 0, z: 0}
   useIK: 1
-  holdLocalPosition: {x: 0, y: 0, z: 0}
-  holdLocalEuler: {x: 0, y: 0, z: 0}
   ikBlendOutDuration: 0.25
+  handOffsetPosition: {x: 0, y: 0, z: 0}
+  handOffsetEuler: {x: 0, y: 0, z: 0}

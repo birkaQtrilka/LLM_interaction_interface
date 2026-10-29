@@ -11,11 +11,17 @@ public class GrabProfile : ScriptableObject
     [Header("Reach IK")]
     public float reachDuration = 0.6f;
     public AnimationCurve reachCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
-    public Vector3 handRotationOffsetEuler;   // replaces your unused grabOffset
     public bool useIK = true;
-
-    [Header("Hold")]
-    public Vector3 holdLocalPosition;
-    public Vector3 holdLocalEuler;
     public float ikBlendOutDuration = 0.25f;
+
+    [Header("Hand placement relative to the item's grip point")]
+    public Vector3 handOffsetPosition;
+    public Vector3 handOffsetEuler;
+}
+
+public static class PoseUtil
+{
+    public static Matrix4x4 Pose(Transform t) => Matrix4x4.TRS(t.position, t.rotation, Vector3.one);
+    public static Matrix4x4 Local(Vector3 pos, Vector3 euler) => Matrix4x4.TRS(pos, Quaternion.Euler(euler), Vector3.one);
+    public static void ApplyTo(this Matrix4x4 m, Transform t) => t.SetPositionAndRotation(m.GetPosition(), m.rotation);
 }

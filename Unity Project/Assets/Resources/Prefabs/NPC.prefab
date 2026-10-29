@@ -13197,12 +13197,13 @@ MonoBehaviour:
   elbowHint: {fileID: 2528937000070744226}
   upperArm: {fileID: 782907755715340927}
   forearm: {fileID: 1543107430540665992}
-  hand: {fileID: 5281620571387641971}
+  hand: {fileID: 2603629546951758703}
   spineAimConstraint: {fileID: 3590281048636555941}
   spineAimTarget: {fileID: 7213607431972429361}
   leanStartRatio: 0.5
   maxLeanWeight: 0.85
   gizmos: 0
+  holdPoint: {fileID: 5281620571387641971}
 --- !u!114 &6911411674770464373
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -23281,7 +23282,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3855374481501544501}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fdb90b913935e644baaa86c076d788e0, type: 3}
   m_Name: 
@@ -43218,7 +43219,7 @@ MonoBehaviour:
   anim: {fileID: 6824446517921876096}
   armLayerName: Arms
   ik: {fileID: 454478651428193399}
-  holdPoint: {fileID: 2913453015954127068}
+  holdPoint: {fileID: 5281620571387641971}
   grabPh: {fileID: 7400000, guid: 2c02e1ac8a3a2e3438409dbeacdbc15f, type: 2}
   holdPh: {fileID: 7400000, guid: 214dbba907c8f244c92f757a319de6b6, type: 2}
   releasePh: {fileID: 7400000, guid: f144d7c8bff72da4b816883daeaa5027, type: 2}
@@ -45028,37 +45029,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4494460098747866699}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &7525719880136646419
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2913453015954127068}
-  m_Layer: 0
-  m_Name: HoldSpot
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2913453015954127068
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7525719880136646419}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 5281620571387641971}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7526057835476570449
 GameObject:
@@ -51013,7 +50983,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70b342d8ce5c2fd48b8fa3147d48d1d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Animation.Rigging::UnityEngine.Animations.Rigging.Rig
-  m_Weight: 1
+  m_Weight: 0
   m_Effectors: []
 --- !u!1 &8537840659427799877
 GameObject:
@@ -53239,7 +53209,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5281620571387641971}
   m_Layer: 0
-  m_Name: Hold
+  m_Name: HoldSpot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -53253,14 +53223,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8613363729851230021}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.07, y: -0.022, z: 0}
+  m_LocalRotation: {x: 0.7071068, y: -0, z: 0.7071068, w: 0}
+  m_LocalPosition: {x: 0.078, y: -0.0324, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 2913453015954127068}
+  m_Children: []
   m_Father: {fileID: 2603629546951758703}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 180, y: -90, z: 0}
 --- !u!1 &8625957846644651085
 GameObject:
   m_ObjectHideFlags: 0

@@ -34,6 +34,7 @@ public class GrabIK : MonoBehaviour
     private float armLength;
     private bool isGrabbing;
     public bool IsReaching => isGrabbing;
+    [SerializeField] private Transform holdPoint;   // same object as HandController.holdPoint
 
     private void Awake()
     {
@@ -59,8 +60,12 @@ public class GrabIK : MonoBehaviour
         hand.GetPositionAndRotation(out Vector3 startPos, out Quaternion startRot);
         handTarget.SetPositionAndRotation(startPos, startRot);
 
-        Vector3 targetPos = gripTarget.position;
-        Quaternion targetRot = gripTarget.rotation * Quaternion.Euler(profile.handRotationOffsetEuler);
+        Matrix4x4 offset = PoseUtil.Local(profile.handOffsetPosition, profile.handOffsetEuler);
+        Matrix4x4 holdInHand = PoseUtil.Pose(hand).inverse * PoseUtil.Pose(holdPoint);
+        Matrix4x4 handPose = PoseUtil.Pose(gripTarget) * offset * holdInHand.inverse;
+
+        Vector3 targetPos = handPose.GetPosition();
+        Quaternion targetRot = handPose.rotation;
 
         float targetLean = CalculateLeanWeight(targetPos);
         if (spineAimTarget != null) spineAimTarget.position = targetPos;

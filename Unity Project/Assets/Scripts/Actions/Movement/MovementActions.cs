@@ -65,6 +65,8 @@ static class MovementActions
                     agent.StopCoroutine(walkRoutine);
                     walkRoutine = null;
                 }
+                yield return agent.StartCoroutine(TurnTowards(agent, pos.position));
+
             }
 
             yield return agent.StartCoroutine(BlendToIdle(agent));

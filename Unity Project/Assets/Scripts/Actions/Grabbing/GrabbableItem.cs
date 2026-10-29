@@ -15,4 +15,13 @@ public class GrabbableItem : MonoBehaviour
         if (rb == null) TryGetComponent(out rb);
         if (rb != null) rb.isKinematic = held;
     }
+
+    void OnDrawGizmosSelected()
+    {
+        Transform g = GripTarget;
+        Gizmos.color = Color.blue; Gizmos.DrawRay(g.position, g.forward * 0.08f);
+        Gizmos.color = Color.green; Gizmos.DrawRay(g.position, g.up * 0.05f);
+        Gizmos.color = Color.red; Gizmos.DrawRay(g.position, g.right * 0.05f);
+        Gizmos.color = Color.yellow; Gizmos.DrawWireSphere(g.position, 0.015f);
+    }
 }

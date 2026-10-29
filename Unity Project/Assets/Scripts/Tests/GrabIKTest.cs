@@ -31,6 +31,31 @@ public class GrabIKTest : MyTest
         StartCoroutine(npc.Hand.Grab(testTarget, () => { Debug.Log($"Contact: {testTarget.name} attached"); npc.Hand.LogClips(); }));
     }
 
+    [ContextMenu("GrabAndUse")]
+    public void TestGrabAndUse()
+    {
+        if (!CanRun() || !HasTarget()) return;
+
+        ResetTestPosition();
+        string err = animationLibrary.PlayAnimation(agentSystem, new ActionData
+        {
+            id = 0,
+            name = "grab",
+            agent = npc.name,
+            parameters = new string[] { toGrab },
+        });
+        if(err!=null) Debug.Log(err);
+        err = animationLibrary.PlayAnimation(agentSystem, new ActionData
+        {
+            id = 1,
+            name = "use",
+            agent = npc.name,
+            parameters = new string[] { npc.name },
+            runAfter = new int[1] { 0 },
+        });
+        if(err!=null) Debug.Log(err);
+    }
+
     // IK only: the hand reaches the grip point and blends out, nothing is attached
     // and no animator clips play. Useful for tuning rotation offsets and reach timing.
     [ContextMenu("Reach only (IK)")]

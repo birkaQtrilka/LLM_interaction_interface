@@ -37,7 +37,8 @@ public class Use : IAgentAction
         void OnEvent(string name)
         {
             agent.GrabReceiver.EventRelay -= OnEvent;
-            if(itemInHand.transform.TryGetComponent<Animator>(out var anim))
+            var anim = itemInHand.transform.GetComponentInChildren<Animator>();
+            if (anim != null)
             {
                 anim.SetTrigger("Use");// can be Play(name) later
             }
@@ -53,7 +54,7 @@ public class Use : IAgentAction
         {
             agent.GrabReceiver.EventRelay -= OnEvent;
         }
-
+        // hold starts from down, it needs to be like idle where it's just in one spot 
         result = new AnimAction(
             action, 
             start, 
