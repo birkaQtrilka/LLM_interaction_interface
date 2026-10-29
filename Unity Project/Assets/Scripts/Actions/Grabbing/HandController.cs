@@ -13,19 +13,33 @@ public class HandController : MonoBehaviour
     [SerializeField] Transform holdPoint;
     [SerializeField] AnimationClip grabPh, holdPh, releasePh;
 
+    [Header("Debug")]
+    [Tooltip("If checked, continuously re-applies GrabProfile offsets in LateUpdate so you can tweak rotation/position in real time while holding.")]
+    [SerializeField] private bool liveTweakOffset = false;
+
+    private Matrix4x4 cachedGripInItem;
+
     GrabClipSwapper swapper;
     int armLayer;
 
     public HandState State { get; private set; }
     public GrabbableItem Held { get; private set; }
-    // check if weight of ik is still on while releasing give
-    // only use the hold part without going down with the arm after grab
+
     void Awake()
     {
         swapper = new GrabClipSwapper(anim, grabPh, holdPh, releasePh);
         armLayer = anim.GetLayerIndex(armLayerName);
     }
-    
+
+    private void LateUpdate()
+    {
+        // Re-apply the offset every frame after Animator evaluates bones
+        if (liveTweakOffset && State == HandState.Holding && Held != null)
+        {
+            ApplyHeldPose(Held);
+        }
+    }
+
     [ContextMenu("Log current clips")]
     public void LogClips() => swapper?.LogState(armLayer);
 
@@ -79,7 +93,6 @@ public class HandController : MonoBehaviour
         if (target != null && p.useIK) yield return ik.ReachRoutine(target, p, contact);
         if (Held != null) contact();
 
-        // Wait until the animator is back in the Empty state (with a timeout)
         float until = Time.time + 2f;
         while (Time.time < until && !anim.GetCurrentAnimatorStateInfo(armLayer).IsName("Empty"))
             yield return null;
@@ -109,20 +122,35 @@ public class HandController : MonoBehaviour
 
     void Attach(GrabbableItem item)
     {
-        GrabProfile p = item.profile;
         Held = item;
         item.Holder = this;
         item.SetHeld(true);
 
         Transform tr = item.transform;
-        Matrix4x4 offset = PoseUtil.Local(p.handOffsetPosition, p.handOffsetEuler);
-        Matrix4x4 gripInItem = PoseUtil.Pose(tr).inverse * PoseUtil.Pose(item.GripTarget);
-        Matrix4x4 itemPose = PoseUtil.Pose(holdPoint) * offset.inverse * gripInItem.inverse;
+        // Cache grip relative to item once
+        cachedGripInItem = PoseUtil.Pose(tr).inverse * PoseUtil.Pose(item.GripTarget);
 
-        itemPose.ApplyTo(tr);
+        ApplyHeldPose(item);
         tr.SetParent(holdPoint, true);
+
         anim.SetBool("Holding", true);
         StartCoroutine(DebugAfterAttach(item));
+    }
+
+    void ApplyHeldPose(GrabbableItem item)
+    {
+        GrabProfile p = item.profile;
+        if (p == null) return;
+
+        // Fallback in case of domain reload during play mode
+        if (cachedGripInItem == Matrix4x4.zero && item.GripTarget != null)
+            cachedGripInItem = PoseUtil.Pose(item.transform).inverse * PoseUtil.Pose(item.GripTarget);
+
+        Transform tr = item.transform;
+        Matrix4x4 offset = PoseUtil.Local(p.handOffsetPosition, p.handOffsetEuler);
+        Matrix4x4 itemPose = PoseUtil.Pose(holdPoint) * offset.inverse * cachedGripInItem.inverse;
+
+        itemPose.ApplyTo(tr);
     }
 
     Transform Detach()
@@ -133,6 +161,7 @@ public class HandController : MonoBehaviour
         Held.SetHeld(false);
         Held.Holder = null;
         Held = null;
+        cachedGripInItem = Matrix4x4.zero;
         anim.SetBool("Holding", false);
         return tr;
     }

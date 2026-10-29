@@ -24,7 +24,7 @@ AvatarMask:
   - m_Path: root/pelvis/spine_01/spine_02/spine_03/spine_04/spine_05
     m_Weight: 0
   - m_Path: root/pelvis/spine_01/spine_02/spine_03/spine_04/spine_05/clavicle_l
-    m_Weight: 1
+    m_Weight: 0
   - m_Path: root/pelvis/spine_01/spine_02/spine_03/spine_04/spine_05/clavicle_l/clavicle_out_l
     m_Weight: 1
   - m_Path: root/pelvis/spine_01/spine_02/spine_03/spine_04/spine_05/clavicle_l/clavicle_scap_l
