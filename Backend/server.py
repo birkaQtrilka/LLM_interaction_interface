@@ -20,6 +20,10 @@ from settings import BASE_DIR, OPENAI_MODEL
 with open(BASE_DIR / "actions.json", "r", encoding="utf-8") as f:
     ACTIONS = f.read()
 
+# Gestures are not actions. They are tags inside a talk message, parsed by LineParser in Unity
+with open(BASE_DIR / "gestures.json", "r", encoding="utf-8") as f:
+    GESTURES = f.read()
+
 app = FastAPI()
 LOGS_DIR = BASE_DIR / "logs"
 # The system text is the same on every turn, so the log omits it unless this is on
@@ -141,7 +145,7 @@ def build_messages(user_text: str, world: str, addressee: str = "", speaker: str
 
     print("------------- SYSTEM -------------------")
 
-    system = get_system_prompt(PERSONA, ACTIONS, addressee, speaker)
+    system = get_system_prompt(PERSONA, ACTIONS, GESTURES, addressee, speaker)
     print(system)
     print("------------- USER -------------------")
     print(user)

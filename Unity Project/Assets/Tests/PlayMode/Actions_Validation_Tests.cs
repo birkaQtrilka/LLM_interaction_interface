@@ -172,8 +172,12 @@ public class Actions_Validation_Tests
         pos = new Vector3(pos.x, 0, pos.z);
         var spotPos = spot.transform.position;
         spotPos = new Vector3(spotPos.x, 0, spotPos.z);
-        Assert.That(Vector3.Distance(pos, spotPos), Is.LessThan(0.1f), $"agent spot is {pos}, should be close to {spotPos}");
+        Assert.That(Vector3.Distance(pos, spotPos), Is.LessThan(SpotArriveSlop(agent)), $"agent spot is {pos}, should be close to {spotPos}");
     }
+
+    // moveTo reserves Transform targets at Nav.radius + 0.5; leave a little sample margin
+    static float SpotArriveSlop(NPC agent) => agent.Nav.radius + 0.5f + 0.15f;
+    // TODO: make it less hardcoded
 
     [UnityTest]
     public IEnumerator Place_On_Table()

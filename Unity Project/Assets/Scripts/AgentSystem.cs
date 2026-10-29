@@ -15,8 +15,6 @@ public class AgentSystem : MonoBehaviour
     public AnimationLibrary AnimationLibrary => animationLibrary;
     public bool IsBusy { get; private set; }
     public ActionsResponse LastActions { get; private set; }
-    // True while one turn already holds IsBusy, so the two rounds inside it do not release the lock
-    bool hold;
 
     public void Init(LLMBackend llm, AnimationLibrary anim, ContextLibrary ctx)
     {
@@ -81,7 +79,7 @@ public class AgentSystem : MonoBehaviour
 
     IEnumerator RunBusy(IEnumerator work, Action<string> onBusy = null)
     {
-        if (IsBusy && !hold)
+        if (IsBusy)
         {
             string err = "Still processing a previous message, wait until it's done";
             Debug.LogWarning(err);
@@ -89,30 +87,22 @@ public class AgentSystem : MonoBehaviour
             yield break;
         }
 
-        bool outer = !hold;
-        if (outer)
-        {
-            hold = true;
-            SetBusiness(true);
-        }
+        SetBusiness(true);
         try
         {
             yield return StartCoroutine(work);
         }
         finally
         {
-            if (outer)
-            {
-                hold = false;
-                SetBusiness(false);
-            }
+            SetBusiness(false);
         }
     }
 
     // Talk queues NPC-to-NPC lines here so the addressee gets a turn with speaker set
+    // Not wrapped in RunBusy: GetContextJson and GetActionsJson inside RunTurn take the lock themselves, like a player turn
     public IEnumerator RunHeardTurn(string message, string spokenTo, string speaker)
     {
-        yield return RunBusy(RunTurn(message, spokenTo, speaker));
+        yield return RunTurn(message, spokenTo, speaker);
     }
 
     public IEnumerator GetContextJson(string userPrompt, CoroutineResult<ContextQuery> res = null)
