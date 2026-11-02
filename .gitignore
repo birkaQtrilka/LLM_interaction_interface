@@ -19,6 +19,7 @@
 /UnityProject/[Bb]uilds/
 /UnityProject/[Ll]ogs/
 /UnityProject/[Uu]ser[Ss]ettings/
+/Unity Project/
 *.log
 *.env
 Backend/.venv/
