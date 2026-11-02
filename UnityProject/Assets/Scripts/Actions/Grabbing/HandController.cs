@@ -131,7 +131,6 @@ public class HandController : MonoBehaviour
         ApplyHeldPose(item);
 
         anim.SetBool("Holding", true);
-        StartCoroutine(DebugAfterAttach(item));
     }
 
     public void ApplyHeldPose(GrabbableItem item)
@@ -162,16 +161,4 @@ public class HandController : MonoBehaviour
         return tr;
     }
 
-    IEnumerator DebugAfterAttach(GrabbableItem item)
-    {
-        Transform grip = item.GripTarget;
-        Debug.Log($"Attach frame: distance grip to holdPoint = {Vector3.Distance(grip.position, holdPoint.position):F3}, " +
-                  $"holdPoint lossyScale = {holdPoint.lossyScale}, item lossyScale = {item.transform.lossyScale}, " +
-                  $"grip is child of item: {grip.IsChildOf(item.transform)}");
-
-        yield return null;
-        yield return null;
-
-        Debug.Log($"Two frames later: distance grip to holdPoint = {Vector3.Distance(grip.position, holdPoint.position):F3}");
-    }
 }

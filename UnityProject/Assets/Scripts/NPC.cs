@@ -19,6 +19,22 @@ public class NPC : MonoBehaviour
     [field: SerializeField] public float MaxTurnAngle {get; private set; }= 60f;    // Angle that produces maximum h (1.0 or -1.0)
     [field: SerializeField] public float FaceDistance {get; private set; }= 2f;     // Distance to item where we start facing the item
     [field: SerializeField] public float DampTime {get; private set; }= 0.15f;
+    [Header("Reservation Tweaks")]
+    [field: SerializeField, Tooltip("Extra gap when approaching an object")]
+    public float ApproachGap { get; private set; } = 0.3f;
+
+    [field: SerializeField, Tooltip("Standoff padding when pathing to a target")]
+    public float StandoffOffset { get; private set; } = 0.5f;
+
+    [field: SerializeField, Tooltip("Tolerance added to stopping distance (Don't move just rotate zone)")]
+    public float StoppingDistOffset { get; private set; } = 0.05f;
+
+    [field: SerializeField, Tooltip("Distance between reserve rings")]
+    public float ReserveSpacing { get; private set; } = 1f;
+
+    [field: SerializeField, Tooltip("Number of reserve rings to generate")]
+    public int ReserveRings { get; private set; } = 4;
+
 
     [Header("Turn Angle Gizmos")]
     [SerializeField] private bool showGizmos = true;

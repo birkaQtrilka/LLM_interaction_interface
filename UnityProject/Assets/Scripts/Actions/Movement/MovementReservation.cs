@@ -52,7 +52,7 @@ public static class MovementReservation
             }
         }
 
-        for (int ring = 0; ring < 4; ring++)
+        for (int ring = 0; ring < npc.ReserveRings; ring++)
         {
             float radius = startRadius + ring * spacing;
             int count = Mathf.Max(6, ring * 6);

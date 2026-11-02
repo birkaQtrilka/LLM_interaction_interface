@@ -23,21 +23,21 @@ static class MovementActions
 
         void start()
         {
-            float standoff = agent.Nav.radius + 0.5f;
+            float standoff = agent.Nav.radius + agent.StandoffOffset;
             if (pos.IsTransform && pos.transform != null && pos.transform.TryGetComponent(out NavMeshAgent other))
                 standoff += other.radius;
 
             float startRadius = pos.IsTransform ? standoff : 0f;
 
             Vector3 destination;
-            if (MovementReservation.TryReserve(agent, pos.position, out Vector3 spot, agent.Nav.radius + 0.5f, startRadius))
+            if (MovementReservation.TryReserve(agent, pos.position, out Vector3 spot, agent.ReserveSpacing, startRadius))
                 destination = spot;
             else if (pos.IsTransform)
-                destination = MovementReservation.ApproachPoint(agent, pos.transform);
+                destination = MovementReservation.ApproachPoint(agent, pos.transform, agent.ApproachGap);
             else
                 destination = pos.position;
 
-            if (Vector3.Distance(agent.transform.position, destination) > agent.Nav.stoppingDistance + 0.05f)
+            if (Vector3.Distance(agent.transform.position, destination) > agent.Nav.stoppingDistance + agent.StoppingDistOffset)
                 agent.Nav.SetDestination(destination);
         }
 
@@ -50,7 +50,7 @@ static class MovementActions
 
 
             // If already in range or no path needed, turn to face the target
-            if (!agent.Nav.hasPath || agent.Nav.remainingDistance <= agent.Nav.stoppingDistance + 0.05f)
+            if (!agent.Nav.hasPath || agent.Nav.remainingDistance <= agent.Nav.stoppingDistance + agent.StoppingDistOffset)
             {
                 yield return agent.StartCoroutine(TurnTowards(agent, pos.position));
             }
@@ -165,7 +165,7 @@ static class MovementActions
                 yield return TurnTowardsDirection(agent, initialDir);
         }
 
-        while (nav.remainingDistance > nav.stoppingDistance + 0.05f)
+        while (nav.remainingDistance > nav.stoppingDistance + agent.StoppingDistOffset)
         {
             Vector3 targetDir = nav.remainingDistance < agent.FaceDistance
                 ? pos - agent.transform.position
