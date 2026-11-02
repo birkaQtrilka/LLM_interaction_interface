@@ -15285,7 +15285,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 454478651428193399, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: gizmos
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 454478651428193399, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: leftFoot
@@ -15308,6 +15308,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 756906396}
     - target: {fileID: 454478651428193399, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: leanOvershoot
+      value: 0.371
+      objectReference: {fileID: 0}
+    - target: {fileID: 454478651428193399, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: maxLeanWeight
       value: 1
       objectReference: {fileID: 0}
@@ -15315,6 +15319,10 @@ PrefabInstance:
       propertyPath: rightKneeHint
       value: 
       objectReference: {fileID: 919917383}
+    - target: {fileID: 454478651428193399, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: leanStartRatio
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 454478651428193399, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: leftFootTarget
       value: 
@@ -15325,7 +15333,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 454478651428193399, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: armLenghtOffset
-      value: 0.1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 454478651428193399, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: rightFootTarget
@@ -16427,6 +16435,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.y
       value: -0.060097717
       objectReference: {fileID: 0}
+    - target: {fileID: 3590281048636555941, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_Data.m_MaxLimit
+      value: 94
+      objectReference: {fileID: 0}
+    - target: {fileID: 3590281048636555941, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_Data.m_MinLimit
+      value: -98
+      objectReference: {fileID: 0}
     - target: {fileID: 3598424302821248600, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: m_Data.m_SourceObjects.m_Item0.transform
       value: 
@@ -17516,8 +17532,24 @@ PrefabInstance:
       value: 0.18896855
       objectReference: {fileID: 0}
     - target: {fileID: 7329515217725834280, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: showGizmos
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7329515217725834280, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: <FaceDistance>k__BackingField
       value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7329515217725834280, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: <ReserveRings>k__BackingField
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7329515217725834280, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: <ReserveSpacing>k__BackingField
+      value: 0.38
+      objectReference: {fileID: 0}
+    - target: {fileID: 7329515217725834280, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: <StandoffOffset>k__BackingField
+      value: 0.18
       objectReference: {fileID: 0}
     - target: {fileID: 7370572613525422239, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -18145,14 +18177,17 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2695724760904304491, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       insertIndex: -1
       addedObject: {fileID: 230618817}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7143666008480823539, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1936244510}
   m_SourcePrefab: {fileID: 100100000, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
 --- !u!114 &1881582816 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7329515217725834280, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
   m_PrefabInstance: {fileID: 1881582815}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 1936244505}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6e68774110b775548b88a948b4e49b3d, type: 3}
@@ -18271,6 +18306,29 @@ MonoBehaviour:
   spotColor: {r: 1, g: 0.6, b: 0, a: 1}
   lineColor: {r: 1, g: 0.6, b: 0, a: 0.4}
   destinationColor: {r: 0, g: 1, b: 1, a: 1}
+--- !u!1 &1936244505 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7143666008480823539, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+  m_PrefabInstance: {fileID: 1881582815}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1936244510
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1936244505}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb03689eddefe9f4da27a5b79d4c4962, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::NPCDebugVisualization
+  npc: {fileID: 1881582816}
+  debugTarget: {fileID: 52645841}
+  drawZones: 1
+  drawReserveRings: 1
+  drawGlobalReservations: 1
+  alwaysDraw: 0
 --- !u!1 &1998399856
 GameObject:
   m_ObjectHideFlags: 0

@@ -65,6 +65,7 @@ public class GrabIK : MonoBehaviour
 
     // Hints are stored relative to the anchor so nothing can drag them around
     private Vector3 leftHintLocal, rightHintLocal;
+    private Vector3 elbowOffsetFromShoulder;
     private bool hintsCaptured;
 
     // Feet are pinned in world space while crouching
@@ -86,8 +87,15 @@ public class GrabIK : MonoBehaviour
         if (hintAnchor == null) hintAnchor = transform.root;
         if (leftKneeHint != null) leftHintLocal = hintAnchor.InverseTransformPoint(leftKneeHint.position);
         if (rightKneeHint != null) rightHintLocal = hintAnchor.InverseTransformPoint(rightKneeHint.position);
-        hintsCaptured = true;
 
+        if (elbowHint != null && upperArm != null)
+        {
+            // By storing the offset as a Direction instead of a Point, the elbow hint will track 
+            // the shoulder's position without spinning wildly when the arm bone rotates.
+            elbowOffsetFromShoulder = hintAnchor.InverseTransformDirection(elbowHint.position - upperArm.position);
+        }
+
+        hintsCaptured = true;
         SetCrouch(0f, 0f);
     }
 
@@ -98,6 +106,12 @@ public class GrabIK : MonoBehaviour
         {
             if (leftKneeHint != null) leftKneeHint.position = hintAnchor.TransformPoint(leftHintLocal);
             if (rightKneeHint != null) rightKneeHint.position = hintAnchor.TransformPoint(rightHintLocal);
+
+            // Make the elbow hint perfectly follow the shoulder's world location (crouch drops and lean offsets)
+            if (elbowHint != null && upperArm != null)
+            {
+                elbowHint.position = upperArm.position + hintAnchor.TransformDirection(elbowOffsetFromShoulder);
+            }
         }
 
         if (feetPlanted)
@@ -122,18 +136,37 @@ public class GrabIK : MonoBehaviour
 
         Matrix4x4 offset = PoseUtil.Local(profile.handOffsetPosition, profile.handOffsetEuler);
         Matrix4x4 holdInHand = PoseUtil.Pose(hand).inverse * PoseUtil.Pose(holdPoint);
-        Matrix4x4 handPose = PoseUtil.Pose(gripTarget) * offset * holdInHand.inverse;
 
-        Vector3 targetPos = handPose.GetPosition();
-        Quaternion targetRot = handPose.rotation;
+        Matrix4x4 desiredHoldPose = PoseUtil.Pose(gripTarget) * offset;
+        Vector3 desiredHoldPos = desiredHoldPose.GetPosition();
+
+        Vector3 startDir = (startPos - upperArm.position).normalized;
+        Vector3 targetDir = (desiredHoldPos - upperArm.position);
+        targetDir = targetDir.sqrMagnitude > 0.001f ? targetDir.normalized : Vector3.forward;
+
+        Quaternion armSwing = Quaternion.FromToRotation(startDir, targetDir);
+        Quaternion targetRot = armSwing * startRot;
+
+        // We find the horizontal right axis and pitch the hand up slightly (e.g. 20 degrees)
+        Vector3 rightAxis = Vector3.Cross(Vector3.up, targetDir).normalized;
+        if (rightAxis.sqrMagnitude > 0.001f)
+        {
+            // A negative angle around the right axis pitches the hand upwards in Unity
+            targetRot = Quaternion.AngleAxis(-20f, rightAxis) * targetRot;
+        }
+
+        Vector3 localHoldPos = holdInHand.GetPosition();
+        Vector3 targetPos = desiredHoldPos - (targetRot * localHoldPos);
 
         // Lean covers slightly-out-of-reach, crouch only takes over once lean is maxed
         float crouchDepth = CalculateCrouchDepth(targetPos);
         float targetLean = CalculateLeanWeight(targetPos, crouchDepth);
+
         if (gizmos)
             Debug.Log($"Reach: below={-(targetPos.y - upperArm.position.y):F2} " +
                       $"horiz={new Vector2(targetPos.x - upperArm.position.x, targetPos.z - upperArm.position.z).magnitude:F2} " +
                       $"crouch={crouchDepth:F2} lean={targetLean:F2} maxReach={FullLeanDistance:F2}");
+
         if (spineAimTarget != null) spineAimTarget.position = targetPos;
 
         if (crouchDepth > 0f) PlantFeet();
@@ -194,48 +227,34 @@ public class GrabIK : MonoBehaviour
     // Reach distances
     // ------------------------------------------------------------------
 
-    /// <summary>The arm length used for calculation minus overshoot to force the body closer to the target.</summary>
     private float EffectiveArmLength => Mathf.Max(0.01f, armLength - leanOvershoot);
-
-    /// <summary>How far past the comfortable reach the lean goes from 0 to full weight.</summary>
     private float LeanMaxOverReach => EffectiveArmLength * (1f - leanStartRatio) + leanReachBonus;
-
-    /// <summary>Shoulder-to-target distance at which the lean reaches full weight.
-    /// Beyond this, the crouch takes over.</summary>
     private float FullLeanDistance => EffectiveArmLength * leanStartRatio + LeanMaxOverReach + crouchReachMargin;
 
     // ------------------------------------------------------------------
     // Crouch
     // ------------------------------------------------------------------
 
-    /// <summary>
-    /// How far the hips need to drop so that the shoulder ends up within
-    /// FullLeanDistance of the target. Returns 0 when the arm + lean can already reach it.
-    /// </summary>
     private float CalculateCrouchDepth(Vector3 targetPos)
     {
         if (crouchRig == null || hipsOverride == null) return 0f;
 
         Vector3 delta = targetPos - upperArm.position;
         float below = -delta.y;
-        if (below <= 0f) return 0f;                   // at or above shoulder height: never crouch
+        if (below <= 0f) return 0f;
 
         float horizontal = new Vector2(delta.x, delta.z).magnitude;
         float maxReach = FullLeanDistance;
 
-        // Dropping the hips only reduces the vertical gap. If the target is already
-        // out of reach horizontally, crouching can't fix it, so don't crouch at all
-        // (the hand just stretches, and the NPC should walk closer).
         if (horizontal >= maxReach) return 0f;
 
-        // Smallest drop d such that (below - d)² + horizontal² <= maxReach²
         float allowedBelow = Mathf.Sqrt(maxReach * maxReach - horizontal * horizontal);
         float needed = below - allowedBelow;
 
         if (needed < minCrouchDepth) return 0f;
         return Mathf.Min(needed, maxCrouchDepth);
     }
-    /// <summary>Pins the foot IK targets to where the feet are right now.</summary>
+
     private void PlantFeet()
     {
         if (leftFoot != null && leftFootTarget != null)
@@ -251,22 +270,16 @@ public class GrabIK : MonoBehaviour
         feetPlanted = true;
     }
 
-    /// <summary>depth in meters, amount 0..1 (blend)</summary>
     private void SetCrouch(float depth, float amount)
     {
         if (crouchRig == null) return;
 
         amount = Mathf.Clamp01(amount);
-
-        // Feet stay pinned at full weight for the whole crouch. Only the hips drop is blended.
         crouchRig.weight = depth > 0f ? 1f : 0f;
 
         if (hipsOverride == null || hips == null) return;
 
-        // OverrideTransform in Pivot space offsets along the bone's local axes,
-        // so convert "world down" into hips-local space.
         Vector3 localDown = hips.InverseTransformDirection(Vector3.down);
-
         var data = hipsOverride.data;
         data.position = localDown * (depth * amount);
         hipsOverride.data = data;
@@ -278,7 +291,6 @@ public class GrabIK : MonoBehaviour
     {
         if (!gizmos || upperArm == null || forearm == null || hand == null) return;
 
-        // Calculate arm length identically to runtime (including offset) so gizmos perfectly match
         float currentArmLength = Application.isPlaying && armLength > 0f ? armLength :
             (Vector3.Distance(upperArm.position, forearm.position) + Vector3.Distance(forearm.position, hand.position) + armLenghtOffset);
 
@@ -286,22 +298,19 @@ public class GrabIK : MonoBehaviour
         float leanMaxOver = effectiveLength * (1f - leanStartRatio) + leanReachBonus;
         float fullLeanDist = effectiveLength * leanStartRatio + leanMaxOver + crouchReachMargin;
 
-        Gizmos.color = Color.cyan;      // lean starts
+        Gizmos.color = Color.cyan;
         Gizmos.DrawWireSphere(upperArm.position, effectiveLength * leanStartRatio);
-        Gizmos.color = Color.red;       // effective arm length boundary
+        Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(upperArm.position, effectiveLength);
-        Gizmos.color = Color.yellow;    // crouch starts (lean maxed)
+        Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(upperArm.position, fullLeanDist);
     }
 
     private float CalculateLeanWeight(Vector3 targetPos, float crouchDepth = 0f)
     {
-        // Shoulder position after the crouch has lowered it
         Vector3 shoulder = upperArm.position + Vector3.down * crouchDepth;
-
         float distanceToTarget = Vector3.Distance(shoulder, targetPos);
 
-        // Base comfortable reach off of the shorter "effective" arm length
         float comfortableReach = EffectiveArmLength * leanStartRatio;
         if (distanceToTarget <= comfortableReach) return 0f;
 
