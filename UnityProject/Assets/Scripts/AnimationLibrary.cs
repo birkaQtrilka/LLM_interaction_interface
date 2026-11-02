@@ -145,7 +145,7 @@ public class AnimationLibrary : MonoBehaviour
             Debug.Log($"Starting animation {anim.data.name} (id: {anim.data.id})");
             anim.start?.Invoke();
             anim.start = null;
-            AnimationStarted.Invoke(anim);
+            AnimationStarted?.Invoke(anim);
         }
 
         if (anim.behavior != null)

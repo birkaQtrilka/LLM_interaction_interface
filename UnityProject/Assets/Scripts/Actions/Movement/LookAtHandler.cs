@@ -151,13 +151,13 @@ public class LookAtHandler
     {
         LookAtIK lookAnim = agent.GetComponentInChildren<LookAtIK>();
         if (lookAnim != null)
-            yield return agent.StartCoroutine(lookAnim.LookAt(target));
+            yield return agent.StartCoroutine(lookAnim.LookAtRoutine(target));
     }
 
     public static void StopLooking(NPC agent)
     {
         LookAtIK lookAnim = agent.GetComponentInChildren<LookAtIK>();
         if (lookAnim != null)
-            agent.StartCoroutine(lookAnim.StopLooking());
+            agent.StartCoroutine(lookAnim.StopLookingRoutine());
     }
 }

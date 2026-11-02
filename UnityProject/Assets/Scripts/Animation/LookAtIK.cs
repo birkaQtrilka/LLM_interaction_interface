@@ -6,123 +6,123 @@ public class LookAtIK : MonoBehaviour
 {
     [SerializeField] private Rig aimConstraint;
     [SerializeField] private AnimationCurve lookCurve;
-    [Tooltip("Create an empty transform in the world then assign it in the aim cosntraints of head")]
-    [SerializeField, HideInInspector] Transform floater;
-    public float turnDuration = .2f;
-    private const string FloaterName = "LookAtFloater";
+    [SerializeField] private float turnDuration = 0.2f;
 
-    public string GetFloaterName() => FloaterName + transform.parent.name;
+    // Optional: assign a pre-existing target in the prefab/inspector.
+    // If left empty, one will be created dynamically at runtime.
+    [SerializeField] private Transform floater;
 
-#if UNITY_EDITOR
-    private void OnValidate()
+    private Coroutine activeLookCoroutine;
+
+    private void Awake()
     {
-        // Resolve/create floater.
-        if (floater == null)
+        EnsureFloaterExists();
+    }
+
+    private void EnsureFloaterExists()
+    {
+        if (floater != null) return;
+
+        // Create the floater at runtime
+        string floaterName = $"LookAtFloater_{gameObject.name}";
+        var go = new GameObject(floaterName);
+        floater = go.transform;
+
+        // Position it in front of this object by default
+        floater.position = transform.position + transform.forward * 2f;
+
+        // Register to the MultiAimConstraints at runtime
+        if (aimConstraint != null)
         {
-            var existing = GameObject.Find(GetFloaterName());
-
-            if (existing != null)
+            var aims = aimConstraint.GetComponentsInChildren<MultiAimConstraint>();
+            foreach (var aim in aims)
             {
-                floater = existing.transform;
-            }
-            else
-            {
-                var go = new GameObject(GetFloaterName());
-                floater = go.transform;
-            }
-        }
+                var sources = aim.data.sourceObjects;
 
-        // Find all aim constraints.
-        var aims = aimConstraint.GetComponentsInChildren<MultiAimConstraint>();
-
-        foreach (var aim in aims)
-        {
-            var sources = aim.data.sourceObjects;
-
-            bool hasFloater = false;
-            int nullIndex = -1;
-
-            for (int i = 0; i < sources.Count; i++)
-            {
-                var source = sources.GetTransform(i);
-
-                if (source == floater)
+                // Check if already registered
+                bool alreadyPresent = false;
+                for (int i = 0; i < sources.Count; i++)
                 {
-                    hasFloater = true;
-                    break;
+                    if (sources.GetTransform(i) == floater)
+                    {
+                        alreadyPresent = true;
+                        break;
+                    }
                 }
 
-                if (source == null && nullIndex == -1)
+                if (!alreadyPresent)
                 {
-                    nullIndex = i;
+                    sources.Add(new WeightedTransform(floater, 1f));
+                    aim.data.sourceObjects = sources;
                 }
             }
 
-            // Already present, nothing to do.
-            if (hasFloater)
-                continue;
-
-            // Prefer filling an existing null slot.
-            if (nullIndex >= 0)
+            // Rebuild the rig graph so runtime changes take effect
+            var rigBuilder = GetComponentInParent<RigBuilder>();
+            if (rigBuilder != null)
             {
-                sources.SetTransform(nullIndex, floater);
-                sources.SetWeight(nullIndex, 1f);
+                rigBuilder.Build();
             }
-            // Otherwise add a new source.
-            else if (sources.Count < WeightedTransformArray.k_MaxLength)
-            {
-                sources.Add(new WeightedTransform(floater, 1f));
-            }
-            else
-            {
-                Debug.LogWarning(
-                    $"Cannot add {GetFloaterName()} to {aim.name}: source array is full.",
-                    aim
-                );
-
-                continue;
-            }
-
-            aim.data.sourceObjects = sources;
         }
     }
-#endif
 
-    public IEnumerator LookAt(Vector3 pos)
+    private void OnDestroy()
     {
+        // Clean up the created GameObject when this character is destroyed
+        if (floater != null && floater.gameObject != null)
+        {
+            Destroy(floater.gameObject);
+        }
+    }
+
+    public void StartLookAt(Vector3 pos)
+    {
+        if (activeLookCoroutine != null) StopCoroutine(activeLookCoroutine);
+        activeLookCoroutine = StartCoroutine(LookAtRoutine(pos));
+    }
+
+    public void StartStopLooking()
+    {
+        if (activeLookCoroutine != null) StopCoroutine(activeLookCoroutine);
+        activeLookCoroutine = StartCoroutine(StopLookingRoutine());
+    }
+
+    public IEnumerator LookAtRoutine(Vector3 pos)
+    {
+        if (floater == null) EnsureFloaterExists();
         floater.position = pos;
 
         float elapsed = 0f;
         while (elapsed < turnDuration)
         {
             elapsed += Time.deltaTime;
-            float rawT = Mathf.Clamp01(elapsed / turnDuration);
-            float curvedT = lookCurve.Evaluate(rawT);
+            float t = lookCurve.Evaluate(Mathf.Clamp01(elapsed / turnDuration));
 
             if (aimConstraint != null)
-            {
-                aimConstraint.weight = curvedT;
-            }
+                aimConstraint.weight = t;
 
             yield return null;
         }
+
+        if (aimConstraint != null) aimConstraint.weight = 1f;
     }
 
-    public IEnumerator StopLooking()
+    public IEnumerator StopLookingRoutine()
     {
         float elapsed = 0f;
+        float startWeight = aimConstraint != null ? aimConstraint.weight : 1f;
+
         while (elapsed < turnDuration)
         {
             elapsed += Time.deltaTime;
-            float rawT = Mathf.Clamp01(elapsed / turnDuration);
-            float curvedT = lookCurve.Evaluate(rawT);
-            curvedT = 1- curvedT;
+            float t = lookCurve.Evaluate(Mathf.Clamp01(elapsed / turnDuration));
+
             if (aimConstraint != null)
-            {
-                aimConstraint.weight = curvedT;
-            }
+                aimConstraint.weight = Mathf.Lerp(startWeight, 0f, t);
 
             yield return null;
         }
+
+        if (aimConstraint != null) aimConstraint.weight = 0f;
     }
 }

@@ -21,7 +21,7 @@ public class RaycastHitEvents : MonoBehaviour
 
     // Custom event type that passes a Transform.
     [System.Serializable]
-    public class TransformEvent : UnityEvent<Transform> { }
+    public class TransformEvent : UnityEvent<Transform, Transform> { }
 
     private void Awake()
     {
@@ -53,17 +53,16 @@ public class RaycastHitEvents : MonoBehaviour
         {
             // Move the empty object to the hit position.
             HitPointObject.SetActive(true);
-            HitPointObject.transform.position = hit.point;
-            HitPointObject.transform.rotation = Quaternion.LookRotation(hit.normal);
+            HitPointObject.transform.SetPositionAndRotation(hit.point, Quaternion.LookRotation(hit.normal));
 
             // Fire every frame while the ray hits something.
-            onHitEveryFrame?.Invoke(HitPointObject.transform);
+            onHitEveryFrame?.Invoke(HitPointObject.transform, hit.transform);
 
             // Fire only on the frame Space is pressed.
             if (Keyboard.current != null &&
                 Keyboard.current.spaceKey.wasPressedThisFrame)
             {
-                onSpacePressed?.Invoke(HitPointObject.transform);
+                onSpacePressed?.Invoke(HitPointObject.transform, hit.transform);
             }
         }
         else
