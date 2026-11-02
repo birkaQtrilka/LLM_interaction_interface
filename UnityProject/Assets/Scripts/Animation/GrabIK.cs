@@ -246,9 +246,12 @@ public class GrabIK : MonoBehaviour
         float horizontal = new Vector2(delta.x, delta.z).magnitude;
         float maxReach = FullLeanDistance;
 
-        if (horizontal >= maxReach) return 0f;
+        float allowedBelow = 0f;
+        if (horizontal < maxReach)
+        {
+            allowedBelow = Mathf.Sqrt(maxReach * maxReach - horizontal * horizontal);
+        }
 
-        float allowedBelow = Mathf.Sqrt(maxReach * maxReach - horizontal * horizontal);
         float needed = below - allowedBelow;
 
         if (needed < minCrouchDepth) return 0f;

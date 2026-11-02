@@ -15309,7 +15309,7 @@ PrefabInstance:
       objectReference: {fileID: 756906396}
     - target: {fileID: 454478651428193399, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: leanOvershoot
-      value: 0.371
+      value: 0.261
       objectReference: {fileID: 0}
     - target: {fileID: 454478651428193399, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: maxLeanWeight
