@@ -113,13 +113,24 @@ static class MovementActions
 
         direction.Normalize();
         float turnAngle = Vector3.SignedAngle(agent.transform.forward, direction, Vector3.up);
+        Quaternion targetRot = Quaternion.LookRotation(direction, Vector3.up);
+
+        if (Mathf.Abs(turnAngle) < agent.AngleForLerpRotation)
+        {
+            while (Quaternion.Angle(agent.transform.rotation, targetRot) > 0.1f)
+            {
+                agent.transform.rotation = Quaternion.Lerp(agent.transform.rotation, targetRot, 15f * Time.deltaTime);
+                yield return null;
+            }
+            agent.transform.rotation = targetRot;
+            yield break;
+        }
 
         NavMeshAgent nav = agent.Nav;
         nav.isStopped = true;
         agent.Anim.SetFloat(TurnAngleHash, turnAngle);
         agent.Anim.SetTrigger(DoTurnHash);
 
-        Quaternion targetRot = Quaternion.LookRotation(direction, Vector3.up);
         yield return Utils.MonitorAnimatorState(agent.Anim, TurnInPlaceHash);
 
         AnimatorStateInfo state = agent.Anim.GetCurrentAnimatorStateInfo(0);
