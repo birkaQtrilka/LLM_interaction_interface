@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
-struct Pos
+public struct Pos
 {
-    public Vector3 position;
-    public Quaternion rotation;
+    public Vector3 p;
+    public Quaternion r;
     public Pos(Vector3 pos, Quaternion rot)
     {
-        position = pos;
-        rotation = rot;
+        p = pos;
+        r = rot;
     }
 }
 public class ResetPos : MonoBehaviour
@@ -25,7 +25,7 @@ public class ResetPos : MonoBehaviour
     {
         for (int i = 0; i < targets.Count; i++)
         {
-            targets[i].SetPositionAndRotation(originalPositions[i].position, originalPositions[i].rotation);
+            targets[i].SetPositionAndRotation(originalPositions[i].p, originalPositions[i].r);
         }
     }
 

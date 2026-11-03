@@ -12,6 +12,9 @@ public class NPC : MonoBehaviour
     [field: SerializeField] public GrabReceiver GrabReceiver { get; private set; }
     [field: SerializeField] public Animator Anim { get; private set; }
     [field: SerializeField] public LookSettings LookSettings { get; private set; } = new LookSettings { MaxSightDistance = 6f, CheckInterval = 0.1f, ItemTolerance = 0.5f };
+    [Header("Point Settings")]
+    [field: SerializeField] public GrabProfile pointProfile { get; private set; }
+
 
     [Header("Movement Settings")]
     [field: SerializeField] public float WalkSpeedMult { get; private set; } = 1f;

@@ -15,6 +15,7 @@ public class DialoguePlayer : MonoBehaviour
     private void Awake()
     {
         dispatcher.Register(new NodGesture());
+        dispatcher.Register(new PointGesture());
     }
 
     public IEnumerator Play(ParsedLine line, AgentSystem ctx, ActionData talkData)

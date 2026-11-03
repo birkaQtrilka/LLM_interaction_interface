@@ -99,6 +99,12 @@ public class GrabIK : MonoBehaviour
         SetCrouch(0f, 0f);
     }
 
+    public void SetTargetPose(Vector3 position, Quaternion rotation)
+    {
+        if (handTarget != null) handTarget.SetPositionAndRotation(position, rotation);
+    }
+    public Transform UpperArm => upperArm;
+
     // Runs before the animator/rig evaluates this frame
     private void Update()
     {
@@ -172,26 +178,13 @@ public class GrabIK : MonoBehaviour
         if (crouchDepth > 0f) PlantFeet();
 
         // ================= REACH PHASE =================
-        float elapsed = 0f;
-        while (elapsed < profile.reachDuration)
-        {
-            elapsed += Time.deltaTime;
-            float t = profile.reachCurve.Evaluate(Mathf.Clamp01(elapsed / profile.reachDuration));
-
-            handTarget.SetPositionAndRotation(
-                Vector3.Lerp(startPos, targetPos, t),
-                Quaternion.Slerp(startRot, targetRot, t));
-
-            armRig.weight = t;
+        yield return ArmReachPhase(profile, new Pos(startPos, startRot), new Pos(targetPos, targetRot), (t) => {
             SetCrouch(crouchDepth, t);
             if (spineAimConstraint != null)
                 spineAimConstraint.weight = Mathf.Lerp(0f, targetLean, t);
-
-            yield return null;
-        }
+        });
 
         handTarget.SetPositionAndRotation(targetPos, targetRot);
-        armRig.weight = 1f;
         SetCrouch(crouchDepth, 1f);
         if (spineAimConstraint != null) spineAimConstraint.weight = targetLean;
 
@@ -200,27 +193,53 @@ public class GrabIK : MonoBehaviour
         onContact?.Invoke();
 
         // ============ HAND OFF TO THE HOLD ANIMATION ============
-        float blendDuration = Mathf.Max(0.01f, profile.ikBlendOutDuration);
-        elapsed = 0f;
-        while (elapsed < blendDuration)
+        yield return ArmDownPhase(profile, (t) =>
         {
-            elapsed += Time.deltaTime;
-            float t = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(elapsed / blendDuration));
-
-            armRig.weight = Mathf.Lerp(1f, 0f, t);
             SetCrouch(crouchDepth, 1f - t);   // stand back up
             if (spineAimConstraint != null)
                 spineAimConstraint.weight = Mathf.Lerp(targetLean, 0f, t);
-
-            yield return null;
-        }
-
-        armRig.weight = 0f;
+        });
         SetCrouch(0f, 0f);
         feetPlanted = false;
         if (spineAimConstraint != null) spineAimConstraint.weight = 0f;
         handTarget.SetPositionAndRotation(startPos, startRot);
         isGrabbing = false;
+    }
+
+    public IEnumerator ArmReachPhase(GrabProfile profile, Pos startPos, Pos targetPos, Action<float> onUpdate = null)
+    {
+        float elapsed = 0f;
+        while (elapsed < profile.reachDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = profile.reachCurve.Evaluate(Mathf.Clamp01(elapsed / profile.reachDuration));
+
+            handTarget.SetPositionAndRotation(
+                Vector3.Lerp(startPos.p, targetPos.p, t),
+                Quaternion.Slerp(startPos.r, targetPos.r, t));
+
+            armRig.weight = t;
+            onUpdate?.Invoke(t);
+
+            yield return null;
+        }
+        armRig.weight = 1f;
+    }
+
+    public IEnumerator ArmDownPhase(GrabProfile profile, Action<float> onUpdate = null)
+    {
+        float blendDuration = Mathf.Max(0.01f, profile.ikBlendOutDuration);
+        float elapsed = 0f;
+        while (elapsed < blendDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(elapsed / blendDuration));
+            armRig.weight = Mathf.Lerp(1f, 0f, t);
+            onUpdate?.Invoke(t);
+            yield return null;
+        }
+
+        armRig.weight = 0f;
     }
 
     // ------------------------------------------------------------------
