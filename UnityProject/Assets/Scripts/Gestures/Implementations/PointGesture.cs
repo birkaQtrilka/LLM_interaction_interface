@@ -9,7 +9,8 @@ public class PointGesture : IGestureHandler
     public IEnumerator Execute(
         AgentSystem ctx,
         ActionData talkData,
-        IReadOnlyDictionary<string, string> args)
+        IReadOnlyDictionary<string, string> args,
+        NPC agent)
     {
         string target = args.ContainsKey("target") ? args["target"] : null;
 
@@ -27,23 +28,35 @@ public class PointGesture : IGestureHandler
             yield break;
         }
 
-        NPC agent = ctx.GetAgent(talkData.agent);
-        if (agent == null) yield break;
         if (!agent.transform.GetChild(0).TryGetComponent<GrabIK>(out var armAnimator))
         {
             Debug.LogWarning($"Agent {agent.name} does not have a GrabIK component for arm animation.");
             yield break;
         }
 
-        armAnimator.hand.GetPositionAndRotation(
-            out Vector3 startPos,
-            out Quaternion startRot
-        );
-
-        armAnimator.SetTargetPose(startPos, startRot);
         Transform shoulder = armAnimator.UpperArm;
+        Vector3 flatDir = spot.position - agent.transform.position;
+        flatDir.y = 0f;
+
+        if (flatDir.sqrMagnitude > 0.0001f)
+        {
+            yield return MovementActions.WaitForTurn(agent);
+
+            yield return null;
+            while (agent.Anim.IsInTransition(0))
+                yield return null;
+
+            float turnAngle = Vector3.SignedAngle(agent.transform.forward, flatDir, Vector3.up);
+            if (Mathf.Abs(turnAngle) > 40f)
+                yield return MovementActions.StartTurn(agent, spot.position);
+        }
+
+        armAnimator.hand.GetPositionAndRotation(out Vector3 startPos, out Quaternion startRot);
+        armAnimator.SetTargetPose(startPos, startRot);
+
         Vector3 startDir = (startPos - shoulder.position).normalized;
         Vector3 targetDir = (spot.position - shoulder.position).normalized;
+
         Quaternion armSwing = Quaternion.FromToRotation(
             startDir,
             targetDir
@@ -51,22 +64,24 @@ public class PointGesture : IGestureHandler
         Quaternion targetRot = armSwing * startRot;
         float armLength = Vector3.Distance(shoulder.position, armAnimator.hand.position);
 
-        Vector3 targetPos = shoulder.position + targetDir * (armLength-.1f);
+        Vector3 targetPos = shoulder.position + targetDir * (armLength - .1f);
         bool started = false;
         yield return armAnimator.ArmReachPhase(
             agent.pointProfile,
             new Pos(startPos, startRot),
-            new Pos(targetPos, Quaternion.identity),
-            (t)=>
+            new Pos(targetPos, targetRot),
+            (t) =>
             {
-                if(!started && t > .8)
+                if (!started && t > .8)
                 {
                     started = true;
-                    agent.Anim.Play(Name, layer: 2);
+                    agent.Anim.Play(Name, (int)NPC_AnimLayer.Gestures);
                 }
             }
         );
         yield return new WaitForSeconds(2);
+
+        agent.Anim.CrossFadeInFixedTime("Empty", 0.2f, (int)NPC_AnimLayer.Gestures);
 
         yield return armAnimator.ArmDownPhase(
             agent.pointProfile

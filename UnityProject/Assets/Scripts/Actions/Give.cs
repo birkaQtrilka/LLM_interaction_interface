@@ -19,7 +19,7 @@ public class Give : IAgentAction
         void start()
         {
             agent.Anim.SetBool("Give", true);
-            otherAgent.StartCoroutine(MovementActions.TurnTowards(otherAgent, agent.transform.position));
+            MovementActions.StartTurn(otherAgent, agent.transform.position);
         }
 
         void finishHandoff()

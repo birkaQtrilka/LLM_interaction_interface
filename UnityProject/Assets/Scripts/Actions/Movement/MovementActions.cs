@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -7,6 +8,29 @@ static class MovementActions
 {
     // Backwards compatibility alias
     public static Dictionary<NPC, Vector3> Reserved => MovementReservation.Reserved;
+    static readonly Dictionary<NPC, Coroutine> activeTurns = new();
+
+    public static Coroutine StartTurn(NPC agent, Vector3 targetPosition)
+    {
+        activeTurns.TryGetValue(agent, out var previous);
+        var routine = agent.StartCoroutine(SerialTurn(agent, previous, targetPosition));
+        activeTurns[agent] = routine;
+        return routine;
+    }
+
+    static IEnumerator SerialTurn(NPC agent, Coroutine previous, Vector3 targetPosition)
+    {
+        if (previous != null) yield return previous;   // finished coroutines return immediately
+        yield return TurnTowards(agent, targetPosition);
+    }
+
+    /// Completes once the agent's most recent turn has finished (immediately if none).
+    public static IEnumerator WaitForTurn(NPC agent)
+    {
+        if (activeTurns.TryGetValue(agent, out var c) && c != null)
+            yield return c;   // yielding a Coroutine waits for it; a finished one returns right away
+        
+    }
 
     static readonly int HorizontalHash = Animator.StringToHash("Horizontal");
     static readonly int VerticalHash = Animator.StringToHash("Vertical");
@@ -52,10 +76,11 @@ static class MovementActions
             // If already in range or no path needed, turn to face the target
             if (!agent.Nav.hasPath || agent.Nav.remainingDistance <= agent.Nav.stoppingDistance + agent.StoppingDistOffset)
             {
-                yield return agent.StartCoroutine(TurnTowards(agent, pos.position));
+                yield return StartTurn(agent, pos.position);
             }
             else
             {
+                yield return WaitForTurn(agent);
                 walkRoutine = agent.StartCoroutine(WalkAndFace(agent, pos.position));
                 lookHandler.StartWatching();
 
@@ -65,7 +90,7 @@ static class MovementActions
                     agent.StopCoroutine(walkRoutine);
                     walkRoutine = null;
                 }
-                yield return agent.StartCoroutine(TurnTowards(agent, pos.position));
+                yield return StartTurn(agent, pos.position);
 
             }
 

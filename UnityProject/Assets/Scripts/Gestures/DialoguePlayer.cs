@@ -18,7 +18,7 @@ public class DialoguePlayer : MonoBehaviour
         dispatcher.Register(new PointGesture());
     }
 
-    public IEnumerator Play(ParsedLine line, AgentSystem ctx, ActionData talkData)
+    public IEnumerator Play(ParsedLine line, AgentSystem ctx, ActionData talkData, NPC agent)
     {
         gameObject.SetActive(true);
         label.text = line.CleanText;
@@ -34,14 +34,14 @@ public class DialoguePlayer : MonoBehaviour
             int visible = Mathf.Min(Mathf.FloorToInt(shown), total);
 
             while (next < line.Markers.Count && line.Markers[next].CharIndex <= visible)
-                dispatcher.Dispatch(line.Markers[next++], ctx, talkData);
+                dispatcher.Dispatch(line.Markers[next++], ctx, talkData, agent);
 
             label.maxVisibleCharacters = visible;
             yield return null;
         }
 
         while (next < line.Markers.Count)       // markers at the very end
-            dispatcher.Dispatch(line.Markers[next++], ctx, talkData);
+            dispatcher.Dispatch(line.Markers[next++], ctx, talkData, agent);
         yield return new WaitForSeconds(delayAfter);
         gameObject.SetActive(false);
     }

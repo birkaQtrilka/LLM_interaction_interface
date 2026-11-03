@@ -43,13 +43,13 @@ public class Talk : IAgentAction
             if (other == null)
             {
                 Transform player = context.contextLibrary.Player;
-                if (player != null) agent.StartCoroutine(MovementActions.TurnTowards(agent, player.position));
+                if (player != null) MovementActions.StartTurn(agent, player.position);
                 else Debug.LogWarning("Player transform is null");
             }
             else
             {
                 receiver = other.name;
-                agent.StartCoroutine(MovementActions.TurnTowards(agent, other.transform.position));
+                MovementActions.StartTurn(agent, other.transform.position);
             }
             ParsedLine line = LineParser.Parse(msg);
             
@@ -58,7 +58,7 @@ public class Talk : IAgentAction
             if (context.AnimationLibrary.DialoguePlayer == null)
                 Debug.LogWarning("DialoguePlayer is null");
             else 
-                agent.StartCoroutine( context.AnimationLibrary.DialoguePlayer.Play(line, context, action) );
+                agent.StartCoroutine( context.AnimationLibrary.DialoguePlayer.Play(line, context, action, agent) );
             if (sendOn) EnqueueHeard(context, msg, heardBy, speaker);
 
         }

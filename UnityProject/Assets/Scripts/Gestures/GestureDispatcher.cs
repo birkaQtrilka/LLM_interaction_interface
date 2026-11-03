@@ -7,9 +7,9 @@ public class GestureDispatcher
 
     public void Register(IGestureHandler h) => handlers[h.Name] = h;
 
-    public void Dispatch(GestureMarker m, AgentSystem ctx, ActionData talkData)
+    public void Dispatch(GestureMarker m, AgentSystem ctx, ActionData talkData, NPC agent)
     {
-        if (handlers.TryGetValue(m.Name, out var h)) ctx.StartCoroutine(h.Execute(ctx, talkData, m.Args));
+        if (handlers.TryGetValue(m.Name, out var h)) agent.StartCoroutine(h.Execute(ctx, talkData, m.Args, agent));
         else Debug.LogWarning($"Unknown action {m.Name}");
     }
 }

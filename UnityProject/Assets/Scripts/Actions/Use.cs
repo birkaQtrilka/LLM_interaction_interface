@@ -2,14 +2,6 @@ using System.Collections;
 using System.Linq;
 using UnityEngine;
 
-public enum NPC_AnimLayer
-{
-    Locomotion = 0,
-    Arms = 1,
-    Gestures = 2,
-    ItemUse = 3,
-}
-
 public class Use : IAgentAction
 {
     public string Name => "use";
