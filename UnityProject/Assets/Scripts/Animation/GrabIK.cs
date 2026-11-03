@@ -55,7 +55,8 @@ public class GrabIK : MonoBehaviour
 
     [Header("Debug")]
     [SerializeField] private bool gizmos;
-
+    [SerializeField] Vector3 handForward;
+    [SerializeField] Vector3 handUp;
     private float armLength;
     private bool isGrabbing;
     public bool IsReaching => isGrabbing;
@@ -305,6 +306,18 @@ public class GrabIK : MonoBehaviour
         var data = hipsOverride.data;
         data.position = localDown * (depth * amount);
         hipsOverride.data = data;
+    }
+
+    public Quaternion GetHandRotationFacing(Vector3 targetForward, Vector3 targetUp)
+    {
+        // Orientation where Z is forward and Y is up
+        Quaternion worldAim = Quaternion.LookRotation(targetForward.normalized, targetUp.normalized);
+
+        // Orientation where handForwardAxis is forward and handUpAxis is up in local space
+        Quaternion localHandBasis = Quaternion.LookRotation(handForward, handUp);
+
+        // Cancel out the bone's local axis mismatch
+        return worldAim * Quaternion.Inverse(localHandBasis);
     }
 
     // ------------------------------------------------------------------

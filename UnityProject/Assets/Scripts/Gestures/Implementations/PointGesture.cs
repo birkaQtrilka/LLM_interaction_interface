@@ -57,14 +57,13 @@ public class PointGesture : IGestureHandler
         Vector3 startDir = (startPos - shoulder.position).normalized;
         Vector3 targetDir = (spot.position - shoulder.position).normalized;
 
-        Quaternion armSwing = Quaternion.FromToRotation(
-            startDir,
-            targetDir
-        );
-        Quaternion targetRot = armSwing * startRot;
-        float armLength = Vector3.Distance(shoulder.position, armAnimator.hand.position);
+        Vector3 targetUp = Vector3.up;
 
-        Vector3 targetPos = shoulder.position + targetDir * (armLength - .1f);
+        Quaternion targetRot = armAnimator.GetHandRotationFacing(targetDir, targetUp);
+
+        float armLength = Vector3.Distance(shoulder.position, armAnimator.hand.position);
+        Vector3 targetPos = shoulder.position + targetDir * (armLength - 0.1f);
+
         bool started = false;
         yield return armAnimator.ArmReachPhase(
             agent.pointProfile,
@@ -72,7 +71,7 @@ public class PointGesture : IGestureHandler
             new Pos(targetPos, targetRot),
             (t) =>
             {
-                if (!started && t > .8)
+                if (!started && t > .8f)
                 {
                     started = true;
                     agent.Anim.Play(Name, (int)NPC_AnimLayer.Gestures);
