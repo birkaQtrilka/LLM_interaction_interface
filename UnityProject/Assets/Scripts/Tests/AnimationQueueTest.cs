@@ -123,7 +123,7 @@ public class AnimationQueueTest : MyTest
         animationLibrary.PlayAnimation(AgentSystem, new ActionData
         {
             id = 2,
-            name = "moveToSpot",
+            name = "moveTo",
             agent = agent.name,
             parameters = new string[] { "SpotB" },
             runAfter = new int[] { 1 },
