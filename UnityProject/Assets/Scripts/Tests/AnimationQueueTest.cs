@@ -41,7 +41,7 @@ public class AnimationQueueTest : MyTest
             id = 1,
             name = "talk",
             agent = agent.name,
-            parameters = new string[] { "Hi there![nod] How are you doing?", "user" },
+            parameters = new string[] { "Hi there![nod] How are you doing?", "user", "false" },
             runAfter = new int[] { },
             delayBefore = 0
         });
@@ -134,7 +134,7 @@ public class AnimationQueueTest : MyTest
             id = 3,
             name = "talk",
             agent = agent.name,
-            parameters = new string[] { "I should be talking While going to Spot B" },
+            parameters = new string[] { "I should be talking While going to Spot B", "user", "false" },
             runAfter = new int[] { 1 },
             delayBefore = 1
         });
@@ -143,7 +143,7 @@ public class AnimationQueueTest : MyTest
             id = 4,
             name = "talk",
             agent = agent.name,
-            parameters = new string[] { "I should be talking While going to Spot A" },
+            parameters = new string[] { "I should be talking While going to Spot A", "user", "false" },
             runAfter = new int[] { },
             delayBefore = 0
         });
@@ -152,7 +152,7 @@ public class AnimationQueueTest : MyTest
             id = 5,
             name = "talk",
             agent = agent.name,
-            parameters = new string[] { "I should be talking AGAIN While going to Spot A" },
+            parameters = new string[] { "I should be talking AGAIN While going to Spot A", "user", "false" },
             runAfter = new int[] { },
             delayBefore = 1
         });
@@ -170,7 +170,7 @@ public class AnimationQueueTest : MyTest
             id = 7,
             name = "talk",
             agent = agent.name,
-            parameters = new string[] { "Talking after 2 dependencies" },
+            parameters = new string[] { "Talking after 2 dependencies", "user", "false" },
             runAfter = new int[] { 6, 2 },
             delayBefore = 0
         });
