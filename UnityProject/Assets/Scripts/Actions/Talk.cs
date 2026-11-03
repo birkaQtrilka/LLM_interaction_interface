@@ -19,10 +19,10 @@ public class Talk : IAgentAction
     public string TryBuild(ActionData action, AgentSystem context, NPC agent, out AnimAction result)
     {
         result = default;
-        if (action.parameters.Length != 2) return "talk requires 2 parameters: message, receiver";
+        if (action.parameters.Length != 3) return "talk requires 3 parameters: message, addressee, isNextTurn";
 
         string msg = action.parameters[0];
-        // parameters: [message, addressee?, isNextTurn?]. Empty or missing addressee is the player
+        // parameters: [message, addressee, isNextTurn]. Empty addressee is the player
         string heardBy = action.parameters.Length > 1 && !string.IsNullOrEmpty(action.parameters[1])
             ? action.parameters[1]
             : "user";
