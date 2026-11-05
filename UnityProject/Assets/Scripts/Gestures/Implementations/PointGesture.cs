@@ -26,7 +26,7 @@ public class PointGesture : IGestureHandler
             yield break;
         }
 
-        yield return ReachAnimation(agent, spot, ctx,
+        yield return ReachAnimation(agent, spot,
             (t) =>
             {
                 if (!started && t > .8f)
@@ -38,7 +38,7 @@ public class PointGesture : IGestureHandler
             , waitAfterReach: 2);
     }
 
-    public static IEnumerator ReachAnimation(NPC agent, Transform spot, AgentSystem ctx, System.Action<float> onReach,  float waitAfterReach = 0)
+    public static IEnumerator ReachAnimation(NPC agent, Transform spot, System.Action<float> onReach,  float waitAfterReach = 0)
     {
         if (!agent.transform.GetChild(0).TryGetComponent<GrabIK>(out var armAnimator))
         {
@@ -89,4 +89,6 @@ public class PointGesture : IGestureHandler
             agent.pointProfile
         );
     }
+
+
 }

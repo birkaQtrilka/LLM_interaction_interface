@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class MoveAndGrab : StateMachineBehaviour
 {
+    [SerializeField] GrabProfile grabProfile;
     AgentSystem system;
 
     override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
@@ -17,6 +18,7 @@ public class MoveAndGrab : StateMachineBehaviour
         }
 
         NPC agent = animator.GetComponentInParent<NPC>();
+        GrabIK grabIK = agent.GetComponentInChildren<GrabIK>();
 
         AnimationInstance animation = system.AnimationLibrary.GetAnimation(x =>
         {
@@ -47,30 +49,23 @@ public class MoveAndGrab : StateMachineBehaviour
             temp.position = spot.position;
         }
 
-        bool started = false;
-        agent.StartCoroutine(
-            PointGesture.ReachAnimation(
-                agent,
-                temp, 
-                system, 
-                onReach: (t) => { 
-                    if(!started && t > 0.95)
-                    {
-                        started = true;
-                        
-                        Animator itemAnim = useOn.GetComponentInChildren<Animator>();
-                        if (itemAnim != null)
-                        {
-                            itemAnim.SetTrigger("UseLater");
-                        }
-                        else
-                        {
-                            Debug.LogWarning($"Item: '{useOn.name}' does not have an Animator component to play the 'Use' animation");
-                        }
-                        Destroy(temp.gameObject);
-                    }
+
+        agent.StartCoroutine(grabIK.ReachRoutine(
+            temp,
+            grabProfile,
+            () =>
+            {
+                Animator itemAnim = useOn.GetComponentInChildren<Animator>();
+                if (itemAnim != null)
+                {
+                    itemAnim.SetTrigger("UseLater");
                 }
-            )
-        );
+                else
+                {
+                    Debug.LogWarning($"Item: '{useOn.name}' does not have an Animator component to play the 'Use' animation");
+                }
+                Destroy(temp.gameObject);
+            }
+            ));
     }
 }
