@@ -12,21 +12,21 @@ public class Use : IAgentAction
         if (param.Length != 1) return "requires 1 parameter: useOn (item the object in hand should be used on)";
 
         int nameHash = -1;
-
+        string error = null;
         void start()
         {
             (string err, Transform useOn, ContextItem it) = Validate(param[0], context, agent);
-            if (err != null) throw new System.Exception(err);
-            
-            if(it == null) // nothing in hands
+            error = err;
+            if(error != null) return;
+            if (it == null) // nothing in hands
             {
                 var itemAnim = useOn.GetComponentInChildren<Animator>();
                 if (itemAnim != null)
                 {
                     itemAnim.SetTrigger("Use");// can be Play(name) later
-                } else Debug.LogWarning($"Item: '{useOn.name}' does not have an Animator component to play the 'Use' animation");
+                    nameHash = Animator.StringToHash(useOn.name);
+                } else error = $"Item: '{useOn.name}' does not have an Animator component to play the 'Use' animation";
 
-                nameHash = Animator.StringToHash(useOn.name);
             }
             else // with item in hands
             {
@@ -36,8 +36,8 @@ public class Use : IAgentAction
                     itemAnim.SetTrigger("Use");
                     // The "Use" trigger should be set up in the Animator for the item to play the appropriate animation when used only if Immediate
                     // If you want to play the animation later, in a timed Matter, you should use "UseLater" together with an animation behavior/event
-                } else Debug.LogWarning($"Item: '{it.GetName()}' does not have an Animator component to play the 'Use' animation");
-                nameHash = Animator.StringToHash(it.GetName());
+                    nameHash = Animator.StringToHash(it.GetName());
+                } else error = $"Item: '{it.GetName()}' does not have an Animator component to play the 'Use' animation";
             }
 
             agent.Anim.Play(nameHash, (int)NPC_AnimLayer.ItemUse);
@@ -45,7 +45,17 @@ public class Use : IAgentAction
 
         IEnumerator behavior()
         {
-            yield return new WaitUntil(() => nameHash != -1);
+            if(error != null)
+            {
+                Debug.LogError(error);
+                yield break;
+            }
+            yield return new WaitUntil(() => error != null || nameHash != -1);
+            if (error != null)
+            {
+                Debug.LogError(error);
+                yield break;
+            }
             yield return Utils.MonitorAnimatorState(agent.Anim, nameHash, (int)NPC_AnimLayer.ItemUse);
         }
 
