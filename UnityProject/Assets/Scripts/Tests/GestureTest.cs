@@ -27,7 +27,7 @@ public class GestureTest : MyTest
                 id = 0,
                 name = "talk",
                 agent = agent.name,
-                parameters = new string[] { script, "user" }
+                parameters = new string[] { script, "user", "false" }
             }
         );
     }
