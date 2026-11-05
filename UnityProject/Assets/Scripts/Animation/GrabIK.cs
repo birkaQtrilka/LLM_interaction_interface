@@ -28,6 +28,14 @@ public class GrabIK : MonoBehaviour
     [SerializeField] private float armLenghtOffset = -0.1f;
     [Tooltip("Extra distance (meters) to overshoot the lean. Calculates reach as if the arm was shorter, keeping the real arm slightly bent.")]
     [SerializeField, Range(0f, 0.5f)] private float leanOvershoot = 0.1f;
+    [Tooltip("Additional downward aim pitch for low reaches, without moving the hand target (degrees).")]
+    [SerializeField, Range(0f, 45f)] private float extraDownwardLeanPitch = 20f;
+    [Tooltip("Maximum change from the unleaned spine aim direction (degrees).")]
+    [SerializeField, Range(0f, 85f)] private float maxForwardLeanAngle = 75f;
+    [Tooltip("Fraction of reach time reserved for leaning before knees may bend.")]
+    [SerializeField, Range(0.1f, 0.9f)] private float leanFirstFraction = 0.55f;
+    [Tooltip("Shoulder motion tolerance between evaluated frames before permitting crouch (meters).")]
+    [SerializeField, Min(0.001f)] private float leanSettleTolerance = 0.02f;
 
     [Header("Crouch / Knee Bend")]
     [Tooltip("Rig holding the two leg TwoBoneIKConstraints and the hips OverrideTransform")]
@@ -50,8 +58,30 @@ public class GrabIK : MonoBehaviour
     [SerializeField] private float maxCrouchDepth = 0.6f;
     [Tooltip("Ignore tiny drops so we don't crouch for a few cm")]
     [SerializeField] private float minCrouchDepth = 0.05f;
-    [Tooltip("Extra reach (m) the full spine lean adds. Raise it if the spine bends further than this in practice, so the crouch starts later.")]
+    [Tooltip("Distance beyond comfortable arm reach over which lean ramps to full weight; not an assumed reach bonus.")]
     [SerializeField] private float leanReachBonus = 0.3f;
+    [Tooltip("Maximum hips movement speed (meters per second).")]
+    [SerializeField, Min(0.1f)] private float crouchResponseSpeed = 2.5f;
+    [Tooltip("Ignore residual changes smaller than this distance (meters).")]
+    [SerializeField, Min(0.001f)] private float reachTolerance = 0.015f;
+    [Tooltip("Maximum additional settling time before contact (seconds), even for unreachable targets.")]
+    [SerializeField, Range(0f, 0.5f)] private float maxReachSettleTime = 0.2f;
+
+    private Vector3 sampledShoulder, sampledLeanShoulder, previousLeanShoulder;
+    private float sampledLeanWeight;
+    private int sampleFrame = -1, stableLeanFrames;
+    private bool resolvingPosture, crouchAuthorized;
+    private float requestedLeanWeight, appliedCrouchDepth;
+    private Vector3 postureTarget;
+    private Quaternion reachStartRotation;
+    private Vector3 reachStartPosition;
+    public float AppliedCrouchDepth => appliedCrouchDepth;
+    public float LeanWeight => spineAimConstraint != null ? spineAimConstraint.weight : 0f;
+    public float RequestedLeanWeight => requestedLeanWeight;
+    public bool CrouchAuthorized => crouchAuthorized;
+    public float ContactError { get; private set; }
+    public float SpineLeanAngle => HasSpineLean ? Vector3.Angle(neutralSpineAim,
+        spineAimConstraint.data.constrainedObject.TransformDirection(spineAimAxis)) : 0f;
 
     [Header("Debug")]
     [SerializeField] private bool gizmos;
@@ -74,10 +104,16 @@ public class GrabIK : MonoBehaviour
     private Vector3 leftPlantPos, rightPlantPos;
     private Quaternion leftPlantRot, rightPlantRot;
 
+    private Animator reachAnimator;
+    private AnimatorCullingMode previousCullingMode;
+    private int reachVersion;
+
     private void Awake()
     {
-        armLength = Vector3.Distance(upperArm.position, forearm.position)
-                  + Vector3.Distance(forearm.position, hand.position) + armLenghtOffset;
+        reachAnimator = GetComponent<Animator>();
+        armLength = upperArm != null && forearm != null && hand != null
+            ? Vector3.Distance(upperArm.position, forearm.position)
+                + Vector3.Distance(forearm.position, hand.position) + armLenghtOffset : 0f;
 
         if (armRig != null) armRig.weight = 0f;
         if (spineAimConstraint != null) spineAimConstraint.weight = 0f;
@@ -128,17 +164,72 @@ public class GrabIK : MonoBehaviour
         }
     }
 
+    private void LateUpdate()
+    {
+        if (!isGrabbing || upperArm == null) return;
+        sampledShoulder = upperArm.position;
+        Vector3 crouchOffset = Vector3.zero;
+        if (hipsOverride != null && hips != null && crouchRig != null)
+            crouchOffset = hips.TransformDirection(hipsOverride.data.position)
+                * hipsOverride.data.positionWeight * hipsOverride.weight * crouchRig.weight;
+        sampledLeanShoulder = sampledShoulder - crouchOffset;
+        sampledLeanWeight = HasSpineLean ? spineAimConstraint.weight : 0f;
+        bool leanEvaluated = !HasSpineLean || sampledLeanWeight >= requestedLeanWeight - 0.001f;
+        stableLeanFrames = leanEvaluated && sampleFrame >= 0
+            && Vector3.Distance(sampledLeanShoulder, previousLeanShoulder) <= leanSettleTolerance
+            ? stableLeanFrames + 1 : 0;
+        previousLeanShoulder = sampledLeanShoulder;
+        sampleFrame = Time.frameCount;
+        UpdateSpineAim();
+    }
+
+    private bool extraLeanRequired;
+
+    private void UpdateReachPosture(float progress)
+    {
+        float leanProgress = Mathf.Clamp01(progress / Mathf.Clamp(leanFirstFraction, 0.1f, 0.9f));
+        bool evaluated = sampleFrame >= 0 && sampleFrame < Time.frameCount && stableLeanFrames >= 2;
+        if (!crouchAuthorized && HasSpineLean && leanProgress >= 1f && evaluated
+            && Vector3.Distance(sampledShoulder, postureTarget) > EffectiveArmLength + reachTolerance)
+            extraLeanRequired = true;
+        if (extraLeanRequired)
+            requestedLeanWeight = Mathf.MoveTowards(requestedLeanWeight, Mathf.Clamp01(maxLeanWeight),
+                Time.deltaTime / Mathf.Max(0.1f, leanFirstFraction));
+        if (HasSpineLean)
+            spineAimConstraint.weight = Mathf.SmoothStep(0f, requestedLeanWeight, leanProgress);
+        bool leanExhausted = !extraLeanRequired || sampledLeanWeight >= Mathf.Clamp01(maxLeanWeight) - 0.001f;
+        if (!crouchAuthorized && (!HasSpineLean || leanProgress >= 1f) && evaluated && leanExhausted)
+            crouchAuthorized = true;
+        if (!crouchAuthorized) return;
+        float desiredDepth = CalculateCrouchDepth(postureTarget);
+        if (Mathf.Abs(desiredDepth - appliedCrouchDepth) > reachTolerance)
+            appliedCrouchDepth = Mathf.MoveTowards(appliedCrouchDepth, desiredDepth,
+                Mathf.Max(0.1f, crouchResponseSpeed) * Time.deltaTime);
+        if (appliedCrouchDepth > 0f && !feetPlanted) PlantFeet();
+        SetCrouch(appliedCrouchDepth, 1f);
+    }
+
     public IEnumerator ReachRoutine(Transform gripTarget, GrabProfile profile, Action onContact = null)
     {
-        if (isGrabbing || gripTarget == null || armRig == null)
+        if (isGrabbing || !isActiveAndEnabled || gripTarget == null || profile == null || armRig == null
+            || handTarget == null || upperArm == null || forearm == null || hand == null || holdPoint == null)
         {
             Debug.LogWarning($"Cannot start reach. isGrabbing: {isGrabbing}, target: {gripTarget}");
             yield break;
         }
 
         isGrabbing = true;
-
+        int version = ++reachVersion;
         hand.GetPositionAndRotation(out Vector3 startPos, out Quaternion startRot);
+        reachStartPosition = startPos;
+        reachStartRotation = startRot;
+        if (reachAnimator != null)
+        {
+            previousCullingMode = reachAnimator.cullingMode;
+            reachAnimator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+        }
+        try
+        {
         handTarget.SetPositionAndRotation(startPos, startRot);
 
         Matrix4x4 offset = PoseUtil.Local(profile.handOffsetPosition, profile.handOffsetEuler);
@@ -165,45 +256,96 @@ public class GrabIK : MonoBehaviour
         Vector3 localHoldPos = holdInHand.GetPosition();
         Vector3 targetPos = desiredHoldPos - (targetRot * localHoldPos);
 
-        // Lean covers slightly-out-of-reach, crouch only takes over once lean is maxed
-        float crouchDepth = CalculateCrouchDepth(targetPos);
-        float targetLean = CalculateLeanWeight(targetPos, crouchDepth);
-
-        if (gizmos)
-            Debug.Log($"Reach: below={-(targetPos.y - upperArm.position.y):F2} " +
-                      $"horiz={new Vector2(targetPos.x - upperArm.position.x, targetPos.z - upperArm.position.z).magnitude:F2} " +
-                      $"crouch={crouchDepth:F2} lean={targetLean:F2} maxReach={FullLeanDistance:F2}");
-
-        if (spineAimTarget != null) spineAimTarget.position = targetPos;
-
-        if (crouchDepth > 0f) PlantFeet();
-
-        // ================= REACH PHASE =================
-        yield return ArmReachPhase(profile, new Pos(startPos, startRot), new Pos(targetPos, targetRot), (t) => {
-            SetCrouch(crouchDepth, t);
-            if (spineAimConstraint != null)
-                spineAimConstraint.weight = Mathf.Lerp(0f, targetLean, t);
-        });
-
+        // Lock lean demand before crouching. The hand destination remains the true grip pose.
+        postureTarget = targetPos;
+        requestedLeanWeight = CalculateLeanWeight(targetPos);
+        PrepareSpineAim(targetPos);
+        resolvingPosture = true;
+        appliedCrouchDepth = 0f;
+        crouchAuthorized = false;
+        stableLeanFrames = 0;
+        sampleFrame = -1;
+        float duration = Mathf.Max(0.01f, profile.reachDuration);
+        float elapsed = 0f;
+        int finalPoseFrames = 0;
+        while (elapsed < duration + Mathf.Clamp(maxReachSettleTime, 0f, 0.5f))
+        {
+            if (version != reachVersion || !isGrabbing || !isActiveAndEnabled || gripTarget == null) yield break;
+            elapsed += Time.deltaTime;
+            float progress = Mathf.Clamp01(elapsed / duration);
+            float t = progress >= 1f ? 1f : Mathf.Clamp01(profile.reachCurve.Evaluate(progress));
+            handTarget.SetPositionAndRotation(Vector3.Lerp(startPos, targetPos, t),
+                Quaternion.Slerp(startRot, targetRot, t));
+            armRig.weight = t;
+            UpdateReachPosture(progress);
+            if (progress >= 1f && sampleFrame >= 0
+                && Vector3.Distance(hand.position, targetPos) <= reachTolerance)
+                finalPoseFrames++;
+            else finalPoseFrames = 0;
+            yield return null;
+            if (finalPoseFrames >= 2) break;
+        }
+        resolvingPosture = false;
+        if (version != reachVersion || !isGrabbing || !isActiveAndEnabled || gripTarget == null)
+            yield break;
         handTarget.SetPositionAndRotation(targetPos, targetRot);
-        SetCrouch(crouchDepth, 1f);
-        if (spineAimConstraint != null) spineAimConstraint.weight = targetLean;
-
-        // One frame so the IK is applied, then the contact moment
+        armRig.weight = 1f;
         yield return null;
+        if (version != reachVersion || !isGrabbing || !isActiveAndEnabled || gripTarget == null)
+            yield break;
+        ContactError = Vector3.Distance(hand.position, targetPos);
+        if (gizmos)
+            Debug.Log($"Reach: lean={requestedLeanWeight:F2} angle={SpineLeanAngle:F1} " +
+                      $"crouch={appliedCrouchDepth:F2} contactError={ContactError:F3}", this);
         onContact?.Invoke();
 
-        // ============ HAND OFF TO THE HOLD ANIMATION ============
-        yield return ArmDownPhase(profile, (t) =>
+        // Blend out the depth actually applied, not an estimated standing-pose deficit.
+        float crouchDepth = appliedCrouchDepth;
+        float targetLean = requestedLeanWeight;
+        float blendDuration = Mathf.Max(0.01f, profile.ikBlendOutDuration);
+        float blendElapsed = 0f;
+        while (blendElapsed < blendDuration)
         {
-            SetCrouch(crouchDepth, 1f - t);   // stand back up
+            if (version != reachVersion || !isGrabbing || !isActiveAndEnabled) yield break;
+            blendElapsed += Time.deltaTime;
+            float t = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(blendElapsed / blendDuration));
+            armRig.weight = 1f - t;
+            appliedCrouchDepth = crouchDepth * (1f - t);
+            SetCrouch(appliedCrouchDepth, 1f);
             if (spineAimConstraint != null)
                 spineAimConstraint.weight = Mathf.Lerp(targetLean, 0f, t);
-        });
+            yield return null;
+        }
+        }
+        finally
+        {
+            if (version == reachVersion) ResetReach();
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (isGrabbing) ResetReach();
+    }
+
+    private void ResetReach()
+    {
+        if (reachAnimator != null && isGrabbing) reachAnimator.cullingMode = previousCullingMode;
+        reachVersion++;
         SetCrouch(0f, 0f);
         feetPlanted = false;
+        resolvingPosture = false;
+        crouchAuthorized = false;
+        extraLeanRequired = false;
+        sampleFrame = -1;
+        stableLeanFrames = 0;
+        appliedCrouchDepth = 0f;
+        requestedLeanWeight = 0f;
+        spineAimDirection = Vector3.zero;
         if (spineAimConstraint != null) spineAimConstraint.weight = 0f;
-        handTarget.SetPositionAndRotation(startPos, startRot);
+        if (armRig != null) armRig.weight = 0f;
+        if (handTarget != null && isGrabbing)
+            handTarget.SetPositionAndRotation(reachStartPosition, reachStartRotation);
         isGrabbing = false;
     }
 
@@ -257,25 +399,25 @@ public class GrabIK : MonoBehaviour
 
     private float CalculateCrouchDepth(Vector3 targetPos)
     {
-        if (crouchRig == null || hipsOverride == null) return 0f;
+        if (crouchRig == null || hipsOverride == null || hips == null || sampleFrame < 0) return 0f;
+        float reach = Mathf.Max(0.01f, EffectiveArmLength + crouchReachMargin);
+        float needed = ResidualCrouchDepth(sampledLeanShoulder, targetPos, reach);
+        if (needed < Mathf.Max(0f, minCrouchDepth)) return 0f;
+        return Mathf.Min(needed, Mathf.Max(0f, maxCrouchDepth));
+    }
 
-        Vector3 delta = targetPos - upperArm.position;
-        float below = -delta.y;
-        if (below <= 0f) return 0f;
-
-        float horizontal = new Vector2(delta.x, delta.z).magnitude;
-        float maxReach = FullLeanDistance;
-
-        float allowedBelow = 0f;
-        if (horizontal < maxReach)
-        {
-            allowedBelow = Mathf.Sqrt(maxReach * maxReach - horizontal * horizontal);
-        }
-
-        float needed = below - allowedBelow;
-
-        if (needed < minCrouchDepth) return 0f;
-        return Mathf.Min(needed, maxCrouchDepth);
+    // A vertical pelvis drop cannot fix a horizontal shortfall. Return no fake solution.
+    public static float ResidualCrouchDepth(Vector3 leanShoulder, Vector3 targetPos, float reach)
+    {
+        Vector3 delta = targetPos - leanShoulder;
+        double horizontalSquared = (double)delta.x * delta.x + (double)delta.z * delta.z;
+        double reachSquared = (double)reach * reach;
+        if (double.IsNaN(horizontalSquared) || double.IsInfinity(horizontalSquared)
+            || float.IsNaN(delta.y) || float.IsInfinity(delta.y)
+            || float.IsNaN(reach) || float.IsInfinity(reach) || reach <= 0f
+            || delta.y >= 0f || horizontalSquared > reachSquared) return 0f;
+        float allowedBelow = (float)Math.Sqrt(Math.Max(0d, reachSquared - horizontalSquared));
+        return Mathf.Max(0f, -delta.y - allowedBelow);
     }
 
     private void PlantFeet()
@@ -330,26 +472,71 @@ public class GrabIK : MonoBehaviour
             (Vector3.Distance(upperArm.position, forearm.position) + Vector3.Distance(forearm.position, hand.position) + armLenghtOffset);
 
         float effectiveLength = Mathf.Max(0.01f, currentArmLength - leanOvershoot);
-        float leanMaxOver = effectiveLength * (1f - leanStartRatio) + leanReachBonus;
-        float fullLeanDist = effectiveLength * leanStartRatio + leanMaxOver + crouchReachMargin;
-
         Gizmos.color = Color.cyan;
         Gizmos.DrawWireSphere(upperArm.position, effectiveLength * leanStartRatio);
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(upperArm.position, effectiveLength);
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(upperArm.position, fullLeanDist);
+        if (handTarget != null)
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawLine(upperArm.position, handTarget.position);
+            Gizmos.DrawWireSphere(handTarget.position, 0.025f);
+        }
+        if (spineAimTarget != null && HasSpineLean)
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawLine(spineAimConstraint.data.constrainedObject.position, spineAimTarget.position);
+            Gizmos.DrawWireSphere(spineAimTarget.position, 0.025f);
+        }
+        if (Application.isPlaying && isGrabbing)
+        {
+            Gizmos.color = Color.magenta;
+            Gizmos.DrawLine(sampledLeanShoulder, sampledShoulder);
+        }
     }
 
     private float CalculateLeanWeight(Vector3 targetPos, float crouchDepth = 0f)
     {
-        Vector3 shoulder = upperArm.position + Vector3.down * crouchDepth;
-        float distanceToTarget = Vector3.Distance(shoulder, targetPos);
+        if (!HasSpineLean) return 0f;
+        // Demand is always computed from the standing shoulder, never reduced by crouch.
+        float comfortableReach = EffectiveArmLength * Mathf.Clamp01(leanStartRatio);
+        float overReach = Vector3.Distance(upperArm.position, targetPos) - comfortableReach;
+        return Mathf.Clamp01(overReach / Mathf.Max(0.01f, LeanMaxOverReach)) * Mathf.Clamp01(maxLeanWeight);
+    }
 
-        float comfortableReach = EffectiveArmLength * leanStartRatio;
-        if (distanceToTarget <= comfortableReach) return 0f;
+    private bool HasSpineLean => spineAimConstraint != null && spineAimConstraint.isActiveAndEnabled
+        && spineAimTarget != null && spineAimConstraint.data.constrainedObject != null;
 
-        float overReach = distanceToTarget - comfortableReach;
-        return Mathf.Clamp01(overReach / LeanMaxOverReach) * maxLeanWeight;
+    private Vector3 spineAimDirection;
+    private Vector3 neutralSpineAim;
+    private Vector3 spineAimAxis;
+
+    private void PrepareSpineAim(Vector3 targetPos)
+    {
+        if (!HasSpineLean) return;
+        // Read the imported constraint axis rather than assuming the bone faces local Z.
+        var data = spineAimConstraint.data;
+        spineAimAxis = ((UnityEngine.Animations.Rigging.IMultiAimConstraintData)data).aimAxis;
+        neutralSpineAim = data.constrainedObject.TransformDirection(spineAimAxis).normalized;
+        Vector3 forward = Vector3.ProjectOnPlane(neutralSpineAim, Vector3.up).normalized;
+        if (forward.sqrMagnitude < 0.001f) forward = hintAnchor.forward;
+        Vector3 direction = targetPos - data.constrainedObject.position;
+        if (direction.sqrMagnitude < 0.001f) direction = neutralSpineAim;
+        // Avoid backwards/sideways twists: this correction is a forward bend, not a turn.
+        float ahead = Mathf.Max(0.01f, Vector3.Dot(direction, forward));
+        float pitch = Mathf.Atan2(-direction.y, ahead) * Mathf.Rad2Deg;
+        if (targetPos.y < upperArm.position.y) pitch += extraDownwardLeanPitch;
+        pitch = Mathf.Clamp(pitch, 0f, maxForwardLeanAngle);
+        Vector3 desired = forward * Mathf.Cos(pitch * Mathf.Deg2Rad)
+                        + Vector3.down * Mathf.Sin(pitch * Mathf.Deg2Rad);
+        spineAimDirection = Vector3.RotateTowards(neutralSpineAim, desired,
+            Mathf.Clamp(maxForwardLeanAngle, 0f, 85f) * Mathf.Deg2Rad, 0f).normalized;
+        UpdateSpineAim();
+    }
+
+    private void UpdateSpineAim()
+    {
+        if (HasSpineLean && spineAimDirection.sqrMagnitude > 0.001f)
+            spineAimTarget.position = spineAimConstraint.data.constrainedObject.position + spineAimDirection;
     }
 }

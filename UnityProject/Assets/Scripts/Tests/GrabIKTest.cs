@@ -86,6 +86,51 @@ public class GrabIKTest : MyTest
             () => Debug.Log("Contact reached (nothing attached)")));
     }
 
+    [ContextMenu("Verify lean-first reach")]
+    public void TestLeanFirstReach()
+    {
+        if (!CanRun() || !HasTarget()) return;
+        GrabIK ik = npc.GetComponentInChildren<GrabIK>();
+        if (ik == null || ik.IsReaching) return;
+        ResetTestPosition();
+        StartCoroutine(MeasureLeanFirstReach(ik));
+    }
+
+    private IEnumerator MeasureLeanFirstReach(GrabIK ik)
+    {
+        float startTime = Time.time;
+        float leanReadyAt = -1f, crouchAt = -1f, maximumAngle = 0f, maximumDrop = 0f;
+        int contacts = 0;
+        bool complete = false, crouchedTooSoon = false;
+        IEnumerator run()
+        {
+            yield return ik.ReachRoutine(testTarget.GripTarget, testTarget.profile, () => contacts++);
+            complete = true;
+        }
+        StartCoroutine(run());
+        while (!complete && Time.time - startTime < testTarget.profile.reachDuration
+            + testTarget.profile.ikBlendOutDuration + 2f)
+        {
+            if (leanReadyAt < 0f && ik.LeanWeight >= ik.RequestedLeanWeight - 0.001f)
+                leanReadyAt = Time.time - startTime;
+            if (ik.AppliedCrouchDepth > 0.001f && crouchAt < 0f)
+            {
+                crouchAt = Time.time - startTime;
+                crouchedTooSoon = !ik.CrouchAuthorized
+                    || ik.LeanWeight < ik.RequestedLeanWeight - 0.001f;
+            }
+            maximumAngle = Mathf.Max(maximumAngle, ik.SpineLeanAngle);
+            maximumDrop = Mathf.Max(maximumDrop, ik.AppliedCrouchDepth);
+            yield return null;
+        }
+        bool passed = complete && contacts == 1 && !crouchedTooSoon && !ik.IsReaching
+            && ik.AppliedCrouchDepth == 0f && ik.LeanWeight == 0f && ik.ContactError <= 0.03f;
+        string summary = $"[Test] Lean-first {(passed ? "PASSED" : "FAILED")}: " +
+            $"leanReady={leanReadyAt:F3}s firstCrouch={crouchAt:F3}s maxAngle={maximumAngle:F1} " +
+            $"maxDrop={maximumDrop:F3} contactError={ik.ContactError:F3} contacts={contacts}";
+        if (passed) Debug.Log(summary); else Debug.LogError(summary);
+    }
+
     // Release in place: plays the release animation and drops the item where the hand is.
     [ContextMenu("Release")]
     public void TestRelease()

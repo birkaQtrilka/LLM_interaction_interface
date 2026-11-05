@@ -847,6 +847,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66b236a041cfa6c48b8d5c2e95f5917e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  grabProfile: {fileID: 11400000, guid: 28f53cd2e48ce7c44bc5a4410e71ff49, type: 2}
 --- !u!1102 &4893957603639696284
 AnimatorState:
   serializedVersion: 6
