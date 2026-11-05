@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Linq;
 using UnityEngine;
 
 public class Use : IAgentAction
@@ -12,53 +11,49 @@ public class Use : IAgentAction
         var param = action.parameters;
         if (param.Length != 1) return "requires 1 parameter: useOn (item the object in hand should be used on)";
 
-        ContextItem itemInHand = null;
         int nameHash = -1;
 
         void start()
         {
             (string err, Transform useOn, ContextItem it) = Validate(param[0], context, agent);
             if (err != null) throw new System.Exception(err);
-            itemInHand = it;
-            nameHash = Animator.StringToHash(itemInHand.GetName());
-            agent.Anim.Play(nameHash, (int)NPC_AnimLayer.ItemUse);
-
-            var itemAnim = itemInHand.transform.GetComponentInChildren<Animator>();
-            if (itemAnim != null)
+            
+            if(it == null) // nothing in hands
             {
-                itemAnim.SetTrigger("Use");// can be Play(name) later
-            }
-            else Debug.LogWarning($"Item: '{itemInHand.GetName()}' does not have an Animator component to play the 'Use' animation");
-            //agent.GrabReceiver.EventRelay += OnEvent;
+                var itemAnim = useOn.GetComponentInChildren<Animator>();
+                if (itemAnim != null)
+                {
+                    itemAnim.SetTrigger("Use");// can be Play(name) later
+                } else Debug.LogWarning($"Item: '{useOn.name}' does not have an Animator component to play the 'Use' animation");
 
+                nameHash = Animator.StringToHash(useOn.name);
+            }
+            else // with item in hands
+            {
+                var itemAnim = it.transform.GetComponentInChildren<Animator>();
+                if (itemAnim != null)
+                {
+                    itemAnim.SetTrigger("Use");
+                    // The "Use" trigger should be set up in the Animator for the item to play the appropriate animation when used only if Immediate
+                    // If you want to play the animation later, in a timed Matter, you should use "UseLater" together with an animation behavior/event
+                } else Debug.LogWarning($"Item: '{it.GetName()}' does not have an Animator component to play the 'Use' animation");
+                nameHash = Animator.StringToHash(it.GetName());
+            }
+
+            agent.Anim.Play(nameHash, (int)NPC_AnimLayer.ItemUse);
         }
 
-        //void OnEvent(string name)
-        //{
-        //    agent.GrabReceiver.EventRelay -= OnEvent;
-        //    var anim = itemInHand.transform.GetComponentInChildren<Animator>();
-        //    if (anim != null)
-        //    {
-        //        anim.SetTrigger("Use");// can be Play(name) later
-        //    }
-        //    else 
-        //        Debug.LogWarning($"Item: '{itemInHand.GetName()}' does not have an Animator component to play the 'Use' animation");
-        //}
         IEnumerator behavior()
         {
             yield return new WaitUntil(() => nameHash != -1);
             yield return Utils.MonitorAnimatorState(agent.Anim, nameHash, (int)NPC_AnimLayer.ItemUse);
         }
-        void end()
-        {
-            //agent.GrabReceiver.EventRelay -= OnEvent;
-        }
-        // hold starts from down, it needs to be like idle where it's just in one spot 
+
         result = new AnimAction(
             action, 
             start, 
             behavior(), 
-            end
+            null
         );
 
         // play animation
@@ -70,10 +65,7 @@ public class Use : IAgentAction
         Transform useOn = context.GetObject(param)?.transform ?? context.GetAgent(param)?.transform;
         if (useOn == null) return ($"could not find object or agent with name '{param}'", null, null);
         var item = agent.GetItem();
-        if (item == null) return ($"agent '{agent.name}' is not holding an item in their right hand", null, null);
-        ContextItem itemInHand = context.GetObject(item.name);
-        if (itemInHand == null) return ($"Item: '{item}' is not saved in environment objects", null, null);
-        if (!itemInHand.usableOn.Contains(useOn)) return ($"Item: '{item}' cannot be used on '{useOn.name}'", null, null);
+        ContextItem itemInHand = item == null ? null : context.GetObject(item.name);
         return (null, useOn, itemInHand);
     }
 }

@@ -178,8 +178,9 @@ public class AnimationLibrary : MonoBehaviour
 
         return "[\n" + string.Join(",\n", jsonObjects) + "\n]";
     }
-    //public AnimationClip GetGestureClip(string name)
-    //{
-    //    return clips.FirstOrDefault(c => c.name == name);
-    //}
+    
+    public AnimationInstance GetAnimation(Predicate<AnimationInstance> predicate)
+    {
+        return animations.Find(predicate);
+    }
 }

@@ -130,4 +130,18 @@ public static class Utils
         if (cr != null) yield return cr;
         if(chain != null) yield return chain;
     }
+
+    public static Transform FindDeep(this Transform parent, string name)
+    {
+        foreach (Transform child in parent)
+        {
+            if (child.name == name)
+                return child;
+
+            Transform result = child.FindDeep(name);
+            if (result != null)
+                return result;
+        }
+        return null;
+    }
 }
