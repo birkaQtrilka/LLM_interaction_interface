@@ -108,8 +108,7 @@ public class GrabIKTest : MyTest
             complete = true;
         }
         StartCoroutine(run());
-        while (!complete && Time.time - startTime < testTarget.profile.reachDuration
-            + testTarget.profile.ikBlendOutDuration + 2f)
+        while (!complete && Time.time - startTime < 2f)
         {
             if (leanReadyAt < 0f && ik.LeanWeight >= ik.RequestedLeanWeight - 0.001f)
                 leanReadyAt = Time.time - startTime;

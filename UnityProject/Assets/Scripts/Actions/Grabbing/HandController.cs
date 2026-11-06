@@ -65,7 +65,7 @@ public class HandController : MonoBehaviour
         }
 
         if (p.useIK) yield return ik.ReachRoutine(item.GripTarget, p, contact);
-        else yield return new WaitForSeconds(p.reachDuration);
+        else yield return new WaitForSeconds(1.5f);
 
         if (Held != item) contact();
         State = HandState.Holding;

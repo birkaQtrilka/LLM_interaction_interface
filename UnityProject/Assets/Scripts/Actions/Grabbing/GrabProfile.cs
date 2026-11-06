@@ -9,10 +9,7 @@ public class GrabProfile : ScriptableObject
     public AnimationClip releaseClip; // optional, can be null
 
     [Header("Reach IK")]
-    public float reachDuration = 0.6f;
-    public AnimationCurve reachCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
     public bool useIK = true;
-    public float ikBlendOutDuration = 0.25f;
 
     [Header("Hand placement relative to the item's grip point")]
     public Vector3 handOffsetPosition;

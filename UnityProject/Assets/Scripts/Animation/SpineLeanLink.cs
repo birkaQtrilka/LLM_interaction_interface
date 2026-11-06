@@ -2,6 +2,10 @@ using System;
 using UnityEngine;
 using UnityEngine.Animations.Rigging;
 
+/// <summary>
+/// One vertebra that takes part in the spine lean. Each link needs its own
+/// MultiAimConstraint and its own aim target so the bend can accumulate along the chain.
+/// </summary>
 [Serializable]
 public class SpineLeanLink
 {

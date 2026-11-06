@@ -13,6 +13,10 @@ public class GrabIK : MonoBehaviour
     [Tooltip("Hint transform for the elbow pole vector")]
     [SerializeField] private Transform elbowHint;
 
+    [Header("Timings")]
+    [Tooltip("Reach duration/curve, blend-out, and lean/crouch/twist speeds. Shared by every grab this character performs.")]
+    [SerializeField] private GrabIKTimings timings;
+
     [Header("Bones")]
     [SerializeField] private Transform upperArm;
     [SerializeField] private Transform forearm;
@@ -30,8 +34,6 @@ public class GrabIK : MonoBehaviour
     [SerializeField, Range(0f, 45f)] private float extraDownwardLeanPitch = 20f;
     [Tooltip("Maximum change from the unleaned spine aim direction (degrees).")]
     [SerializeField, Range(0f, 85f)] private float maxForwardLeanAngle = 75f;
-    [Tooltip("Fraction of reach time reserved for leaning before knees may bend.")]
-    [SerializeField, Range(0.1f, 0.9f)] private float leanFirstFraction = 0.55f;
     [Tooltip("Shoulder motion tolerance between evaluated frames before permitting crouch (meters).")]
     [SerializeField, Min(0.001f)] private float leanSettleTolerance = 0.02f;
 
@@ -58,12 +60,8 @@ public class GrabIK : MonoBehaviour
     [SerializeField] private float minCrouchDepth = 0.05f;
     [Tooltip("Distance beyond comfortable arm reach over which lean ramps to full weight; not an assumed reach bonus.")]
     [SerializeField] private float leanReachBonus = 0.3f;
-    [Tooltip("Maximum hips movement speed (meters per second).")]
-    [SerializeField, Min(0.1f)] private float crouchResponseSpeed = 2.5f;
     [Tooltip("Ignore residual changes smaller than this distance (meters).")]
     [SerializeField, Min(0.001f)] private float reachTolerance = 0.015f;
-    [Tooltip("Maximum additional settling time before contact (seconds), even for unreachable targets.")]
-    [SerializeField, Range(0f, 0.5f)] private float maxReachSettleTime = 0.2f;
 
     [Header("Shoulder Twist")]
     [Tooltip("Multi-Aim Constraint on a chest bone ABOVE the lean bones. Only the spine axis should be constrained.")]
@@ -71,8 +69,6 @@ public class GrabIK : MonoBehaviour
     [SerializeField] private Transform chestTwistTarget;
     [Tooltip("Twist weight at full lean/crouch. Keep low for a gentle turn.")]
     [SerializeField, Range(0f, 1f)] private float maxTwistWeight = 0.5f;
-    [Tooltip("How quickly the twist weight follows lean/crouch (weight per second).")]
-    [SerializeField, Min(0.1f)] private float twistResponseSpeed = 2f;
     private float twistWeight;
 
     private Vector3 sampledShoulder, sampledLeanShoulder, previousLeanShoulder;
@@ -130,6 +126,11 @@ public class GrabIK : MonoBehaviour
     private void Awake()
     {
         reachAnimator = GetComponent<Animator>();
+        if (timings == null)
+        {
+            Debug.LogWarning("GrabIK: no GrabIKTimings assigned, using defaults.", this);
+            timings = ScriptableObject.CreateInstance<GrabIKTimings>();
+        }
         armLength = upperArm != null && forearm != null && hand != null
             ? Vector3.Distance(upperArm.position, forearm.position)
                 + Vector3.Distance(forearm.position, hand.position) + armLenghtOffset : 0f;
@@ -190,7 +191,8 @@ public class GrabIK : MonoBehaviour
         sampledShoulder = upperArm.position;
         Vector3 crouchOffset = Vector3.zero;
         if (hipsOverride != null && hips != null && crouchRig != null)
-            crouchOffset = crouchRig.weight * hipsOverride.data.positionWeight * hipsOverride.weight * hips.TransformDirection(hipsOverride.data.position);
+            crouchOffset = hips.TransformDirection(hipsOverride.data.position)
+                * hipsOverride.data.positionWeight * hipsOverride.weight * crouchRig.weight;
         sampledLeanShoulder = sampledShoulder - crouchOffset;
         sampledLeanWeight = HasSpineLean ? leanWeight : 0f;
         bool leanEvaluated = !HasSpineLean || sampledLeanWeight >= requestedLeanWeight - 0.001f;
@@ -204,16 +206,20 @@ public class GrabIK : MonoBehaviour
 
     private bool extraLeanRequired;
 
+    // Crouch is time-based: progress runs 0..1 over timings.crouchDuration and scales the target depth.
+    private float crouchProgress, crouchTargetDepth;
+    private bool CrouchInProgress => crouchAuthorized && crouchTargetDepth > 0f && crouchProgress < 1f;
+
     private void UpdateReachPosture(float progress)
     {
-        float leanProgress = Mathf.Clamp01(progress / Mathf.Clamp(leanFirstFraction, 0.1f, 0.9f));
+        float leanProgress = Mathf.Clamp01(progress / Mathf.Clamp(timings.leanFirstFraction, 0.1f, 0.9f));
         bool evaluated = sampleFrame >= 0 && sampleFrame < Time.frameCount && stableLeanFrames >= 2;
         if (!crouchAuthorized && HasSpineLean && leanProgress >= 1f && evaluated
             && Vector3.Distance(sampledShoulder, postureTarget) > EffectiveArmLength + reachTolerance)
             extraLeanRequired = true;
         if (extraLeanRequired)
             requestedLeanWeight = Mathf.MoveTowards(requestedLeanWeight, Mathf.Clamp01(maxLeanWeight),
-                Time.deltaTime / Mathf.Max(0.1f, leanFirstFraction));
+                Time.deltaTime / Mathf.Max(0.1f, timings.leanFirstFraction));
         if (HasSpineLean)
             SetLeanWeight(Mathf.SmoothStep(0f, requestedLeanWeight, leanProgress));
         bool leanExhausted = !extraLeanRequired || sampledLeanWeight >= Mathf.Clamp01(maxLeanWeight) - 0.001f;
@@ -221,9 +227,14 @@ public class GrabIK : MonoBehaviour
             crouchAuthorized = true;
         if (!crouchAuthorized) return;
         float desiredDepth = CalculateCrouchDepth(postureTarget);
-        if (Mathf.Abs(desiredDepth - appliedCrouchDepth) > reachTolerance)
-            appliedCrouchDepth = Mathf.MoveTowards(appliedCrouchDepth, desiredDepth,
-                Mathf.Max(0.1f, crouchResponseSpeed) * Time.deltaTime);
+        // Only retarget on meaningful changes so sampling noise doesn't jitter the hips.
+        if (Mathf.Abs(desiredDepth - crouchTargetDepth) > reachTolerance)
+            crouchTargetDepth = desiredDepth;
+        // Time-based progress: the crouch takes the same duration at any depth.
+        if (crouchTargetDepth > 0f)
+            crouchProgress = Mathf.MoveTowards(crouchProgress, 1f,
+                Time.deltaTime / Mathf.Max(0.01f, timings.crouchDuration));
+        appliedCrouchDepth = crouchTargetDepth * Mathf.Clamp01(timings.crouchCurve.Evaluate(crouchProgress));
         if (appliedCrouchDepth > 0f && !feetPlanted) PlantFeet();
         SetCrouch(appliedCrouchDepth, 1f);
     }
@@ -281,24 +292,30 @@ public class GrabIK : MonoBehaviour
             PrepareSpineAim(targetPos);
             resolvingPosture = true;
             appliedCrouchDepth = 0f;
+            crouchProgress = 0f;
+            crouchTargetDepth = 0f;
             crouchAuthorized = false;
             stableLeanFrames = 0;
             sampleFrame = -1;
-            float duration = Mathf.Max(0.01f, profile.reachDuration);
+            float duration = Mathf.Max(0.01f, timings.reachDuration);
             float elapsed = 0f;
             int finalPoseFrames = 0;
-            while (elapsed < duration + Mathf.Clamp(maxReachSettleTime, 0f, 0.5f))
+            float settleTime = Mathf.Clamp(timings.maxReachSettleTime, 0f, 0.5f);
+            float crouchTime = Mathf.Max(0.01f, timings.crouchDuration);
+            // Normally ends after duration + settle, but waits for an unfinished crouch (up to crouchTime longer).
+            while (elapsed < duration + settleTime
+                   || (CrouchInProgress && elapsed < duration + settleTime + crouchTime))
             {
                 if (version != reachVersion || !isGrabbing || !isActiveAndEnabled || gripTarget == null) yield break;
                 elapsed += Time.deltaTime;
                 float progress = Mathf.Clamp01(elapsed / duration);
-                float t = progress >= 1f ? 1f : Mathf.Clamp01(profile.reachCurve.Evaluate(progress));
+                float t = progress >= 1f ? 1f : Mathf.Clamp01(timings.reachCurve.Evaluate(progress));
                 handTarget.SetPositionAndRotation(Vector3.Lerp(startPos, targetPos, t),
                     Quaternion.Slerp(startRot, targetRot, t));
                 armRig.weight = t;
                 UpdateReachPosture(progress);
                 UpdateTwist();
-                if (progress >= 1f && sampleFrame >= 0
+                if (progress >= 1f && sampleFrame >= 0 && !CrouchInProgress
                     && Vector3.Distance(hand.position, targetPos) <= reachTolerance)
                     finalPoseFrames++;
                 else finalPoseFrames = 0;
@@ -322,7 +339,7 @@ public class GrabIK : MonoBehaviour
             // Blend out the depth actually applied, not an estimated standing-pose deficit.
             float crouchDepth = appliedCrouchDepth;
             float targetLean = requestedLeanWeight;
-            float blendDuration = Mathf.Max(0.01f, profile.ikBlendOutDuration);
+            float blendDuration = Mathf.Max(0.01f, timings.ikBlendOutDuration);
             float blendElapsed = 0f;
             while (blendElapsed < blendDuration)
             {
@@ -361,6 +378,8 @@ public class GrabIK : MonoBehaviour
         stableLeanFrames = 0;
         appliedCrouchDepth = 0f;
         requestedLeanWeight = 0f;
+        crouchProgress = 0f;
+        crouchTargetDepth = 0f;
         spineAimDirection = Vector3.zero;
         ResetTwist();
         SetLeanWeight(0f);
@@ -370,13 +389,14 @@ public class GrabIK : MonoBehaviour
         isGrabbing = false;
     }
 
-    public IEnumerator ArmReachPhase(GrabProfile profile, Pos startPos, Pos targetPos, Action<float> onUpdate = null)
+    public IEnumerator ArmReachPhase(Pos startPos, Pos targetPos, Action<float> onUpdate = null)
     {
+        float duration = Mathf.Max(0.01f, timings.reachDuration);
         float elapsed = 0f;
-        while (elapsed < profile.reachDuration)
+        while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
-            float t = profile.reachCurve.Evaluate(Mathf.Clamp01(elapsed / profile.reachDuration));
+            float t = timings.reachCurve.Evaluate(Mathf.Clamp01(elapsed / duration));
 
             handTarget.SetPositionAndRotation(
                 Vector3.Lerp(startPos.p, targetPos.p, t),
@@ -390,9 +410,9 @@ public class GrabIK : MonoBehaviour
         armRig.weight = 1f;
     }
 
-    public IEnumerator ArmDownPhase(GrabProfile profile, Action<float> onUpdate = null)
+    public IEnumerator ArmDownPhase(Action<float> onUpdate = null)
     {
-        float blendDuration = Mathf.Max(0.01f, profile.ikBlendOutDuration);
+        float blendDuration = Mathf.Max(0.01f, timings.ikBlendOutDuration);
         float elapsed = 0f;
         while (elapsed < blendDuration)
         {
@@ -480,7 +500,7 @@ public class GrabIK : MonoBehaviour
         float lean = maxLeanWeight > 0.001f ? LeanWeight / maxLeanWeight : 0f;
         float crouch = maxCrouchDepth > 0.001f ? appliedCrouchDepth / maxCrouchDepth : 0f;
         float demand = Mathf.Clamp01(Mathf.Max(lean, crouch)) * maxTwistWeight;
-        twistWeight = Mathf.MoveTowards(twistWeight, demand, twistResponseSpeed * Time.deltaTime);
+        twistWeight = Mathf.MoveTowards(twistWeight, demand, timings.twistResponseSpeed * Time.deltaTime);
         chestTwistConstraint.weight = twistWeight;
     }
 

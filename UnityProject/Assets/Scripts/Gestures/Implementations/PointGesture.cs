@@ -77,7 +77,6 @@ public class PointGesture : IGestureHandler
         Vector3 targetPos = shoulder.position + targetDir * (armLength - 0.1f);
 
         yield return armAnimator.ArmReachPhase(
-            agent.pointProfile,
             new Pos(startPos, startRot),
             new Pos(targetPos, targetRot),
             onReach
@@ -85,9 +84,7 @@ public class PointGesture : IGestureHandler
         yield return new WaitForSeconds(waitAfterReach);
         agent.Anim.CrossFadeInFixedTime("Empty", 0.2f, (int)NPC_AnimLayer.Gestures);
 
-        yield return armAnimator.ArmDownPhase(
-            agent.pointProfile
-        );
+        yield return armAnimator.ArmDownPhase();
     }
 
 
