@@ -26,6 +26,8 @@ public class GrabIKTimings : ScriptableObject
     [Min(0.1f)] public float twistResponseSpeed = 2f;
 
     [Header("Crouch")]
+    [Tooltip("Crouching may start once the lean has reached this fraction of its initial ramp (0.8 = crouch overlaps the last 20% of the lean). 1 waits until the lean has fully settled, including any extra lean. The final depth is always measured from the settled lean, so this changes timing, not where the hand ends up.")]
+    [Range(0.1f, 1f)] public float crouchStartLeanCompletion = 0.8f;
     [Tooltip("Seconds for the hips to drop to the required depth, measured from when crouching is allowed to start (after the lean phase). Independent of depth, so deeper crouches are not faster.")]
     [Min(0.01f)] public float crouchDuration = 0.5f;
     [Tooltip("Easing of the hips drop (x = normalized time, y = normalized progress). Ease in/out avoids an abrupt start.")]

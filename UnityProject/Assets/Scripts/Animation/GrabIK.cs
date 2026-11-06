@@ -208,28 +208,58 @@ public class GrabIK : MonoBehaviour
 
     // Crouch is time-based: progress runs 0..1 over timings.crouchDuration and scales the target depth.
     private float crouchProgress, crouchTargetDepth;
-    private bool CrouchInProgress => crouchAuthorized && crouchTargetDepth > 0f && crouchProgress < 1f;
+    private bool crouchTargetValid, crouchTargetConverged, leanDecided;
+
+    // Lean has reached its final weight and stopped moving (extra lean decision included).
+    private bool LeanSettled => !HasSpineLean || (leanDecided && stableLeanFrames >= 2);
+
+    // True until the crouch has finished AND its target has stopped changing because the lean settled.
+    private bool CrouchInProgress => crouchAuthorized && crouchTargetDepth > 0f
+        && (crouchProgress < 1f || !crouchTargetConverged || !LeanSettled);
 
     private void UpdateReachPosture(float progress)
     {
         float leanProgress = Mathf.Clamp01(progress / Mathf.Clamp(timings.leanFirstFraction, 0.1f, 0.9f));
         bool evaluated = sampleFrame >= 0 && sampleFrame < Time.frameCount && stableLeanFrames >= 2;
-        if (!crouchAuthorized && HasSpineLean && leanProgress >= 1f && evaluated
-            && Vector3.Distance(sampledShoulder, postureTarget) > EffectiveArmLength + reachTolerance)
-            extraLeanRequired = true;
+
+        // One-time decision, made on the settled LEAN-ONLY shoulder (crouch offset removed). Because the
+        // crouch can now overlap the lean, the raw shoulder would look closer than lean alone can reach.
+        if (!leanDecided && HasSpineLean && leanProgress >= 1f && evaluated)
+        {
+            leanDecided = true;
+            if (Vector3.Distance(sampledLeanShoulder, postureTarget) > EffectiveArmLength + reachTolerance)
+                extraLeanRequired = true;
+        }
         if (extraLeanRequired)
             requestedLeanWeight = Mathf.MoveTowards(requestedLeanWeight, Mathf.Clamp01(maxLeanWeight),
                 Time.deltaTime / Mathf.Max(0.1f, timings.leanFirstFraction));
         if (HasSpineLean)
             SetLeanWeight(Mathf.SmoothStep(0f, requestedLeanWeight, leanProgress));
-        bool leanExhausted = !extraLeanRequired || sampledLeanWeight >= Mathf.Clamp01(maxLeanWeight) - 0.001f;
-        if (!crouchAuthorized && (!HasSpineLean || leanProgress >= 1f) && evaluated && leanExhausted)
-            crouchAuthorized = true;
+
+        // Crouch may start before the lean finishes. 1 = fully settled (including any extra lean).
+        if (!crouchAuthorized && sampleFrame >= 0)
+        {
+            float leanCompletion = LeanSettled ? 1f : Mathf.Min(0.999f, Mathf.SmoothStep(0f, 1f, leanProgress));
+            if (leanCompletion >= Mathf.Clamp01(timings.crouchStartLeanCompletion))
+                crouchAuthorized = true;
+        }
         if (!crouchAuthorized) return;
+
+        // Depth is re-measured every frame from the lean-only shoulder, so it stays exact while the
+        // lean is still moving. The target follows changes smoothly instead of popping.
         float desiredDepth = CalculateCrouchDepth(postureTarget);
-        // Only retarget on meaningful changes so sampling noise doesn't jitter the hips.
-        if (Mathf.Abs(desiredDepth - crouchTargetDepth) > reachTolerance)
+        if (!crouchTargetValid)
+        {
             crouchTargetDepth = desiredDepth;
+            crouchTargetValid = true;
+        }
+        else if (Mathf.Abs(desiredDepth - crouchTargetDepth) > reachTolerance)
+        {
+            float retargetSpeed = Mathf.Max(0.01f, maxCrouchDepth) / Mathf.Max(0.01f, timings.crouchDuration);
+            crouchTargetDepth = Mathf.MoveTowards(crouchTargetDepth, desiredDepth, retargetSpeed * Time.deltaTime);
+        }
+        crouchTargetConverged = Mathf.Abs(desiredDepth - crouchTargetDepth) <= reachTolerance;
+
         // Time-based progress: the crouch takes the same duration at any depth.
         if (crouchTargetDepth > 0f)
             crouchProgress = Mathf.MoveTowards(crouchProgress, 1f,
@@ -294,6 +324,9 @@ public class GrabIK : MonoBehaviour
             appliedCrouchDepth = 0f;
             crouchProgress = 0f;
             crouchTargetDepth = 0f;
+            crouchTargetValid = false;
+            crouchTargetConverged = false;
+            leanDecided = false;
             crouchAuthorized = false;
             stableLeanFrames = 0;
             sampleFrame = -1;
@@ -380,6 +413,9 @@ public class GrabIK : MonoBehaviour
         requestedLeanWeight = 0f;
         crouchProgress = 0f;
         crouchTargetDepth = 0f;
+        crouchTargetValid = false;
+        crouchTargetConverged = false;
+        leanDecided = false;
         spineAimDirection = Vector3.zero;
         ResetTwist();
         SetLeanWeight(0f);
