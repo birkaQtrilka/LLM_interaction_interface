@@ -19,10 +19,8 @@ public class GrabIK : MonoBehaviour
     [SerializeField] public Transform hand;
 
     [Header("Spine Lean / Aim")]
-    [Tooltip("MultiAimConstraint configured on Spine/Chest bones")]
-    [SerializeField] private MultiAimConstraint spineAimConstraint;
-    [Tooltip("Transform the spine aims toward")]
-    [SerializeField] private Transform spineAimTarget;
+    [Tooltip("Spine bones that share the lean, ordered lowest to highest. Each needs its own MultiAimConstraint and aim target. Constraints must also be ordered lowest to highest in the rig hierarchy.")]
+    [SerializeField] private SpineLeanLink[] spineChain;
     [SerializeField, Range(0.5f, 1f)] private float leanStartRatio = 0.75f;
     [SerializeField, Range(0.1f, 1f)] private float maxLeanWeight = 0.85f;
     [SerializeField] private float armLenghtOffset = -0.1f;
@@ -68,7 +66,7 @@ public class GrabIK : MonoBehaviour
     [SerializeField, Range(0f, 0.5f)] private float maxReachSettleTime = 0.2f;
 
     [Header("Shoulder Twist")]
-    [Tooltip("Multi-Aim Constraint on a chest bone ABOVE the lean bone. Only the spine axis should be constrained.")]
+    [Tooltip("Multi-Aim Constraint on a chest bone ABOVE the lean bones. Only the spine axis should be constrained.")]
     [SerializeField] private MultiAimConstraint chestTwistConstraint;
     [SerializeField] private Transform chestTwistTarget;
     [Tooltip("Twist weight at full lean/crouch. Keep low for a gentle turn.")]
@@ -85,13 +83,24 @@ public class GrabIK : MonoBehaviour
     private Vector3 postureTarget;
     private Quaternion reachStartRotation;
     private Vector3 reachStartPosition;
+
+    // Global lean weight shared by every link in the spine chain (each link scales it by its weightScale)
+    private float leanWeight;
+
     public float AppliedCrouchDepth => appliedCrouchDepth;
-    public float LeanWeight => spineAimConstraint != null ? spineAimConstraint.weight : 0f;
+    public float LeanWeight => leanWeight;
     public float RequestedLeanWeight => requestedLeanWeight;
     public bool CrouchAuthorized => crouchAuthorized;
     public float ContactError { get; private set; }
-    public float SpineLeanAngle => HasSpineLean ? Vector3.Angle(neutralSpineAim,
-        spineAimConstraint.data.constrainedObject.TransformDirection(spineAimAxis)) : 0f;
+    public float SpineLeanAngle
+    {
+        get
+        {
+            var top = TopLink;
+            return top != null && top.neutralAim.sqrMagnitude > 0.001f
+                ? Vector3.Angle(top.neutralAim, top.Bone.TransformDirection(top.axis)) : 0f;
+        }
+    }
 
     [Header("Debug")]
     [SerializeField] private bool gizmos;
@@ -126,7 +135,7 @@ public class GrabIK : MonoBehaviour
                 + Vector3.Distance(forearm.position, hand.position) + armLenghtOffset : 0f;
 
         if (armRig != null) armRig.weight = 0f;
-        if (spineAimConstraint != null) spineAimConstraint.weight = 0f;
+        SetLeanWeight(0f);
         if (chestTwistConstraint != null) chestTwistConstraint.weight = 0f;
 
         if (hipsOverride != null) hips = hipsOverride.data.constrainedObject;
@@ -181,10 +190,9 @@ public class GrabIK : MonoBehaviour
         sampledShoulder = upperArm.position;
         Vector3 crouchOffset = Vector3.zero;
         if (hipsOverride != null && hips != null && crouchRig != null)
-            crouchOffset = hips.TransformDirection(hipsOverride.data.position)
-                * hipsOverride.data.positionWeight * hipsOverride.weight * crouchRig.weight;
+            crouchOffset = crouchRig.weight * hipsOverride.data.positionWeight * hipsOverride.weight * hips.TransformDirection(hipsOverride.data.position);
         sampledLeanShoulder = sampledShoulder - crouchOffset;
-        sampledLeanWeight = HasSpineLean ? spineAimConstraint.weight : 0f;
+        sampledLeanWeight = HasSpineLean ? leanWeight : 0f;
         bool leanEvaluated = !HasSpineLean || sampledLeanWeight >= requestedLeanWeight - 0.001f;
         stableLeanFrames = leanEvaluated && sampleFrame >= 0
             && Vector3.Distance(sampledLeanShoulder, previousLeanShoulder) <= leanSettleTolerance
@@ -207,7 +215,7 @@ public class GrabIK : MonoBehaviour
             requestedLeanWeight = Mathf.MoveTowards(requestedLeanWeight, Mathf.Clamp01(maxLeanWeight),
                 Time.deltaTime / Mathf.Max(0.1f, leanFirstFraction));
         if (HasSpineLean)
-            spineAimConstraint.weight = Mathf.SmoothStep(0f, requestedLeanWeight, leanProgress);
+            SetLeanWeight(Mathf.SmoothStep(0f, requestedLeanWeight, leanProgress));
         bool leanExhausted = !extraLeanRequired || sampledLeanWeight >= Mathf.Clamp01(maxLeanWeight) - 0.001f;
         if (!crouchAuthorized && (!HasSpineLean || leanProgress >= 1f) && evaluated && leanExhausted)
             crouchAuthorized = true;
@@ -241,94 +249,93 @@ public class GrabIK : MonoBehaviour
         }
         try
         {
-        handTarget.SetPositionAndRotation(startPos, startRot);
+            handTarget.SetPositionAndRotation(startPos, startRot);
 
-        Matrix4x4 offset = PoseUtil.Local(profile.handOffsetPosition, profile.handOffsetEuler);
-        Matrix4x4 holdInHand = PoseUtil.Pose(hand).inverse * PoseUtil.Pose(holdPoint);
+            Matrix4x4 offset = PoseUtil.Local(profile.handOffsetPosition, profile.handOffsetEuler);
+            Matrix4x4 holdInHand = PoseUtil.Pose(hand).inverse * PoseUtil.Pose(holdPoint);
 
-        Matrix4x4 desiredHoldPose = PoseUtil.Pose(gripTarget) * offset;
-        Vector3 desiredHoldPos = desiredHoldPose.GetPosition();
+            Matrix4x4 desiredHoldPose = PoseUtil.Pose(gripTarget) * offset;
+            Vector3 desiredHoldPos = desiredHoldPose.GetPosition();
 
-        Vector3 startDir = (startPos - upperArm.position).normalized;
-        Vector3 targetDir = (desiredHoldPos - upperArm.position);
-        targetDir = targetDir.sqrMagnitude > 0.001f ? targetDir.normalized : Vector3.forward;
+            Vector3 startDir = (startPos - upperArm.position).normalized;
+            Vector3 targetDir = (desiredHoldPos - upperArm.position);
+            targetDir = targetDir.sqrMagnitude > 0.001f ? targetDir.normalized : Vector3.forward;
 
-        Quaternion armSwing = Quaternion.FromToRotation(startDir, targetDir);
-        Quaternion targetRot = armSwing * startRot;
+            Quaternion armSwing = Quaternion.FromToRotation(startDir, targetDir);
+            Quaternion targetRot = armSwing * startRot;
 
-        // We find the horizontal right axis and pitch the hand up slightly (e.g. 20 degrees)
-        Vector3 rightAxis = Vector3.Cross(Vector3.up, targetDir).normalized;
-        if (rightAxis.sqrMagnitude > 0.001f)
-        {
-            // A negative angle around the right axis pitches the hand upwards in Unity
-            targetRot = Quaternion.AngleAxis(-20f, rightAxis) * targetRot;
-        }
+            // We find the horizontal right axis and pitch the hand up slightly (e.g. 20 degrees)
+            Vector3 rightAxis = Vector3.Cross(Vector3.up, targetDir).normalized;
+            if (rightAxis.sqrMagnitude > 0.001f)
+            {
+                // A negative angle around the right axis pitches the hand upwards in Unity
+                targetRot = Quaternion.AngleAxis(-20f, rightAxis) * targetRot;
+            }
 
-        Vector3 localHoldPos = holdInHand.GetPosition();
-        Vector3 targetPos = desiredHoldPos - (targetRot * localHoldPos);
+            Vector3 localHoldPos = holdInHand.GetPosition();
+            Vector3 targetPos = desiredHoldPos - (targetRot * localHoldPos);
 
-        // Lock lean demand before crouching. The hand destination remains the true grip pose.
-        postureTarget = targetPos;
-        requestedLeanWeight = CalculateLeanWeight(targetPos);
-        PrepareSpineAim(targetPos);
-        resolvingPosture = true;
-        appliedCrouchDepth = 0f;
-        crouchAuthorized = false;
-        stableLeanFrames = 0;
-        sampleFrame = -1;
-        float duration = Mathf.Max(0.01f, profile.reachDuration);
-        float elapsed = 0f;
-        int finalPoseFrames = 0;
-        while (elapsed < duration + Mathf.Clamp(maxReachSettleTime, 0f, 0.5f))
-        {
-            if (version != reachVersion || !isGrabbing || !isActiveAndEnabled || gripTarget == null) yield break;
-            elapsed += Time.deltaTime;
-            float progress = Mathf.Clamp01(elapsed / duration);
-            float t = progress >= 1f ? 1f : Mathf.Clamp01(profile.reachCurve.Evaluate(progress));
-            handTarget.SetPositionAndRotation(Vector3.Lerp(startPos, targetPos, t),
-                Quaternion.Slerp(startRot, targetRot, t));
-            armRig.weight = t;
-            UpdateReachPosture(progress);
-            UpdateTwist();
-            if (progress >= 1f && sampleFrame >= 0
-                && Vector3.Distance(hand.position, targetPos) <= reachTolerance)
-                finalPoseFrames++;
-            else finalPoseFrames = 0;
+            // Lock lean demand before crouching. The hand destination remains the true grip pose.
+            postureTarget = targetPos;
+            requestedLeanWeight = CalculateLeanWeight(targetPos);
+            PrepareSpineAim(targetPos);
+            resolvingPosture = true;
+            appliedCrouchDepth = 0f;
+            crouchAuthorized = false;
+            stableLeanFrames = 0;
+            sampleFrame = -1;
+            float duration = Mathf.Max(0.01f, profile.reachDuration);
+            float elapsed = 0f;
+            int finalPoseFrames = 0;
+            while (elapsed < duration + Mathf.Clamp(maxReachSettleTime, 0f, 0.5f))
+            {
+                if (version != reachVersion || !isGrabbing || !isActiveAndEnabled || gripTarget == null) yield break;
+                elapsed += Time.deltaTime;
+                float progress = Mathf.Clamp01(elapsed / duration);
+                float t = progress >= 1f ? 1f : Mathf.Clamp01(profile.reachCurve.Evaluate(progress));
+                handTarget.SetPositionAndRotation(Vector3.Lerp(startPos, targetPos, t),
+                    Quaternion.Slerp(startRot, targetRot, t));
+                armRig.weight = t;
+                UpdateReachPosture(progress);
+                UpdateTwist();
+                if (progress >= 1f && sampleFrame >= 0
+                    && Vector3.Distance(hand.position, targetPos) <= reachTolerance)
+                    finalPoseFrames++;
+                else finalPoseFrames = 0;
+                yield return null;
+                if (finalPoseFrames >= 2) break;
+            }
+            resolvingPosture = false;
+            if (version != reachVersion || !isGrabbing || !isActiveAndEnabled || gripTarget == null)
+                yield break;
+            handTarget.SetPositionAndRotation(targetPos, targetRot);
+            armRig.weight = 1f;
             yield return null;
-            if (finalPoseFrames >= 2) break;
-        }
-        resolvingPosture = false;
-        if (version != reachVersion || !isGrabbing || !isActiveAndEnabled || gripTarget == null)
-            yield break;
-        handTarget.SetPositionAndRotation(targetPos, targetRot);
-        armRig.weight = 1f;
-        yield return null;
-        if (version != reachVersion || !isGrabbing || !isActiveAndEnabled || gripTarget == null)
-            yield break;
-        ContactError = Vector3.Distance(hand.position, targetPos);
-        if (gizmos)
-            Debug.Log($"Reach: lean={requestedLeanWeight:F2} angle={SpineLeanAngle:F1} " +
-                      $"crouch={appliedCrouchDepth:F2} contactError={ContactError:F3}", this);
-        onContact?.Invoke();
+            if (version != reachVersion || !isGrabbing || !isActiveAndEnabled || gripTarget == null)
+                yield break;
+            ContactError = Vector3.Distance(hand.position, targetPos);
+            if (gizmos)
+                Debug.Log($"Reach: lean={requestedLeanWeight:F2} angle={SpineLeanAngle:F1} " +
+                          $"crouch={appliedCrouchDepth:F2} contactError={ContactError:F3}", this);
+            onContact?.Invoke();
 
-        // Blend out the depth actually applied, not an estimated standing-pose deficit.
-        float crouchDepth = appliedCrouchDepth;
-        float targetLean = requestedLeanWeight;
-        float blendDuration = Mathf.Max(0.01f, profile.ikBlendOutDuration);
-        float blendElapsed = 0f;
-        while (blendElapsed < blendDuration)
-        {
-            if (version != reachVersion || !isGrabbing || !isActiveAndEnabled) yield break;
-            blendElapsed += Time.deltaTime;
-            float t = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(blendElapsed / blendDuration));
-            armRig.weight = 1f - t;
-            appliedCrouchDepth = crouchDepth * (1f - t);
-            SetCrouch(appliedCrouchDepth, 1f);
-            if (spineAimConstraint != null)
-                spineAimConstraint.weight = Mathf.Lerp(targetLean, 0f, t);
-            UpdateTwist();
-            yield return null;
-        }
+            // Blend out the depth actually applied, not an estimated standing-pose deficit.
+            float crouchDepth = appliedCrouchDepth;
+            float targetLean = requestedLeanWeight;
+            float blendDuration = Mathf.Max(0.01f, profile.ikBlendOutDuration);
+            float blendElapsed = 0f;
+            while (blendElapsed < blendDuration)
+            {
+                if (version != reachVersion || !isGrabbing || !isActiveAndEnabled) yield break;
+                blendElapsed += Time.deltaTime;
+                float t = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(blendElapsed / blendDuration));
+                armRig.weight = 1f - t;
+                appliedCrouchDepth = crouchDepth * (1f - t);
+                SetCrouch(appliedCrouchDepth, 1f);
+                SetLeanWeight(Mathf.Lerp(targetLean, 0f, t));
+                UpdateTwist();
+                yield return null;
+            }
         }
         finally
         {
@@ -356,7 +363,7 @@ public class GrabIK : MonoBehaviour
         requestedLeanWeight = 0f;
         spineAimDirection = Vector3.zero;
         ResetTwist();
-        if (spineAimConstraint != null) spineAimConstraint.weight = 0f;
+        SetLeanWeight(0f);
         if (armRig != null) armRig.weight = 0f;
         if (handTarget != null && isGrabbing)
             handTarget.SetPositionAndRotation(reachStartPosition, reachStartRotation);
@@ -516,11 +523,15 @@ public class GrabIK : MonoBehaviour
             Gizmos.DrawLine(upperArm.position, handTarget.position);
             Gizmos.DrawWireSphere(handTarget.position, 0.025f);
         }
-        if (spineAimTarget != null && HasSpineLean)
+        if (spineChain != null && HasSpineLean)
         {
             Gizmos.color = Color.green;
-            Gizmos.DrawLine(spineAimConstraint.data.constrainedObject.position, spineAimTarget.position);
-            Gizmos.DrawWireSphere(spineAimTarget.position, 0.025f);
+            foreach (var link in spineChain)
+            {
+                if (link == null || !link.IsValid) continue;
+                Gizmos.DrawLine(link.Bone.position, link.aimTarget.position);
+                Gizmos.DrawWireSphere(link.aimTarget.position, 0.025f);
+            }
         }
         if (Application.isPlaying && isGrabbing)
         {
@@ -538,40 +549,95 @@ public class GrabIK : MonoBehaviour
         return Mathf.Clamp01(overReach / Mathf.Max(0.01f, LeanMaxOverReach)) * Mathf.Clamp01(maxLeanWeight);
     }
 
-    private bool HasSpineLean => spineAimConstraint != null && spineAimConstraint.isActiveAndEnabled
-        && spineAimTarget != null && spineAimConstraint.data.constrainedObject != null;
+    // ------------------------------------------------------------------
+    // Spine lean (multi-vertebra)
+    // ------------------------------------------------------------------
 
     private Vector3 spineAimDirection;
-    private Vector3 neutralSpineAim;
-    private Vector3 spineAimAxis;
+
+    /// <summary>Lowest valid vertebra in the chain.</summary>
+    private SpineLeanLink BaseLink
+    {
+        get
+        {
+            if (spineChain == null) return null;
+            for (int i = 0; i < spineChain.Length; i++)
+                if (spineChain[i] != null && spineChain[i].IsValid) return spineChain[i];
+            return null;
+        }
+    }
+
+    /// <summary>Highest valid vertebra in the chain.</summary>
+    private SpineLeanLink TopLink
+    {
+        get
+        {
+            if (spineChain == null) return null;
+            for (int i = spineChain.Length - 1; i >= 0; i--)
+                if (spineChain[i] != null && spineChain[i].IsValid) return spineChain[i];
+            return null;
+        }
+    }
+
+    private bool HasSpineLean => BaseLink != null;
+
+    /// <summary>
+    /// Sets the shared lean weight and distributes it to every vertebra constraint,
+    /// scaled by each link's weightScale.
+    /// </summary>
+    private void SetLeanWeight(float weight)
+    {
+        leanWeight = Mathf.Clamp01(weight);
+        if (spineChain == null) return;
+        foreach (var link in spineChain)
+            if (link != null && link.constraint != null)
+                link.constraint.weight = leanWeight * link.weightScale;
+    }
 
     private void PrepareSpineAim(Vector3 targetPos)
     {
-        if (!HasSpineLean) return;
-        // Read the imported constraint axis rather than assuming the bone faces local Z.
-        var data = spineAimConstraint.data;
-        spineAimAxis = ((UnityEngine.Animations.Rigging.IMultiAimConstraintData)data).aimAxis;
-        neutralSpineAim = data.constrainedObject.TransformDirection(spineAimAxis).normalized;
-        Vector3 forward = Vector3.ProjectOnPlane(neutralSpineAim, Vector3.up).normalized;
+        var reference = TopLink;
+        if (reference == null) return;
+
+        // Capture each bone's unleaned aim axis (weights are 0 here, so this is the animated pose).
+        foreach (var link in spineChain)
+        {
+            if (link == null || !link.IsValid) continue;
+            link.axis = ((IMultiAimConstraintData)link.constraint.data).aimAxis;
+            link.neutralAim = link.Bone.TransformDirection(link.axis).normalized;
+        }
+
+        // Direction is computed from the top vertebra, which ends up fully aimed along it.
+        Transform refBone = reference.Bone;
+        Vector3 neutral = reference.neutralAim;
+        Vector3 forward = Vector3.ProjectOnPlane(neutral, Vector3.up).normalized;
         if (forward.sqrMagnitude < 0.001f) forward = hintAnchor.forward;
-        Vector3 direction = targetPos - data.constrainedObject.position;
-        if (direction.sqrMagnitude < 0.001f) direction = neutralSpineAim;
+
+        Vector3 direction = targetPos - refBone.position;
+        if (direction.sqrMagnitude < 0.001f) direction = neutral;
+
         // Avoid backwards/sideways twists: this correction is a forward bend, not a turn.
         float ahead = Mathf.Max(0.01f, Vector3.Dot(direction, forward));
         float pitch = Mathf.Atan2(-direction.y, ahead) * Mathf.Rad2Deg;
         if (targetPos.y < upperArm.position.y) pitch += extraDownwardLeanPitch;
         pitch = Mathf.Clamp(pitch, 0f, maxForwardLeanAngle);
+
         Vector3 desired = forward * Mathf.Cos(pitch * Mathf.Deg2Rad)
                         + Vector3.down * Mathf.Sin(pitch * Mathf.Deg2Rad);
-        spineAimDirection = Vector3.RotateTowards(neutralSpineAim, desired,
+        spineAimDirection = Vector3.RotateTowards(neutral, desired,
             Mathf.Clamp(maxForwardLeanAngle, 0f, 85f) * Mathf.Deg2Rad, 0f).normalized;
         UpdateSpineAim();
     }
 
     private void UpdateSpineAim()
     {
-        if (HasSpineLean && spineAimDirection.sqrMagnitude > 0.001f)
-            spineAimTarget.position = spineAimConstraint.data.constrainedObject.position + spineAimDirection;
+        if (spineChain != null && spineAimDirection.sqrMagnitude > 0.001f)
+        {
+            // Every vertebra aims along the same world direction, each from its own position.
+            foreach (var link in spineChain)
+                if (link != null && link.IsValid)
+                    link.aimTarget.position = link.Bone.position + spineAimDirection;
+        }
 
         if (HasTwist && isGrabbing)
             chestTwistTarget.position = postureTarget;
