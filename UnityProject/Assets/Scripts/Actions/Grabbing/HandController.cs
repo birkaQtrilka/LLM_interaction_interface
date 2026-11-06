@@ -33,7 +33,6 @@ public class HandController : MonoBehaviour
     {
         if (State != HandState.Holding || Held == null) return;
 
-        // Updates if either the hand controller debug flag OR the item's grab point debug flag is active
         if (liveTweakOffset || Held.liveTweakGrabPoint)
         {
             ApplyHeldPose(Held);
@@ -64,7 +63,7 @@ public class HandController : MonoBehaviour
             onGrabbed?.Invoke();
         }
 
-        if (p.useIK) yield return ik.ReachRoutine(item.GripTarget, p, contact);
+        if (p.useIK) yield return ik.ReachRoutine(() => new Pos(item.GripTarget), p, contact);
         else yield return new WaitForSeconds(1.5f);
 
         if (Held != item) contact();
@@ -90,7 +89,7 @@ public class HandController : MonoBehaviour
             onReleased?.Invoke(tr);
         }
 
-        if (target != null && p.useIK) yield return ik.ReachRoutine(target, p, contact);
+        if (target != null && p.useIK) yield return ik.ReachRoutine(() => new Pos(target), p, contact);
         if (Held != null) contact();
 
         float until = Time.time + 2f;
@@ -141,8 +140,6 @@ public class HandController : MonoBehaviour
         Transform tr = item.transform;
 
         Matrix4x4 offset = PoseUtil.Local(p.handOffsetPosition, p.handOffsetEuler);
-
-        // Dynamically recalculate the grab point relative to the item transform
         Matrix4x4 gripInItem = PoseUtil.Pose(tr).inverse * PoseUtil.Pose(item.GripTarget);
         Matrix4x4 itemPose = PoseUtil.Pose(holdPoint) * offset.inverse * gripInItem.inverse;
 
@@ -160,5 +157,4 @@ public class HandController : MonoBehaviour
         anim.SetBool("Holding", false);
         return tr;
     }
-
 }

@@ -361,7 +361,7 @@ MonoBehaviour:
   includePlayingAnimations: 1
   agents:
   - {fileID: 1881582816}
-  - {fileID: 0}
+  - {fileID: 442228235}
   <Player>k__BackingField: {fileID: 330585546}
   maxMessageHistory: 10
   showGizmos: 1
@@ -882,7 +882,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1.73
+      value: -1.77
       objectReference: {fileID: 0}
     - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: m_LocalPosition.y
@@ -890,7 +890,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -5.35
+      value: 2.38
       objectReference: {fileID: 0}
     - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: m_LocalRotation.w
@@ -926,7 +926,11 @@ PrefabInstance:
       objectReference: {fileID: 52645841}
     - target: {fileID: 7143666008480823539, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: m_Name
-      value: NPC1 (1)
+      value: NPC2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7143666008480823539, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1379,6 +1383,17 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &442228235 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7329515217725834280, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+  m_PrefabInstance: {fileID: 309673030}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e68774110b775548b88a948b4e49b3d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NPC
 --- !u!1 &508067860
 GameObject:
   m_ObjectHideFlags: 0
@@ -1791,7 +1806,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &637763068
 Transform:
   m_ObjectHideFlags: 0
@@ -2262,7 +2277,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &854060013
 Transform:
   m_ObjectHideFlags: 0
@@ -4718,8 +4733,8 @@ SceneRoots:
   - {fileID: 221724454}
   - {fileID: 549429475}
   - {fileID: 52645841}
-  - {fileID: 1881582815}
   - {fileID: 309673030}
+  - {fileID: 1881582815}
   - {fileID: 737304171}
   - {fileID: 1456499505}
   - {fileID: 372572998}

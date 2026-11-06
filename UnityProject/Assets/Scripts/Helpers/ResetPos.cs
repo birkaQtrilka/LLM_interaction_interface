@@ -1,15 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-public struct Pos
-{
-    public Vector3 p;
-    public Quaternion r;
-    public Pos(Vector3 pos, Quaternion rot)
-    {
-        p = pos;
-        r = rot;
-    }
-}
 public class ResetPos : MonoBehaviour
 {
     public List<Transform> targets = new List<Transform>();

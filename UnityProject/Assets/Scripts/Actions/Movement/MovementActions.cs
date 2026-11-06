@@ -6,7 +6,6 @@ using UnityEngine.AI;
 
 static class MovementActions
 {
-    // Backwards compatibility alias
     public static Dictionary<NPC, Vector3> Reserved => MovementReservation.Reserved;
     static readonly Dictionary<NPC, Coroutine> activeTurns = new();
 
@@ -20,16 +19,33 @@ static class MovementActions
 
     static IEnumerator SerialTurn(NPC agent, Coroutine previous, Vector3 targetPosition)
     {
-        if (previous != null) yield return previous;   // finished coroutines return immediately
+        if (previous != null) yield return previous;
         yield return TurnTowards(agent, targetPosition);
     }
 
-    /// Completes once the agent's most recent turn has finished (immediately if none).
     public static IEnumerator WaitForTurn(NPC agent)
     {
         if (activeTurns.TryGetValue(agent, out var c) && c != null)
-            yield return c;   // yielding a Coroutine waits for it; a finished one returns right away
-        
+            yield return c;
+    }
+
+    public static IEnumerator EnsureFacing(NPC agent, Vector3 targetPosition, float maxTurnAngle = 40f)
+    {
+        Vector3 flatDir = targetPosition - agent.transform.position;
+        flatDir.y = 0f;
+
+        if (flatDir.sqrMagnitude > 0.0001f)
+        {
+            yield return WaitForTurn(agent);
+
+            yield return null;
+            while (agent.Anim.IsInTransition(0))
+                yield return null;
+
+            float turnAngle = Vector3.SignedAngle(agent.transform.forward, flatDir, Vector3.up);
+            if (Mathf.Abs(turnAngle) > maxTurnAngle)
+                yield return StartTurn(agent, targetPosition);
+        }
     }
 
     static readonly int HorizontalHash = Animator.StringToHash("Horizontal");
@@ -67,13 +83,10 @@ static class MovementActions
 
         IEnumerator behavior()
         {
-            // Wait for NavMesh to finish asynchronous path calculation
             yield return null;
             while (agent.Nav.pathPending)
                 yield return null;
 
-
-            // If already in range or no path needed, turn to face the target
             if (!agent.Nav.hasPath || agent.Nav.remainingDistance <= agent.Nav.stoppingDistance + agent.StoppingDistOffset)
             {
                 yield return StartTurn(agent, pos.position);
@@ -91,7 +104,6 @@ static class MovementActions
                     walkRoutine = null;
                 }
                 yield return StartTurn(agent, pos.position);
-
             }
 
             yield return agent.StartCoroutine(BlendToIdle(agent));
@@ -119,18 +131,12 @@ static class MovementActions
         return new AnimAction(action, start, behavior(), end);
     }
 
-    /// <summary>
-    /// Turns the agent towards a target position in world space unconditionally.
-    /// </summary>
     public static IEnumerator TurnTowards(NPC agent, Vector3 targetPosition)
     {
         Vector3 dir = targetPosition - agent.transform.position;
         return TurnTowardsDirection(agent, dir);
     }
 
-    /// <summary>
-    /// Turns the agent towards a direction vector in world space unconditionally.
-    /// </summary>
     public static IEnumerator TurnTowardsDirection(NPC agent, Vector3 direction)
     {
         direction.y = 0f;
@@ -193,7 +199,6 @@ static class MovementActions
         Vector3 initialDir = nav.steeringTarget - agent.transform.position;
         initialDir.y = 0f;
 
-        // Only turn in place if the required turn exceeds MaxTurnAngle
         if (initialDir.sqrMagnitude > 0.001f)
         {
             float turnAngle = Vector3.SignedAngle(agent.transform.forward, initialDir.normalized, Vector3.up);

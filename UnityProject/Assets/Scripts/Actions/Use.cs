@@ -4,7 +4,7 @@ using UnityEngine;
 public class Use : IAgentAction
 {
     public string Name => "use";
-    // assuming item can be used only one way, and npc has one animation for using it, and the item has one animation for being used
+
     public string TryBuild(ActionData action, AgentSystem context, NPC agent, out AnimAction result)
     {
         result = default;
@@ -13,20 +13,22 @@ public class Use : IAgentAction
 
         int nameHash = -1;
         string error = null;
+
         void start()
         {
             (string err, Transform useOn, ContextItem it) = Validate(param[0], context, agent);
             error = err;
-            if(error != null) return;
+            if (error != null) return;
+
             if (it == null) // nothing in hands
             {
                 var itemAnim = useOn.GetComponentInChildren<Animator>();
                 if (itemAnim != null)
                 {
-                    itemAnim.SetTrigger("Use");// can be Play(name) later
+                    itemAnim.SetTrigger("Use");
                     nameHash = Animator.StringToHash(useOn.name);
-                } else error = $"Item: '{useOn.name}' does not have an Animator component to play the 'Use' animation";
-
+                }
+                else error = $"Item: '{useOn.name}' does not have an Animator component to play the 'Use' animation";
             }
             else // with item in hands
             {
@@ -34,22 +36,22 @@ public class Use : IAgentAction
                 if (itemAnim != null)
                 {
                     itemAnim.SetTrigger("Use");
-                    // The "Use" trigger should be set up in the Animator for the item to play the appropriate animation when used only if Immediate
-                    // If you want to play the animation later, in a timed Matter, you should use "UseLater" together with an animation behavior/event
                     nameHash = Animator.StringToHash(it.GetName());
-                } else error = $"Item: '{it.GetName()}' does not have an Animator component to play the 'Use' animation";
+                }
+                else error = $"Item: '{it.GetName()}' does not have an Animator component to play the 'Use' animation";
             }
 
-            agent.Anim.Play(nameHash, (int)NPC_AnimLayer.ItemUse);
+            if (nameHash != -1) agent.Anim.Play(nameHash, (int)NPC_AnimLayer.ItemUse);
         }
 
         IEnumerator behavior()
         {
-            if(error != null)
+            if (error != null)
             {
                 Debug.LogError(error);
                 yield break;
             }
+
             yield return new WaitUntil(() => error != null || nameHash != -1);
             if (error != null)
             {
@@ -59,14 +61,8 @@ public class Use : IAgentAction
             yield return Utils.MonitorAnimatorState(agent.Anim, nameHash, (int)NPC_AnimLayer.ItemUse);
         }
 
-        result = new AnimAction(
-            action, 
-            start, 
-            behavior(), 
-            null
-        );
+        result = new AnimAction(action, start, behavior(), null);
 
-        // play animation
         return null;
     }
 

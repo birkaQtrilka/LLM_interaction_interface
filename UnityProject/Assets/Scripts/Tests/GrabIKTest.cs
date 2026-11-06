@@ -53,7 +53,7 @@ public class GrabIKTest : MyTest
             agent = npc.name,
             parameters = new string[] { toGrab },
         });
-        if(err!=null) Debug.Log(err);
+        if (err != null) Debug.Log(err);
         err = animationLibrary.PlayAnimation(agentSystem, new ActionData
         {
             id = 1,
@@ -62,7 +62,7 @@ public class GrabIKTest : MyTest
             parameters = new string[] { npc.name },
             runAfter = new int[1] { 0 },
         });
-        if(err!=null) Debug.Log(err);
+        if (err != null) Debug.Log(err);
     }
 
     // IK only: the hand reaches the grip point and blends out, nothing is attached
@@ -81,7 +81,7 @@ public class GrabIKTest : MyTest
 
         ResetTestPosition();
         StartCoroutine(ik.ReachRoutine(
-            testTarget.GripTarget,
+            () => new Pos(testTarget.GripTarget),
             testTarget.profile,
             () => Debug.Log("Contact reached (nothing attached)")));
     }
@@ -104,7 +104,7 @@ public class GrabIKTest : MyTest
         bool complete = false, crouchedTooSoon = false;
         IEnumerator run()
         {
-            yield return ik.ReachRoutine(testTarget.GripTarget, testTarget.profile, () => contacts++);
+            yield return ik.ReachRoutine(() => new Pos(testTarget.GripTarget), testTarget.profile, () => contacts++);
             complete = true;
         }
         StartCoroutine(run());

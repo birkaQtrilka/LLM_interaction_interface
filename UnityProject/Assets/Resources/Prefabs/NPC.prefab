@@ -13545,41 +13545,44 @@ MonoBehaviour:
   upperArm: {fileID: 782907755715340927}
   forearm: {fileID: 1543107430540665992}
   hand: {fileID: 2603629546951758703}
-  spineChain:
-  - constraint: {fileID: 3590281048636555941}
-    aimTarget: {fileID: 7213607431972429361}
-    weightScale: 0.86
-  - constraint: {fileID: 5688984426391665352}
-    aimTarget: {fileID: 2203624302792374784}
-    weightScale: 0.65
-  leanStartRatio: 0.75
-  maxLeanWeight: 1
-  armLenghtOffset: 0
-  leanOvershoot: 0.104
-  extraDownwardLeanPitch: 33.2
-  maxForwardLeanAngle: 75.6
-  leanSettleTolerance: 0.02
-  crouchRig: {fileID: 1962404919017882025}
-  hipsOverride: {fileID: 1717381453778377400}
-  leftFootTarget: {fileID: 2448187033754471721}
-  rightFootTarget: {fileID: 2132503342367556578}
-  leftFoot: {fileID: 2841093434844010434}
-  rightFoot: {fileID: 5559471386399416459}
-  leftKneeHint: {fileID: 3428070438103445805}
-  rightKneeHint: {fileID: 8528888103978855231}
-  hintAnchor: {fileID: 0}
-  crouchReachMargin: 0
-  maxCrouchDepth: 0.68
-  minCrouchDepth: 0.05
-  leanReachBonus: 0.3
-  reachTolerance: 0.015
-  chestTwistConstraint: {fileID: 5820220463787933223}
-  chestTwistTarget: {fileID: 1469614717371196065}
-  maxTwistWeight: 0.865
+  holdPoint: {fileID: 5281620571387641971}
+  spine:
+    chain:
+    - constraint: {fileID: 3590281048636555941}
+      aimTarget: {fileID: 7213607431972429361}
+      weightScale: 0.87
+    - constraint: {fileID: 5688984426391665352}
+      aimTarget: {fileID: 2203624302792374784}
+      weightScale: 0.7
+    startRatio: 0.75
+    maxWeight: 0.85
+    armLengthOffset: -0.1
+    overshoot: 0.1
+    extraDownwardPitch: 20
+    maxForwardAngle: 75
+    settleTolerance: 0.02
+    reachBonus: 0.3
+    reachTolerance: 0.015
+  crouch:
+    rig: {fileID: 1962404919017882025}
+    hipsOverride: {fileID: 1717381453778377400}
+    leftFootTarget: {fileID: 2448187033754471721}
+    rightFootTarget: {fileID: 2132503342367556578}
+    leftFoot: {fileID: 2841093434844010434}
+    rightFoot: {fileID: 5559471386399416459}
+    leftKneeHint: {fileID: 3428070438103445805}
+    rightKneeHint: {fileID: 8528888103978855231}
+    hintAnchor: {fileID: 0}
+    reachMargin: 0
+    maxDepth: 0.6
+    minDepth: 0.05
+  twist:
+    chestConstraint: {fileID: 5820220463787933223}
+    chestTarget: {fileID: 1469614717371196065}
+    maxWeight: 0.642
   gizmos: 0
   handForward: {x: 0, y: -1, z: 0}
   handUp: {x: 0, y: 0, z: 1}
-  holdPoint: {fileID: 5281620571387641971}
 --- !u!114 &6911411674770464373
 MonoBehaviour:
   m_ObjectHideFlags: 0
