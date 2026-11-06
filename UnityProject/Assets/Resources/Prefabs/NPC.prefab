@@ -10446,7 +10446,7 @@ Transform:
   m_GameObject: {fileID: 2369997003512265597}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: 3.0095535e-12, z: -3.0095535e-12, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: -0, z: 0.9930001}
+  m_LocalPosition: {x: 0, y: 0, z: 0.9930001}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -13006,10 +13006,10 @@ Transform:
   - {fileID: 6816558673445264426}
   - {fileID: 3440937707871064362}
   - {fileID: 979862925886998715}
+  - {fileID: 1795628034963420563}
   - {fileID: 8987957545346537353}
   - {fileID: 7276473191600490344}
   - {fileID: 6130567598059482791}
-  - {fileID: 1795628034963420563}
   m_Father: {fileID: 2814251552981399850}
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
 --- !u!95 &6824446517921876096
@@ -13432,6 +13432,10 @@ MonoBehaviour:
   maxLeanWeight: 1
   armLenghtOffset: 0
   leanOvershoot: 0.125
+  extraDownwardLeanPitch: 20
+  maxForwardLeanAngle: 75
+  leanFirstFraction: 0.55
+  leanSettleTolerance: 0.02
   crouchRig: {fileID: 1962404919017882025}
   hipsOverride: {fileID: 1717381453778377400}
   leftFootTarget: {fileID: 2448187033754471721}
@@ -13445,7 +13449,16 @@ MonoBehaviour:
   maxCrouchDepth: 0.68
   minCrouchDepth: 0.05
   leanReachBonus: 0.3
+  crouchResponseSpeed: 2.5
+  reachTolerance: 0.015
+  maxReachSettleTime: 0.2
+  chestTwistConstraint: {fileID: 0}
+  chestTwistTarget: {fileID: 0}
+  maxTwistWeight: 0.5
+  twistResponseSpeed: 2
   gizmos: 0
+  handForward: {x: 0, y: 0, z: 0}
+  handUp: {x: 0, y: 0, z: 0}
   holdPoint: {fileID: 5281620571387641971}
 --- !u!114 &6911411674770464373
 MonoBehaviour:
@@ -43528,6 +43541,7 @@ MonoBehaviour:
     MaxSightDistance: 6
     CheckInterval: 0.1
     ItemTolerance: 1
+  <pointProfile>k__BackingField: {fileID: 0}
   <WalkSpeedMult>k__BackingField: 3
   <TurnSpeed>k__BackingField: 300
   <MaxTurnAngle>k__BackingField: 60

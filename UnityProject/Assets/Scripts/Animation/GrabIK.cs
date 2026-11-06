@@ -67,6 +67,16 @@ public class GrabIK : MonoBehaviour
     [Tooltip("Maximum additional settling time before contact (seconds), even for unreachable targets.")]
     [SerializeField, Range(0f, 0.5f)] private float maxReachSettleTime = 0.2f;
 
+    [Header("Shoulder Twist")]
+    [Tooltip("Multi-Aim Constraint on a chest bone ABOVE the lean bone. Only the spine axis should be constrained.")]
+    [SerializeField] private MultiAimConstraint chestTwistConstraint;
+    [SerializeField] private Transform chestTwistTarget;
+    [Tooltip("Twist weight at full lean/crouch. Keep low for a gentle turn.")]
+    [SerializeField, Range(0f, 1f)] private float maxTwistWeight = 0.5f;
+    [Tooltip("How quickly the twist weight follows lean/crouch (weight per second).")]
+    [SerializeField, Min(0.1f)] private float twistResponseSpeed = 2f;
+    private float twistWeight;
+
     private Vector3 sampledShoulder, sampledLeanShoulder, previousLeanShoulder;
     private float sampledLeanWeight;
     private int sampleFrame = -1, stableLeanFrames;
@@ -117,6 +127,7 @@ public class GrabIK : MonoBehaviour
 
         if (armRig != null) armRig.weight = 0f;
         if (spineAimConstraint != null) spineAimConstraint.weight = 0f;
+        if (chestTwistConstraint != null) chestTwistConstraint.weight = 0f;
 
         if (hipsOverride != null) hips = hipsOverride.data.constrainedObject;
 
@@ -278,6 +289,7 @@ public class GrabIK : MonoBehaviour
                 Quaternion.Slerp(startRot, targetRot, t));
             armRig.weight = t;
             UpdateReachPosture(progress);
+            UpdateTwist();
             if (progress >= 1f && sampleFrame >= 0
                 && Vector3.Distance(hand.position, targetPos) <= reachTolerance)
                 finalPoseFrames++;
@@ -314,6 +326,7 @@ public class GrabIK : MonoBehaviour
             SetCrouch(appliedCrouchDepth, 1f);
             if (spineAimConstraint != null)
                 spineAimConstraint.weight = Mathf.Lerp(targetLean, 0f, t);
+            UpdateTwist();
             yield return null;
         }
         }
@@ -342,6 +355,7 @@ public class GrabIK : MonoBehaviour
         appliedCrouchDepth = 0f;
         requestedLeanWeight = 0f;
         spineAimDirection = Vector3.zero;
+        ResetTwist();
         if (spineAimConstraint != null) spineAimConstraint.weight = 0f;
         if (armRig != null) armRig.weight = 0f;
         if (handTarget != null && isGrabbing)
@@ -450,6 +464,26 @@ public class GrabIK : MonoBehaviour
         hipsOverride.data = data;
     }
 
+    private bool HasTwist => chestTwistConstraint != null && chestTwistTarget != null
+    && chestTwistConstraint.data.constrainedObject != null;
+
+    private void UpdateTwist()
+    {
+        if (!HasTwist) return;
+        float lean = maxLeanWeight > 0.001f ? LeanWeight / maxLeanWeight : 0f;
+        float crouch = maxCrouchDepth > 0.001f ? appliedCrouchDepth / maxCrouchDepth : 0f;
+        float demand = Mathf.Clamp01(Mathf.Max(lean, crouch)) * maxTwistWeight;
+        twistWeight = Mathf.MoveTowards(twistWeight, demand, twistResponseSpeed * Time.deltaTime);
+        chestTwistConstraint.weight = twistWeight;
+    }
+
+    private void ResetTwist()
+    {
+        twistWeight = 0f;
+        if (chestTwistConstraint != null) chestTwistConstraint.weight = 0f;
+    }
+
+
     public Quaternion GetHandRotationFacing(Vector3 targetForward, Vector3 targetUp)
     {
         // Orientation where Z is forward and Y is up
@@ -538,5 +572,8 @@ public class GrabIK : MonoBehaviour
     {
         if (HasSpineLean && spineAimDirection.sqrMagnitude > 0.001f)
             spineAimTarget.position = spineAimConstraint.data.constrainedObject.position + spineAimDirection;
+
+        if (HasTwist && isGrabbing)
+            chestTwistTarget.position = postureTarget;
     }
 }
