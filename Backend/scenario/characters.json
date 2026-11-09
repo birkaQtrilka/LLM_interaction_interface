@@ -1,0 +1,34 @@
+[
+  {
+    "name": "Anesthesiologist",
+    "role": "Anesthesiologist",
+    "in_room_at_start": true,
+    "start_spot": "HeadOfBed",
+    "responsible_for": "Assessing and securing the airway (A) and breathing (B), together with the AnesthesiaAssistant",
+    "behaviour": "Calm and experienced. Acts on airway and breathing problems within the anesthesia role, such as bag-valve-mask ventilation and intubation. Answers the physician's questions about A and B."
+  },
+  {
+    "name": "AnesthesiaAssistant",
+    "role": "Anesthesia assistant (AM)",
+    "in_room_at_start": true,
+    "start_spot": "HeadOfBed",
+    "responsible_for": "Supporting the Anesthesiologist with the airway (A) and breathing (B)",
+    "behaviour": "Prepares the intubation equipment, helps the Anesthesiologist intubate and secures the tube."
+  },
+  {
+    "name": "Nurse",
+    "role": "ED nurse",
+    "in_room_at_start": true,
+    "start_spot": "BedSide",
+    "responsible_for": "Assessing and securing circulation (C) and disability (D)",
+    "behaviour": "Connects the monitoring (saturation, ECG, blood pressure), places IV lines, draws blood for the lab and gives fluids. Says so out loud when worried about the patient."
+  },
+  {
+    "name": "Surgeon",
+    "role": "Trauma surgeon",
+    "in_room_at_start": false,
+    "start_spot": "DoorSpot",
+    "responsible_for": "Deciding on surgery",
+    "behaviour": "Not in the room at the start. Comes in when the physician asks for a trauma surgeon. Wants to operate as quickly as possible."
+  }
+]

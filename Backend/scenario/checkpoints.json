@@ -1,0 +1,82 @@
+{
+  "case": {
+    "player_role": "ER physician, leading the trauma resuscitation room",
+    "patient": "Tom, a healthy 28-year-old man, 180 cm and 85 kg, with no pulmonary or cardiac history",
+    "handover": "Tom caught his left leg between a wall and a forklift. The ambulance crew found a crush injury to the left thigh. The handover is done, Tom lies on the EmergencyBed and the ambulance crew has left.",
+    "task_distribution": "Agreed in advance: the Anesthesiologist and the AnesthesiaAssistant stand at the head for A and B, the Nurse stands at the torso for C and D."
+  },
+  "checkpoints": [
+    {
+      "id": 1,
+      "name": "Arrival",
+      "patient": "Conscious and adequately alert, but pale. Still dressed.",
+      "vitals": { "hr": null, "bp": null, "spo2": "98% on room air", "rr": 12 },
+      "tom": "Conscious. Answers questions adequately and does what he is asked, such as opening his mouth and sticking out his tongue.",
+      "findings": {
+        "major active bleeding": "None visible",
+        "mouth": "Nothing in the mouth, the airway is clear",
+        "chest, with the upper body exposed": "Symmetrical chest expansion 12 times per minute, no retractions, no tracheal deviation, no abnormal skin discoloration",
+        "lung auscultation": "Vesicular breath sounds in all 4 lung fields"
+      },
+      "team": {},
+      "advances_when": "The team moves on to assessing circulation (C)"
+    },
+    {
+      "id": 2,
+      "name": "Shock signs",
+      "patient": "Pale and now sweaty, which he was not before. Still conscious.",
+      "vitals": { "hr": 110, "bp": "90/65", "spo2": "98% on room air", "rr": 12 },
+      "tom": "Conscious. Answers questions adequately.",
+      "findings": {
+        "major active bleeding": "None visible",
+        "mouth": "Nothing in the mouth, the airway is clear",
+        "lung auscultation": "Vesicular breath sounds in all 4 lung fields"
+      },
+      "team": { "Nurse": "Nervous about the patient, and says so to the physician" },
+      "advances_when": "A 2nd IV line is placed and blood is drawn for a complete lab panel"
+    },
+    {
+      "id": 3,
+      "name": "Loss of consciousness",
+      "patient": "Has lost consciousness.",
+      "vitals": { "hr": 115, "bp": "80/60", "spo2": null, "rr": null },
+      "tom": "Unconscious. Does not respond.",
+      "findings": {
+        "major active bleeding": "None visible",
+        "lung auscultation after intubation": "Vesicular breath sounds in all lung fields, the tube is placed correctly"
+      },
+      "team": {},
+      "advances_when": "Tom is intubated, the tube is secured and he is connected to the Ventilator"
+    },
+    {
+      "id": 4,
+      "name": "Worsening shock",
+      "patient": "Unconscious and intubated, on the Ventilator. Circulation has deteriorated.",
+      "vitals": { "hr": 115, "bp": "70/40", "spo2": null, "rr": null, "ecg": "Increasing number of extrasystoles" },
+      "tom": "Unconscious and intubated. Does not respond.",
+      "findings": {
+        "lung auscultation": "Vesicular breath sounds in all lung fields, the tube is placed correctly",
+        "pulse": "115 bpm, weakly palpable at the carotid artery",
+        "capillary refill": "More than 2 seconds",
+        "left thigh (under the clothing)": "Red and very swollen, from internal bleeding in the left thigh",
+        "abdomen": "Soft",
+        "other bleeding": "None"
+      },
+      "team": {},
+      "advances_when": "The physician asks for the trauma surgeon"
+    },
+    {
+      "id": 5,
+      "name": "Surgeon in the room",
+      "patient": "Unconscious and intubated, in hypovolemic shock from bleeding in the left thigh.",
+      "vitals": { "hr": 115, "bp": "70/40", "spo2": null, "rr": null, "ecg": "Increasing number of extrasystoles" },
+      "tom": "Unconscious and intubated. Does not respond.",
+      "findings": {
+        "left thigh": "Red and very swollen, from internal bleeding in the left thigh",
+        "abdomen": "Soft"
+      },
+      "team": { "Surgeon": "Wants to operate as quickly as possible, and wants an X-ray of the left leg before Tom goes to the OR" },
+      "advances_when": "Tom leaves the room for the OR"
+    }
+  ]
+}
