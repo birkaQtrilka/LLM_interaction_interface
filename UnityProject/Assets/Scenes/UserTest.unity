@@ -299,6 +299,8 @@ MonoBehaviour:
   - transform: {fileID: 1515485808}
     description: 
     neighborDistanceThreshold: 1
+    grabbable: 0
+    usableOn: []
     neighbors: []
     boundingBox:
       m_Center: {x: 0, y: 0, z: 0}
@@ -306,6 +308,8 @@ MonoBehaviour:
   - transform: {fileID: 889834146}
     description: 
     neighborDistanceThreshold: 1
+    grabbable: 0
+    usableOn: []
     neighbors: []
     boundingBox:
       m_Center: {x: 0, y: 0, z: 0}
@@ -313,6 +317,8 @@ MonoBehaviour:
   - transform: {fileID: 2130469908}
     description: 
     neighborDistanceThreshold: 1
+    grabbable: 0
+    usableOn: []
     neighbors: []
     boundingBox:
       m_Center: {x: 0, y: 0, z: 0}
@@ -321,6 +327,8 @@ MonoBehaviour:
   - transform: {fileID: 910010002}
     description: a phone you can pick up
     neighborDistanceThreshold: 1
+    grabbable: 0
+    usableOn: []
     neighbors: []
     boundingBox:
       m_Center: {x: 0, y: 0, z: 0}
@@ -328,6 +336,8 @@ MonoBehaviour:
   - transform: {fileID: 910020002}
     description: a scalpel you can pick up
     neighborDistanceThreshold: 1
+    grabbable: 0
+    usableOn: []
     neighbors: []
     boundingBox:
       m_Center: {x: 0, y: 0, z: 0}
@@ -335,6 +345,8 @@ MonoBehaviour:
   - transform: {fileID: 910030002}
     description: a tray to place items on
     neighborDistanceThreshold: 1
+    grabbable: 0
+    usableOn: []
     neighbors: []
     boundingBox:
       m_Center: {x: 0, y: 0, z: 0}
