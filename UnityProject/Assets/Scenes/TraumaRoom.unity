@@ -1106,7 +1106,7 @@ GameObject:
   - component: {fileID: 808365713}
   - component: {fileID: 808365712}
   m_Layer: 0
-  m_Name: IV bag
+  m_Name: IVbag
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
