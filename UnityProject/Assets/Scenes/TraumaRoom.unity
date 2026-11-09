@@ -1502,6 +1502,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 316466657384447840, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 316466657384447840, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: m_AgentTypeID
       value: -1372625422
       objectReference: {fileID: 0}
@@ -1545,11 +1549,35 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3104293997989802013, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4183127329488507184, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7143666008480823539, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: m_Name
-      value: NPC
+      value: Patient
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    - target: {fileID: 7329515217725834280, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7329515217725834280, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: <Nav>k__BackingField
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 7329515217725834280, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: <Hand>k__BackingField
+      value: 
+      objectReference: {fileID: 0}
+    m_RemovedComponents:
+    - {fileID: 316466657384447840, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+    - {fileID: 4183127329488507184, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+    - {fileID: 3104293997989802013, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+    - {fileID: 7329515217725834280, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
