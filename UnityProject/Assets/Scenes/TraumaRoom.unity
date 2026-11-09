@@ -656,7 +656,7 @@ GameObject:
   - component: {fileID: 455602665}
   - component: {fileID: 455602664}
   m_Layer: 0
-  m_Name: Computer Screen Hospital 01 (2)
+  m_Name: Screen
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3340,6 +3340,10 @@ PrefabInstance:
     - target: {fileID: 1950704798799130153, guid: 6f84070aa6b2c5542a9cbdd7a3d08e24, type: 3}
       propertyPath: m_Name
       value: Hospital
+      objectReference: {fileID: 0}
+    - target: {fileID: 2803049513167828286, guid: 6f84070aa6b2c5542a9cbdd7a3d08e24, type: 3}
+      propertyPath: m_Name
+      value: EmergencyBed
       objectReference: {fileID: 0}
     - target: {fileID: 7989861629694781450, guid: 6f84070aa6b2c5542a9cbdd7a3d08e24, type: 3}
       propertyPath: m_LocalPosition.x
