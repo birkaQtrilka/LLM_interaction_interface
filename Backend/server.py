@@ -16,6 +16,7 @@ from schemas import (
 )
 from prompts import PERSONA, CONTEXT_CATALOG, get_system_prompt
 from settings import BASE_DIR, OPENAI_MODEL
+from scenario_loader import load_scenario
 
 with open(BASE_DIR / "actions.json", "r", encoding="utf-8") as f:
     ACTIONS = f.read()
@@ -23,6 +24,9 @@ with open(BASE_DIR / "actions.json", "r", encoding="utf-8") as f:
 # Gestures are not actions. They are tags inside a talk message, parsed by LineParser in Unity
 with open(BASE_DIR / "gestures.json", "r", encoding="utf-8") as f:
     GESTURES = f.read()
+
+# Loaded once at startup. A broken scenario stops the server here instead of failing mid-session
+SCENARIO = load_scenario(BASE_DIR / "scenario")
 
 app = FastAPI()
 LOGS_DIR = BASE_DIR / "logs"
