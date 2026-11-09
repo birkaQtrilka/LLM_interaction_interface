@@ -54,6 +54,8 @@ public class Talk : IAgentAction
             ParsedLine line = LineParser.Parse(msg);
             
             if (context.chatManager != null) context.chatManager.AddChat($"{action.agent} to {receiver}: {line.CleanText}");
+            // CleanText has the gesture tags removed, so they are not fed back to the model
+            context.contextLibrary.AddMessageToHistory(speaker, heardBy, line.CleanText);
 
             if (context.AnimationLibrary.DialoguePlayer == null)
                 Debug.LogWarning("DialoguePlayer is null");

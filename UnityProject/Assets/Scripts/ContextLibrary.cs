@@ -95,9 +95,10 @@ public class ContextLibrary : MonoBehaviour
             }
         }
     }
-    public void AddMessageToHistory(string message)
+    // speaker and addressee are agent names, or "user" for the player. Same format as the chat window
+    public void AddMessageToHistory(string speaker, string addressee, string message)
     {
-        messageHistory.AddLast(message);
+        messageHistory.AddLast($"{speaker} to {addressee}: {message}");
         if (messageHistory.Count > maxMessageHistory)
         {
             messageHistory.RemoveFirst();
@@ -140,7 +141,7 @@ public class ContextLibrary : MonoBehaviour
 
         if (messageHistory.Count > 0 && includeChatHistory)
         {
-            context += "\nThese are past messages from user: ";
+            context += "\nThese are the last spoken lines, oldest first: ";
             foreach (var msg in messageHistory)
             {
                 context += $"\n- {msg}";

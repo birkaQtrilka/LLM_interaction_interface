@@ -72,9 +72,6 @@ public class AgentSystem : MonoBehaviour
             if (actionRes.Status == ContextStatus.Failure) yield break;
 
         }
-        // NPC handoffs are not player messages
-        if (spokenTo == null)
-            contextLibrary.AddMessageToHistory(userPrompt);
     }
 
     IEnumerator RunBusy(IEnumerator work, Action<string> onBusy = null)
@@ -146,6 +143,9 @@ public class AgentSystem : MonoBehaviour
                 string backendJson = JsonUtility.ToJson(res.Response, true);
                 Debug.Log($"Backend actions: {backendJson}");
                 LastActions = res.Response;
+                // No speaker means the player said it. Stored before ActionsSuccess so it lands before the NPC replies (Talk stores those)
+                if (speaker == null)
+                    contextLibrary.AddMessageToHistory("user", string.IsNullOrEmpty(addressee) ? "everyone" : addressee, userPrompt);
                 ActionsSuccess(res.Response);
             }
             else
