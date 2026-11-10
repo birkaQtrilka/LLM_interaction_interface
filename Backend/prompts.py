@@ -40,6 +40,49 @@ Do not add actions, names, or coordinates.
 {LLM_FLAG_RULES}
 """
 
+# Scenario block for the turn prompt. advances_when is left out on purpose, so NPCs do not steer towards it
+def get_scenario_prompt(scenario: dict, checkpoint: dict) -> str:
+  case = scenario["case"]
+  lines = [
+    "SCENARIO:",
+    f"This is a medical training simulation. The user is the {case['player_role']}.",
+    f"Patient: {case['patient']}",
+    f"Handover: {case['handover']}",
+    f"Task distribution: {case['task_distribution']}",
+    "",
+    "Team (the agents):",
+  ]
+  for c in scenario["characters"]:
+    where = f"starts at {c['start_spot']}" if c["in_room_at_start"] else "not in the room at the start"
+    lines.append(f"- {c['name']}, {c['role']}, {where}. Responsible for: {c['responsible_for']}. {c['behaviour']}")
+
+  # Vitals the outline gives no value for are null and left out, so the model does not show a number for them
+  vitals = ", ".join(f"{k}: {v}" for k, v in checkpoint["vitals"].items() if v is not None)
+  lines += [
+    "",
+    f"CURRENT STATE: {checkpoint['name']}",
+    f"Patient now: {checkpoint['patient']}",
+    f"Monitor: {vitals}",
+    f"How Tom responds: {checkpoint['tom']}",
+    "Findings (only reveal one when someone examines that thing):",
+  ]
+  lines += [f"- {k}: {v}" for k, v in checkpoint["findings"].items()]
+  if checkpoint["team"]:
+    lines.append("Team mood now:")
+    lines += [f"- {who}: {mood}" for who, mood in checkpoint["team"].items()]
+
+  lines += [
+    "",
+    "SCENARIO RULES:",
+    "1. Agents act and speak as their role in this case. They react to what the user does and says, and do the work of their own role.",
+    "2. Do not tell the user what to do next and do not coach them through the protocol.",
+    "3. Only state a finding when someone examines that thing. Use the finding text, do not invent other results.",
+    "4. Only mention monitor values listed above. If a value is not listed, do not make up a number.",
+    "5. Tom is the patient, an environment object. He is never the agent of an action.",
+    "6. An agent that is not in the room cannot act.",
+  ]
+  return "\n".join(lines)
+
 # grab's parameter is the item to pick up. place's parameter is only the surface (Tray), not the item in the hand.
 # Only emit actions for this user request. Do not add a place because an earlier message mentioned a tray. If they asked only to grab, do not place.
 # If an agent grabs and then places, the place action must list that same agent's grab id in runAfter so place waits until the item is in hand.

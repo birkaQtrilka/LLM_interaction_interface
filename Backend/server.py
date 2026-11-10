@@ -14,7 +14,7 @@ from schemas import (
     ActionsResponse, ActionData, ObjectFlags, UserFlags, SessionRequestBody,
     FeedbackRequestBody, ErrorRequestBody,
 )
-from prompts import PERSONA, CONTEXT_CATALOG, get_system_prompt
+from prompts import PERSONA, CONTEXT_CATALOG, get_system_prompt, get_scenario_prompt
 from settings import BASE_DIR, OPENAI_MODEL
 from scenario_loader import load_scenario
 
@@ -27,6 +27,8 @@ with open(BASE_DIR / "gestures.json", "r", encoding="utf-8") as f:
 
 # Loaded once at startup. A broken scenario stops the server here instead of failing mid-session
 SCENARIO = load_scenario(BASE_DIR / "scenario")
+# id of the state the case is in. Stays 1 until the ScenarioRunner (#210) moves it. One value for the whole server
+CURRENT_CHECKPOINT = 1
 
 app = FastAPI()
 LOGS_DIR = BASE_DIR / "logs"
@@ -150,6 +152,9 @@ def build_messages(user_text: str, world: str, addressee: str = "", speaker: str
     print("------------- SYSTEM -------------------")
 
     system = get_system_prompt(PERSONA, ACTIONS, GESTURES, addressee, speaker)
+    # Scenario goes last, so the fixed part above stays the same and the provider can cache it
+    checkpoint = SCENARIO["checkpoints"][CURRENT_CHECKPOINT - 1]
+    system += "\n\n" + get_scenario_prompt(SCENARIO, checkpoint)
     print(system)
     print("------------- USER -------------------")
     print(user)
