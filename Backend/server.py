@@ -27,7 +27,7 @@ with open(BASE_DIR / "gestures.json", "r", encoding="utf-8") as f:
 
 # Loaded once at startup. A broken scenario stops the server here instead of failing mid-session
 SCENARIO = load_scenario(BASE_DIR / "scenario")
-# id of the state the case is in. Stays 1 until the ScenarioRunner (#210) moves it. One value for the whole server
+# id of the state the case is in. Only advance_checkpoint moves it. One value for the whole server
 CURRENT_CHECKPOINT = 1
 
 app = FastAPI()
@@ -97,6 +97,8 @@ def append_turn(session_id: str, endpoint: str, system: str, user: str, response
         "response": response,
         "llm_s": llm_s,
     }
+    # The state this reply was made in, so the log shows which replies belong to which state
+    turn["checkpoint"] = CURRENT_CHECKPOINT
     if LOG_SYSTEM:
         turn["system"] = system
     # The reply is the corrected plan, and this keeps the chain the model actually returned
@@ -104,6 +106,28 @@ def append_turn(session_id: str, endpoint: str, system: str, user: str, response
         turn["rejected"] = rejected
     data["turns"].append(turn)
     write_session(path, data)
+
+def advance_checkpoint(session_id: str, to_id: int, reason: str, directory: str = "", description: str = "") -> None:
+    # Moves the case to state to_id and writes the move to the session log. Called by the ScenarioRunner (#210)
+    global CURRENT_CHECKPOINT
+    if not 1 <= to_id <= len(SCENARIO["checkpoints"]):
+        raise ValueError(f"No checkpoint with id {to_id}")
+    path = session_path(session_id, directory)
+    if path.exists():
+        data = json.loads(path.read_text())
+    else:
+        data = new_session(path, description)
+    apply_description(data, description)
+    data.setdefault("checkpoints", []).append({
+        "at": datetime.now().isoformat(timespec="seconds"),
+        "from": CURRENT_CHECKPOINT,
+        "to": to_id,
+        "name": SCENARIO["checkpoints"][to_id - 1]["name"],
+        "reason": reason,
+    })
+    write_session(path, data)
+    # Set after the write, so a failed write does not leave the server in a state the log does not show
+    CURRENT_CHECKPOINT = to_id
 
 def openai_json(messages: list[dict]) -> tuple[dict, dict]:
     api_key = os.environ.get("OPENAI_API_KEY")
@@ -255,7 +279,10 @@ def turn(body: ActionsRequestBody) -> ActionsResponse:
 
 @app.post("/v1/session/start")
 def session_start(body: SessionRequestBody) -> dict:
+    global CURRENT_CHECKPOINT
     path = session_path(body.session_id, body.log_directory)
+    # A new session is a new run of the case, so it starts at the first state again
+    CURRENT_CHECKPOINT = 1
     # A turn can arrive before this call. Do not wipe turns already written.
     if path.exists():
         data = json.loads(path.read_text())
