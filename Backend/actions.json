@@ -28,5 +28,10 @@
     "name": "give",
     "args": "agentToGive: string",
     "doc": "the agent named in the action's 'agent' field gives the item currently in its own itemInRightHand to the agentToGive in parameters. Precondition: that agent's itemInRightHand must be non-empty. If it is empty, there is nothing for that agent to give, use talk instead. If agentToGive is not in the agent list, use talk only and do not grab first. Always do moveTo for this agent to get close to agentToGive first."
+  },
+  {
+    "name": "use",
+    "args": "targetName: string",
+    "doc": "the agent named in the action's 'agent' field operates an object. targetName must be an exact name from the context. If that agent's itemInRightHand is empty, the agent uses targetName itself, for example opening a Door, and targetName must have usable: true. If that agent holds an item, the agent uses the held item on targetName, and the held item must have usable: true with targetName in its usableOn. To use an item on itself, it lists its own name in usableOn. If these conditions do not hold, use talk only and do not moveTo the object. Always do moveTo for this agent to get close to targetName first."
   }
 ]
