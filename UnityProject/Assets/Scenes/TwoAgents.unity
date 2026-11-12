@@ -2105,7 +2105,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 08a092a396850644c82137dd0b3a2501, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Scripts::GestureTest
-  script: '[point target=phone] I want t'
+  script: '[point target=phone] I [point target=phone] want t'
 --- !u!1 &856723457
 GameObject:
   m_ObjectHideFlags: 0
