@@ -2077,7 +2077,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &854060013
 Transform:
   m_ObjectHideFlags: 0
@@ -2876,6 +2876,42 @@ MonoBehaviour:
   profile: {fileID: 11400000, guid: 28f53cd2e48ce7c44bc5a4410e71ff49, type: 2}
   gripTarget: {fileID: 0}
   liveTweakGrabPoint: 0
+--- !u!1 &1144683852
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1144683853}
+  m_Layer: 0
+  m_Name: MoveSpot2
+  m_TagString: MoveSpot
+  m_Icon: {fileID: -5442936267250999957, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1144683853
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1144683852}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.507, y: 0, z: -0.626}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1153726103}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &1153726103 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3551663264316756107, guid: 2cfd6b1ed8c0ef04c8f6f7919411da02, type: 3}
+  m_PrefabInstance: {fileID: 3386784497927192454}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1165020437
 GameObject:
   m_ObjectHideFlags: 0
@@ -2892,7 +2928,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1165020438
 Transform:
   m_ObjectHideFlags: 0
@@ -2920,9 +2956,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5941d804b9e87eb4e9eb54be19100e32, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Scripts::AgentSameDestinationTest
-  test: 1
-  targetObjectName: Chair
+  test: 2
+  targetObjectName: Door
   startTime: 3
+  useDestinations:
+  - Door
+  - Brick
 --- !u!1 &1266590888
 GameObject:
   m_ObjectHideFlags: 0
@@ -3238,6 +3277,37 @@ Transform:
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1465582495
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1465582496}
+  m_Layer: 0
+  m_Name: MoveSpot1
+  m_TagString: MoveSpot
+  m_Icon: {fileID: -5442936267250999957, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1465582496
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1465582495}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.507, y: 0, z: 0.587}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1153726103}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1515485807
 GameObject:
@@ -4359,7 +4429,13 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 3551663264316756107, guid: 2cfd6b1ed8c0ef04c8f6f7919411da02, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1465582496}
+    - targetCorrespondingSourceObject: {fileID: 3551663264316756107, guid: 2cfd6b1ed8c0ef04c8f6f7919411da02, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1144683853}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2cfd6b1ed8c0ef04c8f6f7919411da02, type: 3}
 --- !u!1660057539 &9223372036854775807

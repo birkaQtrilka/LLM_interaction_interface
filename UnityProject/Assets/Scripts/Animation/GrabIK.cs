@@ -206,13 +206,14 @@ public class GrabIK : MonoBehaviour
         SetCrouch(appliedCrouchDepth, 1f);
     }
 
-    public IEnumerator ReachRoutine(Func<Pos> targetPoseProvider, GrabProfile profile, Action onContact = null)
+    public IEnumerator ReachRoutine(Func<Pos> targetPoseProvider, GrabProfile profile, Action onContact = null, GrabIKTimings timings = null)
     {
         if (isGrabbing || !isActiveAndEnabled || targetPoseProvider == null || profile == null || armRig == null)
         {
             Debug.LogWarning("Cannot start reach. Missing dependencies.");
             yield break;
         }
+        if (timings == null) timings = this.timings;
 
         isGrabbing = true;
         int version = ++reachVersion;

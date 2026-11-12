@@ -5,6 +5,23 @@ using UnityEngine.AI;
 public static class MovementReservation
 {
     public static readonly Dictionary<NPC, Vector3> Reserved = new();
+    
+    /// Reserves exactly this position (snapped to the NavMesh). Fails if someone else holds it.
+    public static bool TryReserveExact(NPC npc, Vector3 position, out Vector3 spot, float matchRadius = 0.3f)
+    {
+        Release(npc);
+
+        if (NavMesh.SamplePosition(position, out var hit, 3f, NavMesh.AllAreas))
+            position = hit.position;
+
+        spot = position;
+
+        if (IsTaken(npc, position, matchRadius))
+            return false;
+
+        Reserved[npc] = position;
+        return true;
+    }
 
     public static Vector3 ApproachPoint(NPC agent, Transform target, float gap = 0.3f)
     {

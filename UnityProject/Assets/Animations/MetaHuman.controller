@@ -848,6 +848,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   grabProfile: {fileID: 11400000, guid: 28f53cd2e48ce7c44bc5a4410e71ff49, type: 2}
+  grabTimings: {fileID: 11400000, guid: 206b57a32a86a0e4d98bb476a749cb7b, type: 2}
 --- !u!1102 &4893957603639696284
 AnimatorState:
   serializedVersion: 6

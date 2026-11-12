@@ -3,6 +3,7 @@ using UnityEngine;
 public class MoveAndGrab : StateMachineBehaviour
 {
     [SerializeField] GrabProfile grabProfile;
+    [SerializeField] GrabIKTimings grabTimings;
     AgentSystem system;
 
     override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
@@ -60,7 +61,8 @@ public class MoveAndGrab : StateMachineBehaviour
                 {
                     Debug.LogWarning($"Item: '{useOn.name}' does not have an Animator component to play the 'Use' animation");
                 }
-            }
+            },
+            grabTimings
         ));
     }
 }
