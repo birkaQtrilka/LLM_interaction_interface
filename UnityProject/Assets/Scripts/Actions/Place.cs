@@ -34,8 +34,7 @@ public class Place : IAgentAction
                 yield break;
             }
 
-            Vector3 placePos = PlaceOnTop(item, obj, context);
-            Quaternion placeRot = Quaternion.identity;
+            PlaceOnTop(item, obj, context, agent, out Vector3 placePos, out Quaternion placeRot);
 
             // Aim the hand so the item pivot ends up at placePos, not the grip point
             Transform grip = held.GripTarget;
@@ -44,7 +43,13 @@ public class Place : IAgentAction
                 placePos + placeRot * gripLocal,
                 placeRot * Quaternion.Inverse(held.transform.rotation) * grip.rotation);
 
-            yield return agent.Hand.ReleaseAt(target, tr => tr.SetPositionAndRotation(placePos, placeRot));
+            yield return MovementActions.EnsureFacing(agent, placePos);
+
+            yield return agent.Hand.ReleaseAt(target, tr =>
+            {
+                tr.SetPositionAndRotation(placePos, placeRot);
+                item.RecalculateBounds();
+            });
         }
 
         void end()
@@ -57,69 +62,222 @@ public class Place : IAgentAction
     }
 
     /// <summary>
-    /// Places an item on the top surface of a target context object, avoiding its neighbors.
+    /// Places an item on the top surface of a target context object within arm reach, avoiding its neighbors.
     /// </summary>
-    static Vector3 PlaceOnTop(ContextItem item, ContextItem targetObj, AgentSystem context)
+    public static Vector3 PlaceOnTop(ContextItem item, ContextItem targetObj, AgentSystem context)
     {
+        PlaceOnTop(item, targetObj, context, null, out Vector3 finalPos, out _);
+        return finalPos;
+    }
+
+    public static void PlaceOnTop(ContextItem item, ContextItem targetObj, AgentSystem context, NPC agent, out Vector3 finalPos, out Quaternion finalRot)
+    {
+        finalPos = default;
+        finalRot = Quaternion.identity;
+
+        targetObj.RecalculateBounds();
+        targetObj.FindNeighbors();
+
         if (targetObj.boundingBox == new Bounds())
         {
             Debug.LogError("Target object has no bounding box to place an item on");
-            return new();
+            return;
         }
-        float topY = targetObj.boundingBox.max.y;
-        float itemRadius = Mathf.Max(item.boundingBox.extents.x, item.boundingBox.extents.z);
-        float itemHeightOffset = item.boundingBox.extents.y;
 
-        Vector3 finalPlacementPos = targetObj.boundingBox.center;
-        bool foundClearSpot = false;
-        int maxAttempts = 30;
+        Quaternion savedItemRot = item.transform.rotation;
+        item.transform.rotation = Quaternion.identity;
+        item.RecalculateBounds();
+        Bounds unrotatedItemBounds = item.boundingBox;
+        item.transform.rotation = savedItemRot;
 
+        float itemRadius = Mathf.Max(unrotatedItemBounds.extents.x, unrotatedItemBounds.extents.z);
+        float itemHeightOffset = unrotatedItemBounds.extents.y;
+
+        Vector3 gripLocal = Vector3.zero;
+        if (item.transform.TryGetComponent<GrabbableItem>(out var grabbable) && grabbable.GripTarget != null)
+            gripLocal = item.transform.InverseTransformPoint(grabbable.GripTarget.position);
+
+        Collider[] targetColliders = targetObj.transform.GetComponentsInChildren<Collider>();
+        GrabIK ik = agent != null ? (agent.Hand != null && agent.Hand.IK != null ? agent.Hand.IK : agent.GetComponentInChildren<GrabIK>()) : null;
+
+        float minX = targetObj.boundingBox.min.x + itemRadius;
+        float maxX = targetObj.boundingBox.max.x - itemRadius;
+        if (minX > maxX) minX = maxX = targetObj.boundingBox.center.x;
+
+        float minZ = targetObj.boundingBox.min.z + itemRadius;
+        float maxZ = targetObj.boundingBox.max.z - itemRadius;
+        if (minZ > maxZ) minZ = maxZ = targetObj.boundingBox.center.z;
+
+        float sampleMinX = minX;
+        float sampleMaxX = maxX;
+        float sampleMinZ = minZ;
+        float sampleMaxZ = maxZ;
+
+        if (ik != null && ik.UpperArm != null)
+        {
+            Vector3 shoulder = ik.UpperArm.position;
+            float maxReach = ik.MaxReachDistance;
+            float rMinX = Mathf.Max(minX, shoulder.x - maxReach);
+            float rMaxX = Mathf.Min(maxX, shoulder.x + maxReach);
+            float rMinZ = Mathf.Max(minZ, shoulder.z - maxReach);
+            float rMaxZ = Mathf.Min(maxZ, shoulder.z + maxReach);
+
+            if (rMinX <= rMaxX && rMinZ <= rMaxZ)
+            {
+                sampleMinX = rMinX;
+                sampleMaxX = rMaxX;
+                sampleMinZ = rMinZ;
+                sampleMaxZ = rMaxZ;
+            }
+        }
+
+        bool foundReachableSpot = false;
+        bool foundClearFallback = false;
+        float bestFallbackReachDist = float.PositiveInfinity;
+        Vector3 bestFallbackPos = default;
+        Quaternion bestFallbackRot = Quaternion.identity;
+
+        float edgeMargin = Mathf.Min(itemRadius * 0.5f, 0.05f);
+        int maxAttempts = 50;
         for (int i = 0; i < maxAttempts; i++)
         {
-            float randX = Random.Range(targetObj.boundingBox.min.x + itemRadius, targetObj.boundingBox.max.x - itemRadius);
-            float randZ = Random.Range(targetObj.boundingBox.min.z + itemRadius, targetObj.boundingBox.max.z - itemRadius);
+            bool useReachBox = i < 35;
+            float randX = useReachBox ? Random.Range(sampleMinX, sampleMaxX) : Random.Range(minX, maxX);
+            float randZ = useReachBox ? Random.Range(sampleMinZ, sampleMaxZ) : Random.Range(minZ, maxZ);
 
-            Vector2 testPoint = new(randX, randZ);
-            bool isOverlapping = false;
+            if (!TrySampleTopSurface(targetColliders, targetObj.boundingBox, randX, randZ, out Vector3 surfacePoint, out Vector3 surfaceNormal))
+                continue;
 
-            if (targetObj.neighbors != null)
+            bool footprintOnSurface =
+                TrySampleTopSurface(targetColliders, targetObj.boundingBox, randX + edgeMargin, randZ, out _, out _) &&
+                TrySampleTopSurface(targetColliders, targetObj.boundingBox, randX - edgeMargin, randZ, out _, out _) &&
+                TrySampleTopSurface(targetColliders, targetObj.boundingBox, randX, randZ + edgeMargin, out _, out _) &&
+                TrySampleTopSurface(targetColliders, targetObj.boundingBox, randX, randZ - edgeMargin, out _, out _);
+
+            if (useReachBox && !footprintOnSurface)
+                continue;
+
+            Quaternion candidateRot = Quaternion.FromToRotation(Vector3.up, surfaceNormal);
+            Vector3 candidatePos = surfacePoint + surfaceNormal * itemHeightOffset;
+
+            if (IsOverlappingNeighbors(candidatePos, surfacePoint.y, itemRadius, itemHeightOffset, item, targetObj, context))
+                continue;
+
+            Vector3 gripWorldPos = candidatePos + candidateRot * gripLocal;
+            bool inReach = ik == null || ik.IsWithinReach(gripWorldPos);
+
+            if (inReach)
             {
-                foreach (Transform neighborRef in targetObj.neighbors)
-                {
-                    ContextItem neighbor = context.GetObject(neighborRef.name);
-                    if (neighbor == null) continue; // neighbor no longer tracked in environment
-
-                    Vector2 neighborPos = new(neighbor.boundingBox.center.x, neighbor.boundingBox.center.z);
-                    float neighborRadius = Mathf.Max(neighbor.boundingBox.extents.x, neighbor.boundingBox.extents.z);
-
-                    if (Vector2.Distance(testPoint, neighborPos) < (itemRadius + neighborRadius))
-                    {
-                        isOverlapping = true;
-                        break;
-                    }
-                }
-            }
-
-            if (!isOverlapping)
-            {
-                finalPlacementPos = new Vector3(randX, topY, randZ);
-                foundClearSpot = true;
+                finalPos = candidatePos;
+                finalRot = candidateRot;
+                foundReachableSpot = true;
                 break;
             }
+
+            float reachDist = ik != null ? ik.GetReachDistance(gripWorldPos) : 0f;
+            if (reachDist < bestFallbackReachDist)
+            {
+                bestFallbackReachDist = reachDist;
+                bestFallbackPos = candidatePos;
+                bestFallbackRot = candidateRot;
+                foundClearFallback = true;
+            }
         }
 
-        if (!foundClearSpot)
+        if (!foundReachableSpot)
         {
-            Debug.LogWarning($"Surface of {targetObj.GetName()} is too crowded! Forcing placement at center.");
-            finalPlacementPos = new Vector3(targetObj.boundingBox.center.x, topY, targetObj.boundingBox.center.z);
+            if (foundClearFallback)
+            {
+                finalPos = bestFallbackPos;
+                finalRot = bestFallbackRot;
+            }
+            else
+            {
+                Debug.LogWarning($"Surface of {targetObj.GetName()} is too crowded or unreachable! Placing on closest surface point.");
+                Vector3 refPoint = ik != null && ik.UpperArm != null ? ik.UpperArm.position : targetObj.boundingBox.center;
+                float clampedX = Mathf.Clamp(refPoint.x, minX, maxX);
+                float clampedZ = Mathf.Clamp(refPoint.z, minZ, maxZ);
+
+                if (!TrySampleTopSurface(targetColliders, targetObj.boundingBox, clampedX, clampedZ, out Vector3 surfacePoint, out Vector3 surfaceNormal) &&
+                    !TrySampleTopSurface(targetColliders, targetObj.boundingBox, targetObj.boundingBox.center.x, targetObj.boundingBox.center.z, out surfacePoint, out surfaceNormal))
+                {
+                    surfacePoint = new Vector3(targetObj.boundingBox.center.x, targetObj.boundingBox.max.y, targetObj.boundingBox.center.z);
+                    surfaceNormal = Vector3.up;
+                }
+
+                finalRot = Quaternion.FromToRotation(Vector3.up, surfaceNormal);
+                finalPos = surfacePoint + surfaceNormal * itemHeightOffset;
+            }
         }
-        Vector3 finalPos = new (finalPlacementPos.x, topY + itemHeightOffset, finalPlacementPos.z);
 
         if (item.transform.TryGetComponent<Rigidbody>(out var rb))
         {
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
         }
-        return finalPos;
+    }
+
+    static bool IsOverlappingNeighbors(Vector3 candidatePos, float surfaceY, float itemRadius, float itemHeightOffset, ContextItem item, ContextItem targetObj, AgentSystem context)
+    {
+        if (targetObj.neighbors == null) return false;
+
+        Vector2 testPoint = new(candidatePos.x, candidatePos.z);
+        foreach (Transform neighborRef in targetObj.neighbors)
+        {
+            if (neighborRef == null || neighborRef == item.transform || neighborRef == targetObj.transform) continue;
+            if (neighborRef.TryGetComponent<GrabbableItem>(out var grabbableNeighbor) && grabbableNeighbor.IsHeld) continue;
+
+            ContextItem neighbor = context.GetObject(neighborRef.name);
+            if (neighbor == null) continue;
+
+            neighbor.RecalculateBounds();
+            if (neighbor.boundingBox.max.y <= surfaceY + 0.01f ||
+                neighbor.boundingBox.min.y >= candidatePos.y + itemHeightOffset)
+                continue;
+
+            Vector2 neighborPos = new(neighbor.boundingBox.center.x, neighbor.boundingBox.center.z);
+            float neighborRadius = Mathf.Max(neighbor.boundingBox.extents.x, neighbor.boundingBox.extents.z);
+
+            if (Vector2.Distance(testPoint, neighborPos) < (itemRadius + neighborRadius))
+                return true;
+        }
+
+        return false;
+    }
+
+    static bool TrySampleTopSurface(Collider[] colliders, Bounds bounds, float x, float z, out Vector3 surfacePoint, out Vector3 surfaceNormal)
+    {
+        surfacePoint = default;
+        surfaceNormal = Vector3.up;
+
+        if (colliders == null || colliders.Length == 0)
+        {
+            surfacePoint = new Vector3(x, bounds.max.y, z);
+            return true;
+        }
+
+        float rayOriginY = bounds.max.y + 1f;
+        float maxDistance = bounds.size.y + 2f;
+        Ray ray = new Ray(new Vector3(x, rayOriginY, z), Vector3.down);
+
+        bool found = false;
+        float bestY = float.NegativeInfinity;
+
+        foreach (Collider col in colliders)
+        {
+            if (col == null || !col.enabled || col.isTrigger) continue;
+            if (col.Raycast(ray, out RaycastHit hit, maxDistance))
+            {
+                if (hit.normal.y >= 0.5f && hit.point.y > bestY)
+                {
+                    bestY = hit.point.y;
+                    surfacePoint = hit.point;
+                    surfaceNormal = hit.normal.normalized;
+                    found = true;
+                }
+            }
+        }
+
+        return found;
     }
 }

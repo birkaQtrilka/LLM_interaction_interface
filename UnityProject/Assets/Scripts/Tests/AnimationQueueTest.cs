@@ -4,6 +4,7 @@ public class AnimationQueueTest : MyTest
 {
     [SerializeField] TestNames testName;
     [SerializeField] string toGrab = "phone";
+    [SerializeField] string placeOn = "Table2";
     [SerializeField] AnimationLibrary animationLibrary;
     [SerializeField] AgentSystem AgentSystem;
     public enum TestNames
@@ -33,6 +34,19 @@ public class AnimationQueueTest : MyTest
         }
     }
 
+
+    private void OnEnable()
+    {
+        switch (testName)
+        {
+            case TestNames.GoGrabAndPlacePhone:
+                GrabAndPlacePhone();
+                break;
+            case TestNames.GestureTest:
+                GestureNod();
+                break;
+        }
+    }
     public void GestureNod()
     {
         NPC agent = FindAnyObjectByType<NPC>();
@@ -100,10 +114,19 @@ public class AnimationQueueTest : MyTest
         animationLibrary.PlayAnimation(AgentSystem, new ActionData
         {
             id = 3,
+            name = "moveTo",
+            agent = agent.name,
+            parameters = new string[] { placeOn },
+            runAfter = new int[] { 2 },
+            delayBefore = 0
+        });
+        animationLibrary.PlayAnimation(AgentSystem, new ActionData
+        {
+            id = 4,
             name = "place",
             agent = agent.name,
-            parameters = new string[] { "Chair" },
-            runAfter = new int[1] { 2 },
+            parameters = new string[] { placeOn },
+            runAfter = new int[1] { 3 },
             delayBefore = 0
         });
     }
