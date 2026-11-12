@@ -1,13 +1,183 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
 
 static class MovementActions
 {
-    public static Dictionary<NPC, Vector3> Reserved => MovementReservation.Reserved;
+    // animator names
+    static readonly int HorizontalHash = Animator.StringToHash("Horizontal");
+    static readonly int VerticalHash = Animator.StringToHash("Vertical");
+    static readonly int MotionSpeedHash = Animator.StringToHash("MotionSpeed");
+    static readonly int TurnAngleHash = Animator.StringToHash("TurnAngle");
+    static readonly int DoTurnHash = Animator.StringToHash("DoTurn");
+    static readonly int MoveHash = Animator.StringToHash("Move");
+    static readonly int TurnInPlaceHash = Animator.StringToHash("TurnInPlace");
+    
+    // movement queue
     static readonly Dictionary<NPC, Coroutine> activeTurns = new();
+    // move spot handling
+    const string MoveSpotTag = "MoveSpot";
+    static readonly List<Transform> moveSpotBuffer = new();
+    // path calculation
+    static NavMeshPath pathBuffer;                       // created lazily, NavMeshPath can't be built in a static initializer safely
+    static readonly Vector3[] cornerBuffer = new Vector3[128];
+    static readonly List<(Transform spot, float length)> rankedSpots = new();
+
+    public static AnimAction Build(NPC agent, TransOrPos pos, ActionData action)
+    {
+        var lookHandler = new LookAtHandler(agent, pos);
+        Coroutine walkRoutine = null;
+
+        void start()
+        {
+            Vector3 destination = ResolveDestination(agent, pos);
+
+            if (Vector3.Distance(agent.transform.position, destination) > agent.Nav.stoppingDistance + agent.StoppingDistOffset)
+                agent.Nav.SetDestination(destination);
+        }
+
+        IEnumerator behavior()
+        {
+            yield return null;
+            while (agent.Nav.pathPending)
+                yield return null;
+
+            Vector3 lookPos = pos.position;
+            if(pos.IsTransform)
+            {
+                Transform grabSpot = pos.transform.FindDeep("GrabSpot");
+                if(grabSpot != null) lookPos = grabSpot.position;
+            }
+            if (!agent.Nav.hasPath || agent.Nav.remainingDistance <= agent.Nav.stoppingDistance + agent.StoppingDistOffset)
+            {
+                yield return StartTurn(agent, lookPos);
+            }
+            else
+            {
+                yield return WaitForTurn(agent);
+                walkRoutine = agent.StartCoroutine(WalkAndFace(agent, lookPos));
+                lookHandler.StartWatching();
+
+                yield return agent.StartCoroutine(Utils.MonitorMovement(agent.Nav));
+                if (walkRoutine != null)
+                {
+                    agent.StopCoroutine(walkRoutine);
+                    walkRoutine = null;
+                }
+                yield return StartTurn(agent, lookPos);
+            }
+
+            yield return agent.StartCoroutine(BlendToIdle(agent));
+        }
+
+        void end()
+        {
+            MovementReservation.Release(agent);
+            lookHandler.StopWatching();
+
+            if (walkRoutine != null)
+            {
+                agent.StopCoroutine(walkRoutine);
+                walkRoutine = null;
+            }
+
+            agent.Anim.SetFloat(HorizontalHash, 0f);
+            agent.Anim.SetFloat(VerticalHash, 0f);
+            agent.Anim.SetFloat(MotionSpeedHash, 1f);
+
+            agent.Nav.ResetPath();
+            agent.Nav.isStopped = false;
+        }
+
+        return new AnimAction(action, start, behavior(), end);
+    }
+
+
+    /// Move spot of the item if it has a free one, otherwise the old standoff/ring behaviour.
+    static Vector3 ResolveDestination(NPC agent, TransOrPos pos)
+    {
+        if (pos.IsTransform && pos.transform != null &&
+            TryReserveClosestMoveSpot(agent, pos.transform, out Vector3 moveSpot))
+            return moveSpot;
+
+        return ResolveStandoffDestination(agent, pos);
+    }
+
+    /// Finds all MoveSpot-tagged children of the item, ranks them by NavMesh path length
+    /// from the agent, and reserves the closest free, reachable one.
+    static bool TryReserveClosestMoveSpot(NPC agent, Transform item, out Vector3 destination)
+    {
+        destination = default;
+
+        item.GetComponentsInChildren(false, moveSpotBuffer);
+        moveSpotBuffer.RemoveAll(t => !t.CompareTag(MoveSpotTag));
+        if (moveSpotBuffer.Count == 0) {
+            Debug.Log("No move spots for" + item + ", falling back to normal approach");
+            return false;
+        }
+
+        pathBuffer ??= new NavMeshPath();
+        rankedSpots.Clear();
+
+        foreach (Transform spot in moveSpotBuffer)
+        {
+            Vector3 target = spot.position;
+            if (NavMesh.SamplePosition(target, out var hit, 3f, NavMesh.AllAreas))
+                target = hit.position;
+
+            // Agent.CalculatePath respects the agent's area mask and agent type
+            if (!agent.Nav.CalculatePath(target, pathBuffer)) continue;
+            if (pathBuffer.status != NavMeshPathStatus.PathComplete) continue;   // unreachable or partial
+
+            rankedSpots.Add((spot, PathLength(pathBuffer)));
+        }
+
+        if (rankedSpots.Count == 0)
+        {
+            Debug.LogWarning("No move spots are reachable for " + item);
+            return false;
+        }
+
+        rankedSpots.Sort((a, b) => a.length.CompareTo(b.length));
+
+        // shortest path first; if another agent already reserved it, try the next one
+        foreach (var (spot, _) in rankedSpots)
+        {
+            if (MovementReservation.TryReserveExact(agent, spot.position, out destination))
+                return true;
+        }
+
+        Debug.LogWarning("All move spots are taken for" + item);
+        return false;
+    }
+
+    static float PathLength(NavMeshPath path)
+    {
+        int count = path.GetCornersNonAlloc(cornerBuffer);
+        float length = 0f;
+        for (int i = 1; i < count; i++)
+            length += Vector3.Distance(cornerBuffer[i - 1], cornerBuffer[i]);
+        return length;
+    }
+
+    /// Original behaviour: reserve a ring spot around the target (with standoff) or approach it.
+    static Vector3 ResolveStandoffDestination(NPC agent, TransOrPos pos)
+    {
+        float standoff = agent.Nav.radius + agent.StandoffOffset;
+        if (pos.IsTransform && pos.transform != null && pos.transform.TryGetComponent(out NavMeshAgent other))
+            standoff += other.radius;
+
+        float startRadius = pos.IsTransform ? standoff : 0f;
+
+        if (MovementReservation.TryReserve(agent, pos.position, out Vector3 spot, agent.ReserveSpacing, startRadius))
+            return spot;
+
+        if (pos.IsTransform)
+            return MovementReservation.ApproachPoint(agent, pos.transform, agent.ApproachGap);
+
+        return pos.position;
+    }
 
     public static Coroutine StartTurn(NPC agent, Vector3 targetPosition)
     {
@@ -48,89 +218,7 @@ static class MovementActions
         }
     }
 
-    static readonly int HorizontalHash = Animator.StringToHash("Horizontal");
-    static readonly int VerticalHash = Animator.StringToHash("Vertical");
-    static readonly int MotionSpeedHash = Animator.StringToHash("MotionSpeed");
-    static readonly int TurnAngleHash = Animator.StringToHash("TurnAngle");
-    static readonly int DoTurnHash = Animator.StringToHash("DoTurn");
-    static readonly int MoveHash = Animator.StringToHash("Move");
-    static readonly int TurnInPlaceHash = Animator.StringToHash("TurnInPlace");
-
-    public static AnimAction Build(NPC agent, TransOrPos pos, ActionData action)
-    {
-        var lookHandler = new LookAtHandler(agent, pos);
-        Coroutine walkRoutine = null;
-
-        void start()
-        {
-            float standoff = agent.Nav.radius + agent.StandoffOffset;
-            if (pos.IsTransform && pos.transform != null && pos.transform.TryGetComponent(out NavMeshAgent other))
-                standoff += other.radius;
-
-            float startRadius = pos.IsTransform ? standoff : 0f;
-
-            Vector3 destination;
-            if (MovementReservation.TryReserve(agent, pos.position, out Vector3 spot, agent.ReserveSpacing, startRadius))
-                destination = spot;
-            else if (pos.IsTransform)
-                destination = MovementReservation.ApproachPoint(agent, pos.transform, agent.ApproachGap);
-            else
-                destination = pos.position;
-
-            if (Vector3.Distance(agent.transform.position, destination) > agent.Nav.stoppingDistance + agent.StoppingDistOffset)
-                agent.Nav.SetDestination(destination);
-        }
-
-        IEnumerator behavior()
-        {
-            yield return null;
-            while (agent.Nav.pathPending)
-                yield return null;
-
-            if (!agent.Nav.hasPath || agent.Nav.remainingDistance <= agent.Nav.stoppingDistance + agent.StoppingDistOffset)
-            {
-                yield return StartTurn(agent, pos.position);
-            }
-            else
-            {
-                yield return WaitForTurn(agent);
-                walkRoutine = agent.StartCoroutine(WalkAndFace(agent, pos.position));
-                lookHandler.StartWatching();
-
-                yield return agent.StartCoroutine(Utils.MonitorMovement(agent.Nav));
-                if (walkRoutine != null)
-                {
-                    agent.StopCoroutine(walkRoutine);
-                    walkRoutine = null;
-                }
-                yield return StartTurn(agent, pos.position);
-            }
-
-            yield return agent.StartCoroutine(BlendToIdle(agent));
-        }
-
-        void end()
-        {
-            MovementReservation.Release(agent);
-            lookHandler.StopWatching();
-
-            if (walkRoutine != null)
-            {
-                agent.StopCoroutine(walkRoutine);
-                walkRoutine = null;
-            }
-
-            agent.Anim.SetFloat(HorizontalHash, 0f);
-            agent.Anim.SetFloat(VerticalHash, 0f);
-            agent.Anim.SetFloat(MotionSpeedHash, 1f);
-
-            agent.Nav.ResetPath();
-            agent.Nav.isStopped = false;
-        }
-
-        return new AnimAction(action, start, behavior(), end);
-    }
-
+    
     public static IEnumerator TurnTowards(NPC agent, Vector3 targetPosition)
     {
         Vector3 dir = targetPosition - agent.transform.position;
