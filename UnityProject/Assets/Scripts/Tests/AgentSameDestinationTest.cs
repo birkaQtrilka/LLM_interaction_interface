@@ -28,6 +28,22 @@ public class AgentSameDestinationTest : MyTest
         }
     }
 
+
+    private void OnEnable()
+    {
+        switch (test)
+        {
+            case TestType.ReachDestination:
+                Invoke(nameof(ReachDestination), startTime);
+                break;
+            case TestType.TwoAgents:
+                Invoke(nameof(TwoAgents), startTime);
+                break;
+            case TestType.ReachAndUseDestinations:
+                ReachAndUseDestinations();
+                break;
+        }
+    }
     void ReachAndUseDestinations()
     {
         var agents = FindObjectsByType<NPC>();

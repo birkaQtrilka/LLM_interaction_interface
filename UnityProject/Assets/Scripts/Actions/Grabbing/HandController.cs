@@ -22,6 +22,7 @@ public class HandController : MonoBehaviour
 
     public HandState State { get; private set; }
     public GrabbableItem Held { get; private set; }
+    public GrabIK IK => ik;
 
     void Awake()
     {

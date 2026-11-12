@@ -37,6 +37,33 @@ public class GrabIK : MonoBehaviour
     public float ContactError { get; private set; }
     public bool IsReaching => isGrabbing;
     public Transform UpperArm => upperArm;
+    public float ArmLength => armLength > 0f ? armLength :
+        (upperArm != null && forearm != null && hand != null
+            ? Vector3.Distance(upperArm.position, forearm.position)
+                + Vector3.Distance(forearm.position, hand.position) + spine.armLengthOffset : 0f);
+    public float EffectiveArmLength => Mathf.Max(0.01f, ArmLength - spine.overshoot);
+    public float MaxReachDistance => EffectiveArmLength + (HasSpineLean ? Mathf.Max(0f, spine.reachBonus) : 0f) + Mathf.Max(0f, crouch.reachMargin);
+    public float MaxCrouchDepth => (crouch.rig != null && (hips != null || (crouch.hipsOverride != null && crouch.hipsOverride.data.constrainedObject != null)))
+        ? Mathf.Max(0f, crouch.maxDepth) : 0f;
+
+    public float GetReachDistance(Vector3 targetPos)
+    {
+        if (upperArm == null) return float.PositiveInfinity;
+        Vector3 shoulder = upperArm.position;
+        float dy = targetPos.y - shoulder.y;
+        if (dy < 0f)
+            dy = Mathf.Min(0f, dy + MaxCrouchDepth);
+
+        float dx = targetPos.x - shoulder.x;
+        float dz = targetPos.z - shoulder.z;
+        return Mathf.Sqrt(dx * dx + dy * dy + dz * dz);
+    }
+
+    public bool IsWithinReach(Vector3 targetPos)
+    {
+        if (upperArm == null) return false;
+        return GetReachDistance(targetPos) <= MaxReachDistance;
+    }
     public float SpineLeanAngle
     {
         get
@@ -400,7 +427,6 @@ public class GrabIK : MonoBehaviour
         armRig.weight = 0f;
     }
 
-    private float EffectiveArmLength => Mathf.Max(0.01f, armLength - spine.overshoot);
     private float LeanMaxOverReach => EffectiveArmLength * (1f - spine.startRatio) + spine.reachBonus;
 
     private float CalculateCrouchDepth(Vector3 targetPos)
