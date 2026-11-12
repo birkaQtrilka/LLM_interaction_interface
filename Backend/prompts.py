@@ -55,9 +55,10 @@ RULES:
 1. Answer met true only if the evidence shows that it has already happened.
 2. An order, a request, a plan, or an agent saying it will do something is not enough.
 3. An agent saying it has done it, or a finished action that does it, counts as evidence.
-4. If only part of it has happened, answer false.
-5. If you are unsure, answer false.
-6. reason is one sentence that names the evidence, or what is still missing.
+4. If the condition itself is that someone asks, orders or calls for something, then that request said out loud is the evidence, and rule 2 does not apply.
+5. If only part of it has happened, answer false.
+6. If you are unsure, answer false.
+7. reason is one sentence that names the evidence, or what is still missing.
 
 Respond ONLY with a JSON object in this format:
 {{"met": true, "reason": "..."}}"""
