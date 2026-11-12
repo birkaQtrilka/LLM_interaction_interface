@@ -1,0 +1,37 @@
+Manual play test for the scenario checkpoints (#210)
+Needs #203 done: the NPCs in TraumaRoom are named Anesthesiologist, AnesthesiaAssistant, Nurse and Surgeon.
+
+Before you start:
+- Start the backend (see How to run this.txt). The terminal prints each prompt
+- Open TraumaRoom. On AgentSystem, Check Scenario is ticked
+- Do not run the PlayMode tests at the same time: the backend keeps one checkpoint for the whole server
+
+1. No check while NPCs are busy
+   Ask an NPC to walk somewhere. While it walks, the Console shows no "Scenario check" line.
+   The line appears about half a second after the last action ends.
+
+2. One check after a handoff
+   Ask the Anesthesiologist to tell the Nurse something (a talk with isNextTurn true).
+   The Nurse's own turn runs first. Then exactly one "Scenario check" line appears, not one per turn.
+
+3. No advance on an order
+   At Arrival, say "Nurse, check the circulation" and wait for the check.
+   If the Nurse only says she will do it, the check says advanced=False.
+
+4. Advance on a finished act
+   Get the Nurse to report pulse and blood pressure. The check says advanced=True, now checkpoint 2 (Shock signs).
+   The next NPC answer follows the new state (sweaty, heart rate 110, blood pressure 90/65).
+
+5. Session log
+   Open Backend/logs/<session id>.json. It has:
+   - "scenario_check" turns with met and reason, and "checkpoint" set to the state that was judged
+   - a "checkpoints" list with from, to, name and reason for each advance
+
+6. Last checkpoint
+   Play through to Surgeon in the room. Later checks say "Last checkpoint, there is no next state" and make no model call (no new scenario_check turn in the log).
+
+7. Failure stays visible
+   Stop the backend while an NPC is acting. When the actions end, the chat shows "System: Scenario check failed: ..." and the Console shows the error.
+
+8. Other scenes stay quiet
+   Play UserTest and give an order. No "Scenario check" line appears, and the backend gets no /v1/scenario/check call.
