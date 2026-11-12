@@ -42,6 +42,14 @@ public class AgentSystem : MonoBehaviour
     int planCounter;
 
 
+    // On only in scenes that play the scenario, so other scenes make no judge calls
+    [SerializeField] bool checkScenario = false;
+    // How long nothing may run before the scenario check is sent. Between Round 1 and Round 2 of a turn IsBusy is briefly false
+    [SerializeField] float settleSeconds = 0.5f;
+    // Evidence for the judge: actions finished since the current checkpoint began
+    readonly List<string> finishedSinceAdvance = new();
+    bool checkPending;
+
     public void SetBackend(ILLMBackend backend) => injectedBackend = backend;
 
     // Lets tests shorten the batching delay without reflection
@@ -70,6 +78,66 @@ public class AgentSystem : MonoBehaviour
         if (pendingErrors.Count == 0 || !hasLastTurn) return;
         if (turnInProgress || IsBusy || Time.time < errorFlushAt) return;
         StartCoroutine(RunFeedbackTurn());
+    }
+
+    // Start, not Awake, because tests set animationLibrary through Init after Awake
+    private void Start()
+    {
+        if (!checkScenario) return;
+        // Test scenes play actions without a backend, so there is nothing to check against
+        if (animationLibrary == null || llm == null)
+        {
+            Debug.LogWarning("AgentSystem has no AnimationLibrary or LLMBackend, so scenario checkpoints are never checked");
+            return;
+        }
+        animationLibrary.AnimationEnded += OnAnimationEnded;
+    }
+
+    private void OnDestroy()
+    {
+        if (animationLibrary != null) animationLibrary.AnimationEnded -= OnAnimationEnded;
+    }
+
+    void OnAnimationEnded(AnimationInstance anim)
+    {
+        // Spoken lines are already in the chat history the judge gets, so only physical actions are listed
+        if (anim.data.name != "talk")
+            finishedSinceAdvance.Add($"{anim.data.agent} {anim.data.name}({string.Join(", ", anim.data.parameters ?? new string[0])})");
+        if (!checkPending)
+            StartCoroutine(CheckScenarioWhenSettled());
+    }
+
+    // Waits until no action is queued or playing and no turn is running, so the judge never sees a half-played plan
+    IEnumerator CheckScenarioWhenSettled()
+    {
+        checkPending = true;
+        float quiet = 0f;
+        while (quiet < settleSeconds)
+        {
+            bool settled = !IsBusy && animationLibrary.animations.TrueForAll(a => a.isFinished);
+            quiet = settled ? quiet + Time.deltaTime : 0f;
+            yield return null;
+        }
+        checkPending = false;
+        // Busy during the call, so the player's next turn is built with the new checkpoint
+        yield return RunBusy(CheckScenario());
+    }
+
+    IEnumerator CheckScenario()
+    {
+        string world = contextLibrary.GetContext(ContextQuery.GetFullContext(), animationLibrary.animations);
+        CoroutineResult<ScenarioCheckResponse> res = new();
+        yield return StartCoroutine(llm.CheckScenario(world, finishedSinceAdvance.ToArray(), res));
+        if (res.Status != ContextStatus.Success)
+        {
+            AddChat("System: Scenario check failed: " + res.Error);
+            yield break;
+        }
+
+        ScenarioCheckResponse r = res.Response;
+        Debug.Log($"Scenario check: advanced={r.advanced}, now checkpoint {r.checkpoint} ({r.name}). {r.reason}");
+        // The list is evidence for one state, so the next state starts with an empty list
+        if (r.advanced) finishedSinceAdvance.Clear();
     }
 
     private void OnUserMessage(string txt)

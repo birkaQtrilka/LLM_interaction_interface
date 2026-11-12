@@ -418,7 +418,7 @@ MonoBehaviour:
   - {fileID: 347292160}
   - {fileID: 1908651656}
   <Player>k__BackingField: {fileID: 800959787}
-  maxMessageHistory: 10
+  maxMessageHistory: 30
   showGizmos: 1
 --- !u!4 &163989117
 Transform:
@@ -3159,6 +3159,7 @@ MonoBehaviour:
   llm: {fileID: 522124488}
   animationLibrary: {fileID: 2033616363}
   sendAllContext: 1
+  checkScenario: 1
   <contextLibrary>k__BackingField: {fileID: 163989116}
   <chatManager>k__BackingField: {fileID: 1830398518}
   loadingAnimator: {fileID: 1944048924}

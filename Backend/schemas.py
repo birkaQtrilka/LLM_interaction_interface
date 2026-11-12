@@ -40,6 +40,24 @@ class ErrorRequestBody(BaseModel):
     log_directory: str = ""
     description: str = ""
 
+class ScenarioCheckRequestBody(BaseModel):
+    # Required, because an advance is written to this session's log
+    session_id: str
+    world: str = ""
+    # Actions finished since the current state began, as "Agent name(parameters)"
+    finished_actions: list[str] = Field(default_factory=list)
+    log_directory: str = ""
+    description: str = ""
+
+class ScenarioCheckResponse(BaseModel):
+    advanced: bool
+    # The state the case is in after this check
+    checkpoint: int
+    name: str
+    reason: str
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+
 class UserFlags(BaseModel):
     position: bool = False
     rotation: bool = False
