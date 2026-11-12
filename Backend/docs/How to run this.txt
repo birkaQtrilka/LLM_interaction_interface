@@ -27,6 +27,7 @@ python -m uvicorn server:app --host 127.0.0.1 --port 8000
 
 The turn endpoint is POST http://127.0.0.1:8000/v1/turn
 The context endpoint is POST http://127.0.0.1:8000/v1/context  (user message in, category flags out)
+The scenario check endpoint is POST http://127.0.0.1:8000/v1/scenario/check  (world in, advances the checkpoint if the judge says yes)
 Keep it running while playing in Unity
 
 Run the test:

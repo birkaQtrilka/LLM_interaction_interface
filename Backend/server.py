@@ -12,8 +12,9 @@ from fastapi import FastAPI, HTTPException
 from schemas import (
     ActionsRequestBody, ContextRequestBody, ContextQuery, 
     ActionsResponse, ActionData, ObjectFlags, UserFlags, SessionRequestBody,
-    FeedbackRequestBody, ErrorRequestBody,
+    FeedbackRequestBody, ErrorRequestBody, ScenarioCheckRequestBody, ScenarioCheckResponse,
 )
+from scenario_runner import build_judge_messages, judge
 from prompts import PERSONA, CONTEXT_CATALOG, get_system_prompt, get_scenario_prompt
 from settings import BASE_DIR, OPENAI_MODEL
 from scenario_loader import load_scenario
@@ -108,7 +109,7 @@ def append_turn(session_id: str, endpoint: str, system: str, user: str, response
     write_session(path, data)
 
 def advance_checkpoint(session_id: str, to_id: int, reason: str, directory: str = "", description: str = "") -> None:
-    # Moves the case to state to_id and writes the move to the session log. Called by the ScenarioRunner (#210)
+    # Moves the case to state to_id and writes the move to the session log. Called by /v1/scenario/check
     global CURRENT_CHECKPOINT
     if not 1 <= to_id <= len(SCENARIO["checkpoints"]):
         raise ValueError(f"No checkpoint with id {to_id}")
@@ -275,6 +276,44 @@ def turn(body: ActionsRequestBody) -> ActionsResponse:
     )
     append_turn(body.session_id, "turn", system, user, reply.model_dump(), llm_s, body.log_directory, body.description)
     return reply
+
+
+# Unity calls this once every queued action has finished, so the judge never sees a half-played plan
+@app.post("/v1/scenario/check", response_model=ScenarioCheckResponse)
+def scenario_check(body: ScenarioCheckRequestBody) -> ScenarioCheckResponse:
+    started = time.perf_counter()
+    session_path(body.session_id, body.log_directory)
+    current = CURRENT_CHECKPOINT
+    name = SCENARIO["checkpoints"][current - 1]["name"]
+    # The last state has no next state to move to. Ending the scenario is #213
+    if current == len(SCENARIO["checkpoints"]):
+        return ScenarioCheckResponse(advanced=False, checkpoint=current, name=name, reason="Last checkpoint, there is no next state")
+
+    messages = build_judge_messages(SCENARIO, current, body.world, body.finished_actions)
+    system = messages[0]["content"]
+    user = messages[1]["content"]
+    try:
+        met, reason, usage = judge(openai_json, messages)
+    except HTTPException as exc:
+        append_turn(body.session_id, "scenario_check", system, user, exc.detail, elapsed_s(started), body.log_directory, body.description)
+        raise
+    except ValueError as exc:
+        append_turn(body.session_id, "scenario_check", system, user, str(exc), elapsed_s(started), body.log_directory, body.description)
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    llm_s = elapsed_s(started)
+
+    # Logged before the advance, so the turn's "checkpoint" is the state that was judged
+    append_turn(body.session_id, "scenario_check", system, user, {"met": met, "reason": reason}, llm_s, body.log_directory, body.description)
+    if met:
+        advance_checkpoint(body.session_id, current + 1, reason, body.log_directory, body.description)
+    return ScenarioCheckResponse(
+        advanced=met,
+        checkpoint=CURRENT_CHECKPOINT,
+        name=SCENARIO["checkpoints"][CURRENT_CHECKPOINT - 1]["name"],
+        reason=reason,
+        prompt_tokens=int(usage.get("prompt_tokens") or 0),
+        completion_tokens=int(usage.get("completion_tokens") or 0),
+    )
 
 
 @app.post("/v1/session/start")

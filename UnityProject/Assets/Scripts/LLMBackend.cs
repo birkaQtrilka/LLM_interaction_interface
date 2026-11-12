@@ -29,6 +29,16 @@ public class LLMBackend : MonoBehaviour
     }
 
     [Serializable]
+    class ScenarioCheckRequestBody
+    {
+        public string session_id;
+        public string world;
+        public string[] finished_actions;
+        public string log_directory;
+        public string description;
+    }
+
+    [Serializable]
     class SessionRequestBody
     {
         public string session_id;
@@ -262,6 +272,25 @@ public class LLMBackend : MonoBehaviour
             }
             onSuccess?.Invoke(response);
         }, onError));
+    }
+
+    // Asks the backend if the current checkpoint is reached. The backend advances it and logs the move
+    public IEnumerator CheckScenario(string world, string[] finishedActions, CoroutineResult<ScenarioCheckResponse> res)
+    {
+        string json = JsonUtility.ToJson(new ScenarioCheckRequestBody { session_id = sessionId ?? "", world = world, finished_actions = finishedActions, log_directory = logDirectory ?? "", description = sessionDescription ?? "" });
+        yield return StartCoroutine(PostJson("/v1/scenario/check", json, text =>
+        {
+            ScenarioCheckResponse response = JsonUtility.FromJson<ScenarioCheckResponse>(text);
+            if (response == null)
+            {
+                res.SetError("Received empty or invalid scenario check from backend");
+                return;
+            }
+            res.SetResult(response);
+        }, err =>
+        {
+            res.SetError(err);
+        }));
     }
 
     SessionRequestBody SessionBody()
