@@ -41,9 +41,10 @@ public class MoveAndGrab : StateMachineBehaviour
 
         Transform spot = useOn.FindDeep("GrabSpot");
 
-        System.Func<Pos> evaluateTargetPose = () => {
+        Pos evaluateTargetPose()
+        {
             return spot != null ? new Pos(spot) : new Pos(useOn);
-        };
+        }
 
         agent.StartCoroutine(grabIK.ReachRoutine(
             evaluateTargetPose,

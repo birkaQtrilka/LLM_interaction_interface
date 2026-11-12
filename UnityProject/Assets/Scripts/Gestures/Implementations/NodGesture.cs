@@ -6,6 +6,8 @@ public class NodGesture : IGestureHandler
 {
     public string Name => "nod";
 
+    public string Layer => "head";
+
     public IEnumerator Execute(AgentSystem ctx, ActionData talkData, IReadOnlyDictionary<string, string> args, NPC agent)
     {
         agent.Anim.Play(Name, layer: 2);

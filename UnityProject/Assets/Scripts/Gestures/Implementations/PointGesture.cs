@@ -5,6 +5,7 @@ using UnityEngine;
 public class PointGesture : IGestureHandler
 {
     public string Name => "point";
+    public string Layer => "hands";
 
     public IEnumerator Execute(
         AgentSystem ctx,

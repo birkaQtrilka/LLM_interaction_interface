@@ -1,6 +1,10 @@
+using System;
 using System.Collections;
+using System.Linq;
+using System.Reflection;
 using TMPro;
 using UnityEngine;
+
 /// <summary>
 /// Registers and Dispatches the gestures
 /// </summary>
@@ -14,8 +18,25 @@ public class DialoguePlayer : MonoBehaviour
 
     private void Awake()
     {
-        dispatcher.Register(new NodGesture());
-        dispatcher.Register(new PointGesture());
+        RegisterAllGestures();
+    }
+
+    private void RegisterAllGestures()
+    {
+        Type gestureBaseType = typeof(IGestureHandler);
+
+        var gestureTypes = Assembly.GetExecutingAssembly()
+            .GetTypes()
+            .Where(t => gestureBaseType.IsAssignableFrom(t)
+                     && !t.IsInterface
+                     && !t.IsAbstract
+                     && t.GetConstructor(Type.EmptyTypes) != null);
+
+        foreach (var type in gestureTypes)
+        {
+            var gestureInstance = (IGestureHandler)Activator.CreateInstance(type);
+            dispatcher.Register(gestureInstance);
+        }
     }
 
     public IEnumerator Play(ParsedLine line, AgentSystem ctx, ActionData talkData, NPC agent)
