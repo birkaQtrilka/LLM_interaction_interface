@@ -17,6 +17,8 @@ public class PromptConsistencyTests
 {
     // Each prompt is sent this many times, and a 9-to-1 split reads as about 0.11
     const int Repeats = 10;
+    // Quick run: every prompt once, to see in about a minute if anything is broken. Says nothing about consistency
+    const int QuickRepeats = 1;
     // NUnit reads this in milliseconds, so this is twenty minutes
     const int SurveyTimeoutMs = 1200000;
     const string scenePath = "Assets/Tests/PlayMode/Scenes/Proto_1_Scene.unity";
@@ -80,7 +82,15 @@ public class PromptConsistencyTests
     [Timeout(SurveyTimeoutMs)]
     public IEnumerator Expect()
     {
-        yield return Run("expect");
+        yield return Run("expect", Repeats);
+    }
+
+    [UnityTest]
+    [Category("PromptQuick")]
+    [Timeout(SurveyTimeoutMs)]
+    public IEnumerator ExpectQuick()
+    {
+        yield return Run("expect", QuickRepeats);
     }
 
     [UnityTest]
@@ -88,10 +98,10 @@ public class PromptConsistencyTests
     [Timeout(SurveyTimeoutMs)]
     public IEnumerator Variance()
     {
-        yield return Run("variance");
+        yield return Run("variance", Repeats);
     }
 
-    IEnumerator Run(string mode)
+    IEnumerator Run(string mode, int repeats)
     {
         Assert.IsNotNull(system, "AgentSystem was not found in the test scene.");
         LLMBackend backend = UnityEngine.Object.FindAnyObjectByType<LLMBackend>();
@@ -111,8 +121,8 @@ public class PromptConsistencyTests
         {
             if (family.mode != mode) continue;
             any = true;
-            if (mode == "expect") yield return RunExpect(backend, world, agentName, family, report, failures);
-            else yield return RunVariance(backend, world, family, report, failures);
+            if (mode == "expect") yield return RunExpect(backend, world, agentName, family, repeats, report, failures);
+            else yield return RunVariance(backend, world, family, repeats, report, failures);
         }
 
         Assert.IsTrue(any, $"No prompt families with mode {mode}.");
@@ -125,7 +135,7 @@ public class PromptConsistencyTests
         }
     }
 
-    IEnumerator RunExpect(LLMBackend backend, string world, string agentName, PromptFamily family, StringBuilder report, List<string> failures)
+    IEnumerator RunExpect(LLMBackend backend, string world, string agentName, PromptFamily family, int repeats, StringBuilder report, List<string> failures)
     {
         string title = string.IsNullOrEmpty(family.label) ? "expect" : family.label;
         report.AppendLine(title);
@@ -139,7 +149,7 @@ public class PromptConsistencyTests
         foreach (string prompt in family.prompts)
         {
             report.AppendLine($"  {prompt}");
-            for (int i = 1; i <= Repeats; i++)
+            for (int i = 1; i <= repeats; i++)
             {
                 CoroutineResult<ActionsResponse> result = new();
                 yield return backend.GetActions(prompt, world, result);
@@ -166,7 +176,7 @@ public class PromptConsistencyTests
         report.AppendLine();
     }
 
-    IEnumerator RunVariance(LLMBackend backend, string world, PromptFamily family, StringBuilder report, List<string> failures)
+    IEnumerator RunVariance(LLMBackend backend, string world, PromptFamily family, int repeats, StringBuilder report, List<string> failures)
     {
         string title = string.IsNullOrEmpty(family.label) ? "variance" : family.label;
         report.AppendLine(title);
@@ -183,7 +193,7 @@ public class PromptConsistencyTests
             int trials = 0;
             var counts = new Dictionary<string, int>();
 
-            for (int i = 1; i <= Repeats; i++)
+            for (int i = 1; i <= repeats; i++)
             {
                 CoroutineResult<ActionsResponse> result = new();
                 yield return backend.GetActions(prompt, world, result);

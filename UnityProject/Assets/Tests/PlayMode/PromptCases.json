@@ -124,6 +124,29 @@
       ]
     },
     {
+      "mode": "expect",
+      "label": "use the phone",
+      "prompts": [
+        "Use the phone",
+        "Operate the phone"
+      ],
+      "expect": [
+        { "name": "moveTo", "parameters": ["phone"] },
+        { "name": "use", "parameters": ["phone"], "after": [0] }
+      ]
+    },
+    {
+      "mode": "expect",
+      "label": "use what is not usable",
+      "prompts": [
+        "Use the brick",
+        "Use the chair"
+      ],
+      "expect": [
+        { "name": "talk" }
+      ]
+    },
+    {
       "mode": "variance",
       "label": "which table",
       "prompts": [

@@ -252,7 +252,10 @@ MonoBehaviour:
   environment:
   - transform: {fileID: 1074326910}
     description: '{grabbable:true,canPlaceOn:false}'
+    grabbable: 1
     neighborDistanceThreshold: 1
+    usableOn:
+    - {fileID: 1074326910}
     neighbors: []
     boundingBox:
       m_Center: {x: 0, y: 0, z: 0}
@@ -280,6 +283,7 @@ MonoBehaviour:
       m_Extent: {x: 0, y: 0, z: 0}
   - transform: {fileID: 52645841}
     description: '{grabbable:true,canPlaceOn:false}'
+    grabbable: 1
     neighborDistanceThreshold: 1
     neighbors: []
     boundingBox:

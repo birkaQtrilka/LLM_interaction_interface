@@ -107,9 +107,15 @@ public class LLMBackend : MonoBehaviour
 
     void Start()
     {
+        StartCoroutine(StartNewSession());
+    }
+
+    // A new session also puts the scenario back at checkpoint 1. Tests wait on this so a case never starts mid-scenario
+    public IEnumerator StartNewSession(CoroutineResult<string> res = null)
+    {
         sessionId = Guid.NewGuid().ToString();
         string json = JsonUtility.ToJson(SessionBody());
-        StartCoroutine(PostJson("/v1/session/start", json, null, null));
+        yield return StartCoroutine(PostJson("/v1/session/start", json, text => res?.SetResult(text), err => res?.SetError(err)));
     }
 
     // Play Mode exit stops coroutines, so this call has to finish here.
