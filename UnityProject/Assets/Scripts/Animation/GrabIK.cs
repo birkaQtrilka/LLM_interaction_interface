@@ -396,6 +396,12 @@ public class GrabIK : MonoBehaviour
         isGrabbing = false;
     }
 
+    /// <summary>Stops a running reach routine and restores the rig. Safe to call when idle.</summary>
+    public void CancelReach()
+    {
+        if (isGrabbing) ResetReach();
+    }
+
     public IEnumerator ArmReachPhase(Pos startPos, Pos targetPos, Action<float> onUpdate = null)
     {
         float duration = Mathf.Max(0.01f, timings.reachDuration);

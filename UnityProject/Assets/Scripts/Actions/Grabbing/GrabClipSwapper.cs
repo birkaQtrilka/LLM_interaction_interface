@@ -15,27 +15,16 @@ public class GrabClipSwapper
         this.holdPh = holdPh;
         this.releasePh = releasePh;
 
-        var existing = animator.runtimeAnimatorController as AnimatorOverrideController;
-        RuntimeAnimatorController baseController =
-            existing != null ? existing.runtimeAnimatorController : animator.runtimeAnimatorController;
-
-        if (baseController == null)
+        // Shared per-NPC override controller (created by whichever system initialises first).
+        overrides = NPCAnimatorOverrides.GetOrCreate(animator);
+        if (overrides == null)
         {
             Debug.LogError($"GrabClipSwapper: {animator.name} has no controller assigned");
             return;
         }
 
-        Validate(baseController);
-
-        overrides = new AnimatorOverrideController(baseController);
-        if (existing != null)
-        {
-            var old = new List<KeyValuePair<AnimationClip, AnimationClip>>();
-            existing.GetOverrides(old);
-            overrides.ApplyOverrides(old);
-        }
-
-        animator.runtimeAnimatorController = overrides;
+        // Validate against the BASE controller, because an override controller reports overridden clips.
+        Validate(overrides.runtimeAnimatorController);
     }
 
     public void Apply(GrabProfile p)
