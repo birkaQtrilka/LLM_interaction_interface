@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
@@ -18,12 +19,12 @@ public class NPC : MonoBehaviour
 
     [Header("Movement Settings")]
     [field: SerializeField] public float WalkSpeedMult { get; private set; } = 1f;
-    [field: SerializeField] public float TurnSpeed {get; private set; }= 400f;      // Degrees per second the script rotates the NPC
-    [field: SerializeField] public float MaxTurnAngle {get; private set; }= 60f;
+    [field: SerializeField] public float TurnSpeed { get; private set; } = 400f;      // Degrees per second the script rotates the NPC
+    [field: SerializeField] public float MaxTurnAngle { get; private set; } = 60f;
     [Tooltip("If the angle to the target is less than this, the NPC will do a lerp rotation instead of animation")]
-    [field: SerializeField] public float AngleForLerpRotation {get; private set; }= 7f;
-    [field: SerializeField] public float FaceDistance {get; private set; }= 2f;     // Distance to item where we start facing the item
-    [field: SerializeField] public float DampTime {get; private set; }= 0.15f;
+    [field: SerializeField] public float AngleForLerpRotation { get; private set; } = 7f;
+    [field: SerializeField] public float FaceDistance { get; private set; } = 2f;     // Distance to item where we start facing the item
+    [field: SerializeField] public float DampTime { get; private set; } = 0.15f;
     [Header("Reservation Tweaks")]
     [field: SerializeField, Tooltip("Extra gap when approaching an object")]
     public float ApproachGap { get; private set; } = 0.3f;
@@ -50,6 +51,7 @@ public class NPC : MonoBehaviour
 
     public event Action<Collision> OnCollide;
     public bool RightHandTaken => Hand != null && Hand.Held != null;
+    [field: SerializeField] public EmotionalStateHandler EmotionalStateHandler { get; private set; }
 
     public void GrabItem(Transform item)
     {
