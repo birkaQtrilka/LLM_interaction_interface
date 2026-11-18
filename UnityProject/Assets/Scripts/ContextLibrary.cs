@@ -236,6 +236,11 @@ public class ContextLibrary : MonoBehaviour
 
     string GetNpcContext(string context)
     {
+        if (agents.Count == 0)
+        {
+            context += "There are no agents in the scene.";
+            return context;
+        }
         List<string> npcDataParts = new(10);
         List<string> npcs = new(2);
         foreach (var agent in agents)
@@ -257,8 +262,8 @@ public class ContextLibrary : MonoBehaviour
             npcs.Add( $"{{{string.Join(", ", npcDataParts)}}}");
             npcDataParts.Clear();
         }
-
         
+        context += $"These are all emotions/posture states that any npc can be in: [{string.Join(", ", agents[0].EmotionalStateHandler.GetEmotionalStateSOsCopy().Select(x => x.name))}]";
         context += $"\nThese are the agents: [{string.Join(", ", npcs)}]\n";
         return context ;
     }

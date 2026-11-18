@@ -18,6 +18,8 @@ public class EmotionalStateHandler : MonoBehaviour
     private Coroutine _transition;
     private bool _animatorReady;
 
+    public EmotionalStateSO[] GetEmotionalStateSOsCopy() => _possibleEmotions != null ? (EmotionalStateSO[])_possibleEmotions.Clone() : Array.Empty<EmotionalStateSO>();
+
     /// <summary>
     /// The active emotional state. Set at the START of a transition, so while blending
     /// this already points at the state being blended towards. Null only if the handler
