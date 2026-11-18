@@ -86,7 +86,7 @@ public class AgentDestinationSetter : MonoBehaviour
            }
         );
 
-        if(itemToUseOn.TryGetComponent<GrabbableItem>(out var item))
+        if (itemToUseOn.TryGetComponent<GrabbableItem>(out _) && agent.GetItem() != itemToUseOn.transform)
         {
             system.AnimationLibrary.PlayAnimation(system,
             new ActionData

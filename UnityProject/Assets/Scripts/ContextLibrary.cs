@@ -172,15 +172,19 @@ public class ContextLibrary : MonoBehaviour
             dataParts.Add($"rotation: {item.transform.eulerAngles}");
         }
 
-        if(item.usableOn != null && item.usableOn.Length > 0)
+        var usableTargets = UseInteractionResolver.GetUsableTargets(item.transform, item);
+        if (usableTargets.Count > 0)
         {
             dataParts.Add($"usable: true");
-            dataParts.Add($"usableOn: [{string.Join(", ", item.usableOn.Select(x=>x.name))}]");
+            dataParts.Add($"usableOn: [{string.Join(", ", usableTargets.Select(x => x.name))}]");
         }
         else
         {
             dataParts.Add($"usable: false");
         }
+        // New, optional field: objects like the Door can be used directly (empty hands or an incompatible item).
+        if (UseInteractionResolver.HasStandaloneUse(item.transform))
+            dataParts.Add($"usableDirectly: true");
 
         dataParts.Add($"grabbable: {item.grabbable}");
 

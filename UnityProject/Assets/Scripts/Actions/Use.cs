@@ -11,67 +11,39 @@ public class Use : IAgentAction
         var param = action.parameters;
         if (param.Length != 1) return "requires 1 parameter: useOn (item the object in hand should be used on)";
 
-        int nameHash = -1;
         string error = null;
+        UseSession session = null;
+        NPCUseController controller = null;
 
         void start()
         {
-            (string err, Transform useOn, ContextItem it) = Validate(param[0], context, agent);
-            error = err;
+            // Resolved at actual start: the held item may have changed since queuing.
+            Transform target = context.GetObject(param[0])?.transform ?? context.GetAgent(param[0])?.transform;
+            if (target == null) { error = $"Invalid use target: could not find object or agent '{param[0]}'."; return; }
+
+            Transform held = agent.GetItem(); // real held object, not a name lookup
+            ContextItem legacy = held != null ? context.GetObject(held.name) : null;
+
+            error = UseInteractionResolver.Resolve(target, held, legacy, out var resolved);
             if (error != null) return;
 
-            if (it == null) // nothing in hands
-            {
-                var itemAnim = useOn.GetComponentInChildren<Animator>();
-                if (itemAnim != null)
-                {
-                    itemAnim.SetTrigger("Use");
-                    nameHash = Animator.StringToHash(useOn.name);
-                }
-                else error = $"Item: '{useOn.name}' does not have an Animator component to play the 'Use' animation";
-            }
-            else // with item in hands
-            {
-                var itemAnim = it.transform.GetComponentInChildren<Animator>();
-                if (itemAnim != null)
-                {
-                    itemAnim.SetTrigger("Use");
-                    nameHash = Animator.StringToHash(it.GetName());
-                }
-                else error = $"Item: '{it.GetName()}' does not have an Animator component to play the 'Use' animation";
-            }
+            controller = agent.GetComponent<NPCUseController>();
+            if (controller == null) { error = $"Misconfigured: '{agent.name}' has no NPCUseController."; return; }
 
-            if (nameHash != -1) agent.Anim.Play(nameHash, (int)NPC_AnimLayer.ItemUse);
+            session = controller.Begin(resolved, out error);
         }
 
         IEnumerator behavior()
         {
-            if (error != null)
-            {
-                Debug.LogError(error);
-                yield break;
-            }
-
-            yield return new WaitUntil(() => error != null || nameHash != -1);
-            if (error != null)
-            {
-                Debug.LogError(error);
-                yield break;
-            }
-            yield return Utils.MonitorAnimatorState(agent.Anim, nameHash, (int)NPC_AnimLayer.ItemUse);
+            yield return new WaitUntil(() => error != null || session != null);
+            if (error != null) { Debug.LogError(error); yield break; }
+            while (!session.Done) yield return null; // bounded by the controller's own timeouts
+            if (session.Error != null) Debug.LogError(session.Error);
         }
 
-        result = new AnimAction(action, start, behavior(), null);
+        void end() { if (controller != null) controller.Cancel(session); }
 
+        result = new AnimAction(action, start, behavior(), end);
         return null;
-    }
-
-    (string err, Transform useOn, ContextItem itemInHand) Validate(string param, AgentSystem context, NPC agent)
-    {
-        Transform useOn = context.GetObject(param)?.transform ?? context.GetAgent(param)?.transform;
-        if (useOn == null) return ($"could not find object or agent with name '{param}'", null, null);
-        var item = agent.GetItem();
-        ContextItem itemInHand = item == null ? null : context.GetObject(item.name);
-        return (null, useOn, itemInHand);
     }
 }

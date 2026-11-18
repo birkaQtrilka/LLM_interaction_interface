@@ -42,6 +42,7 @@ GameObject:
   - component: {fileID: 2841466116192836888}
   - component: {fileID: 5519898070862460786}
   - component: {fileID: 7958765697104635056}
+  - component: {fileID: 5227366951400366142}
   m_Layer: 0
   m_Name: Tray
   m_TagString: Untagged
@@ -94,6 +95,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 061cbe18bd27e4e40adab218c87b1cb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Scripts::EnvironmentItemTag
+--- !u!114 &5227366951400366142
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6636651077087383291}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51a7f7bab2ff58f48823770cbf1795dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::UseInteractable
+  _standaloneProfile: {fileID: 0}
+  _heldProfile: {fileID: 11400000, guid: 338202eca7de00941b5001fcf3aea10a, type: 2}
+  _categories: []
+  _responseAnimator: {fileID: 6373938207296245033}
+  _responseTrigger: Use
+  _responseTiming: 1
+  _interactionPoint: {fileID: 0}
 --- !u!1 &8191669202296459544
 GameObject:
   m_ObjectHideFlags: 0
