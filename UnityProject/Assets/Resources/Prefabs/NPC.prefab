@@ -13099,8 +13099,8 @@ GameObject:
   - component: {fileID: 454478651428193399}
   - component: {fileID: 6911411674770464373}
   - component: {fileID: 212027983533435923}
-  - component: {fileID: 1423542241601838547}
   - component: {fileID: 7618907976410539552}
+  - component: {fileID: 1423542241601838547}
   m_Layer: 0
   m_Name: AnneFleur_Body
   m_TagString: Untagged
@@ -13635,6 +13635,36 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Scripts::RotateOnStart
   rotation: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &7618907976410539552
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2551724450184021691}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fff0960ef4ea6e04eac66b4a7fd2189d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Animation.Rigging::UnityEngine.Animations.Rigging.RigBuilder
+  m_RigLayers:
+  - m_Rig: {fileID: 1962404919017882025}
+    m_Active: 1
+  - m_Rig: {fileID: 5447529327369447885}
+    m_Active: 1
+  - m_Rig: {fileID: 7412217837601261506}
+    m_Active: 1
+  - m_Rig: {fileID: 8532754819157914126}
+    m_Active: 1
+  m_Effectors:
+  - m_Transform: {fileID: 2695724760904304491}
+    m_Style:
+      shape: {fileID: 4300000, guid: c6793350c150f456688e39a81f97364a, type: 2}
+      color: {r: 1, g: 0, b: 0, a: 0.5}
+      size: 0.1
+      position: {x: 0, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0}
+    m_Visible: 1
 --- !u!205 &1423542241601838547
 LODGroup:
   m_ObjectHideFlags: 0
@@ -13667,36 +13697,6 @@ LODGroup:
     - renderer: {fileID: 1301803446724306035}
   m_Enabled: 1
   m_GlobalIlluminationLOD: 0
---- !u!114 &7618907976410539552
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2551724450184021691}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fff0960ef4ea6e04eac66b4a7fd2189d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Animation.Rigging::UnityEngine.Animations.Rigging.RigBuilder
-  m_RigLayers:
-  - m_Rig: {fileID: 1962404919017882025}
-    m_Active: 1
-  - m_Rig: {fileID: 5447529327369447885}
-    m_Active: 1
-  - m_Rig: {fileID: 7412217837601261506}
-    m_Active: 1
-  - m_Rig: {fileID: 8532754819157914126}
-    m_Active: 1
-  m_Effectors:
-  - m_Transform: {fileID: 2695724760904304491}
-    m_Style:
-      shape: {fileID: 4300000, guid: c6793350c150f456688e39a81f97364a, type: 2}
-      color: {r: 1, g: 0, b: 0, a: 0.5}
-      size: 0.1
-      position: {x: 0, y: 0, z: 0}
-      rotation: {x: 0, y: 0, z: 0}
-    m_Visible: 1
 --- !u!1 &2562708297552210344
 GameObject:
   m_ObjectHideFlags: 0
@@ -43917,6 +43917,7 @@ MonoBehaviour:
   gizmoRadius: 1.5
   gizmoSegments: 9
   <Hand>k__BackingField: {fileID: 3104293997989802013}
+  <EmotionalStateHandler>k__BackingField: {fileID: 0}
 --- !u!54 &4136373774462263662
 Rigidbody:
   m_ObjectHideFlags: 0

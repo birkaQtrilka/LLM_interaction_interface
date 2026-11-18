@@ -243,16 +243,17 @@ public class ContextLibrary : MonoBehaviour
             GetItemData(
             npcDataParts,
             new ContextItem { transform = agent.transform },
-            new ItemDataQuery(
-                includePosition: true,
-                includeRotation: true,
-                includeBounds: true,
-                includeNeighbors: false,
-                includeDescription: true
-            )
-        );
+                new ItemDataQuery(
+                    includePosition: true,
+                    includeRotation: true,
+                    includeBounds: true,
+                    includeNeighbors: false,
+                    includeDescription: true
+                )
+            );
             Transform rightHandItem = agent.GetItem();
             npcDataParts.Add($"itemInRightHand: {(rightHandItem == null ? "None" : rightHandItem.name)}");
+            npcDataParts.Add($"emotionalState: {agent.EmotionalStateHandler.CurrentEmotion?.name ?? "Neutral"}");
             npcs.Add( $"{{{string.Join(", ", npcDataParts)}}}");
             npcDataParts.Clear();
         }
