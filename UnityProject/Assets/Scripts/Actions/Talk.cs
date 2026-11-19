@@ -52,15 +52,19 @@ public class Talk : IAgentAction
                 MovementActions.StartTurn(agent, other.transform.position);
             }
             ParsedLine line = LineParser.Parse(msg);
-            
-            if (context.chatManager != null) context.chatManager.AddChat($"{action.agent} to {receiver}: {line.CleanText}");
+            string header = $"<b>{action.agent}</b> to {receiver}: ";
+
             // CleanText has the gesture tags removed, so they are not fed back to the model
             context.contextLibrary.AddMessageToHistory(speaker, heardBy, line.CleanText);
 
+            // DialoguePlayer types the line into the chat, without it the whole line is shown at once
             if (context.AnimationLibrary.DialoguePlayer == null)
-                Debug.LogWarning("DialoguePlayer is null");
-            else 
-                agent.StartCoroutine( context.AnimationLibrary.DialoguePlayer.Play(line, context, action, agent) );
+            {
+                Debug.LogWarning("DialoguePlayer is null, so the line is shown without typing or gestures");
+                if (context.chatManager != null) context.chatManager.AddChat(header + ChatMessage.Plain(line.CleanText));
+            }
+            else
+                agent.StartCoroutine( context.AnimationLibrary.DialoguePlayer.Play(line, context, action, agent, header) );
             if (sendOn) EnqueueHeard(context, msg, heardBy, speaker);
 
         }

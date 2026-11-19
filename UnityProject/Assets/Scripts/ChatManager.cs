@@ -52,10 +52,17 @@ public class ChatManager : MonoBehaviour
         OnTextSent?.Invoke(txt);
     }
 
-    public void AddChat(string txt)
+    // Returns the message so a caller can keep updating it, like DialoguePlayer typing a line
+    public ChatMessage AddChat(string txt)
     {
-        Instantiate(messagePrefab, chatContent).SetText(txt);
+        ChatMessage message = Instantiate(messagePrefab, chatContent);
+        message.SetText(txt);
+        ScrollToBottom();
+        return message;
+    }
 
+    public void ScrollToBottom()
+    {
         // Forces Unity to instantly recalculate UI layout sizes (like Content Size Fitter)
         Canvas.ForceUpdateCanvases();
 
