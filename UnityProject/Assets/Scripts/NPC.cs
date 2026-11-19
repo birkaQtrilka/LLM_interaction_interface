@@ -53,6 +53,48 @@ public class NPC : MonoBehaviour
     public bool RightHandTaken => Hand != null && Hand.Held != null;
     [field: SerializeField] public EmotionalStateHandler EmotionalStateHandler { get; private set; }
 
+    // While standing still the NPC is a carving obstacle instead of an agent, so walking agents
+    // plan their path around it instead of pushing it away with local avoidance
+    NavMeshObstacle obstacle;
+
+    private void Awake()
+    {
+        // Built from the agent settings so the obstacle always matches the agent size
+        obstacle = Nav.gameObject.AddComponent<NavMeshObstacle>();
+        obstacle.shape = NavMeshObstacleShape.Capsule;
+        obstacle.radius = Nav.radius;
+        obstacle.height = Nav.height;
+        // The agent pivot sits baseOffset above the ground, the obstacle center is relative to that pivot
+        obstacle.center = Vector3.up * (Nav.height / 2f - Nav.baseOffset);
+        obstacle.carving = true;
+        // Carve right away instead of waiting for the obstacle to count as stationary
+        obstacle.carveOnlyStationary = false;
+
+        BecomeObstacle();
+    }
+
+    /// Switch from carving obstacle to agent so the NPC can walk. Must finish before using Nav
+    public IEnumerator BecomeMover()
+    {
+        if (Nav.enabled) yield break;
+
+        obstacle.enabled = false;
+        // The hole is only removed on the next NavMesh carving update. Enabling the agent before
+        // that would snap it to the edge of its own hole
+        yield return null;
+        Nav.enabled = true;
+
+        if (!Nav.isOnNavMesh)
+            Debug.LogError($"{name} is not on the NavMesh after switching from obstacle to agent");
+    }
+
+    /// Switch from agent to carving obstacle once the NPC stands still
+    public void BecomeObstacle()
+    {
+        Nav.enabled = false;
+        obstacle.enabled = true;
+    }
+
     public void GrabItem(Transform item)
     {
         if (!RightHandTaken)

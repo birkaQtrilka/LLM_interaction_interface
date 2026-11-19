@@ -29,16 +29,15 @@ static class MovementActions
         var lookHandler = new LookAtHandler(agent, pos);
         Coroutine walkRoutine = null;
 
-        void start()
-        {
-            Vector3 destination = ResolveDestination(agent, pos);
-
-            if (Vector3.Distance(agent.transform.position, destination) > agent.Nav.stoppingDistance + agent.StoppingDistOffset)
-                agent.Nav.SetDestination(destination);
-        }
-
         IEnumerator behavior()
         {
+            // The idle NPC is a carving obstacle, the agent has to be back before any path call
+            yield return agent.BecomeMover();
+
+            Vector3 destination = ResolveDestination(agent, pos);
+            if (Vector3.Distance(agent.transform.position, destination) > agent.Nav.stoppingDistance + agent.StoppingDistOffset)
+                agent.Nav.SetDestination(destination);
+
             yield return null;
             while (agent.Nav.pathPending)
                 yield return null;
@@ -88,9 +87,10 @@ static class MovementActions
 
             agent.Nav.ResetPath();
             agent.Nav.isStopped = false;
+            agent.BecomeObstacle();
         }
 
-        return new AnimAction(action, start, behavior(), end);
+        return new AnimAction(action, null, behavior(), end);
     }
 
 
@@ -246,7 +246,9 @@ static class MovementActions
         }
 
         NavMeshAgent nav = agent.Nav;
-        nav.isStopped = true;
+        // An idle NPC has its agent disabled (it is an obstacle then), so there is nothing to stop
+        bool walking = nav.enabled;
+        if (walking) nav.isStopped = true;
         agent.Anim.SetFloat(TurnAngleHash, turnAngle);
         agent.Anim.SetTrigger(DoTurnHash);
 
@@ -257,7 +259,7 @@ static class MovementActions
         agent.Anim.Update(0f);
         agent.Anim.CrossFade(MoveHash, 0.35f, 0);
         agent.transform.rotation = targetRot;
-        nav.isStopped = false;
+        if (walking) nav.isStopped = false;
     }
 
     static IEnumerator BlendToIdle(NPC agent)
@@ -298,7 +300,7 @@ static class MovementActions
         {
             Vector3 targetDir = nav.remainingDistance < agent.FaceDistance
                 ? pos - agent.transform.position
-                : nav.desiredVelocity;
+                : nav.velocity;   // actual velocity includes avoidance steering, desiredVelocity does not
             targetDir.y = 0f;
 
             float h = 0f;
