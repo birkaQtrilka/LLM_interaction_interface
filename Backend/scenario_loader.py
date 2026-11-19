@@ -16,7 +16,8 @@ from pathlib import Path
 #     findings       what an examination finds. Only revealed when someone examines that thing
 #     team           mood of a character in this state, keyed by character name
 #     advances_when  the event that moves the case to the next state. Judged by the model (#210),
-#                    and kept out of the NPC prompt so NPCs do not hint at it
+#                    and kept out of the NPC prompt so NPCs do not hint at it.
+#                    On the last checkpoint it is the event that ends the scenario (#213)
 
 CHARACTER_FIELDS = ["name", "role", "in_room_at_start", "start_spot", "responsible_for", "behaviour"]
 CASE_FIELDS = ["player_role", "patient", "handover", "task_distribution"]

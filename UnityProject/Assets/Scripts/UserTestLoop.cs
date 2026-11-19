@@ -31,6 +31,10 @@ public class UserTestLoop : MonoBehaviour
     [SerializeField] PanelRenderer panelRenderer;
     [SerializeField] LLMBackend llmBackend;
     [SerializeField] Step[] steps;
+    // For scenario scenes: leave steps empty, and the end form stays hidden until the scenario ends
+    [SerializeField] bool waitForScenarioEnd;
+    // Set by ShowEndForm, which both the scenario end and the context menu call
+    bool endRequested;
 
     int current;
     bool waiting;
@@ -57,6 +61,7 @@ public class UserTestLoop : MonoBehaviour
     void OnEnable()
     {
         panelRenderer.RegisterUIReloadCallback(OnUIReload);
+        agentSystem.ScenarioEnded += ShowEndForm;
         if (agentSystem.chatManager != null)
         {
             agentSystem.chatManager.OnTextSent.AddListener(OnUserMessage);
@@ -68,6 +73,10 @@ public class UserTestLoop : MonoBehaviour
         if (panelRenderer != null)
         {
             panelRenderer.UnregisterUIReloadCallback(OnUIReload);
+        }
+        if (agentSystem != null)
+        {
+            agentSystem.ScenarioEnded -= ShowEndForm;
         }
         if (agentSystem != null && agentSystem.chatManager != null)
         {
@@ -84,6 +93,7 @@ public class UserTestLoop : MonoBehaviour
     void ShowEndForm()
     {
         if (steps == null) return;
+        endRequested = true;
         current = steps.Length;
         waiting = false;
         ShowCurrent();
@@ -239,6 +249,13 @@ public class UserTestLoop : MonoBehaviour
     void ShowCurrent()
     {
         if (hud == null || complete == null) return;
+
+        if (waitForScenarioEnd && !endRequested)
+        {
+            hud.AddToClassList("hidden");
+            complete.AddToClassList("hidden");
+            return;
+        }
 
         if (current >= steps.Length)
         {

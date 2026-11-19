@@ -45,6 +45,9 @@ public class AgentSystem : MonoBehaviour
     public bool IsSettled => !IsBusy && animationLibrary != null && animationLibrary.animations.TrueForAll(a => a.isFinished);
     // Checkpoint id from the last scenario check. A new session starts at 1 on the backend too
     public int CurrentCheckpoint { get; private set; } = 1;
+    public bool ScenarioFinished { get; private set; }
+    // Raised once, when a scenario check reports the end
+    public event Action ScenarioEnded;
 
 
     // On only in scenes that play the scenario, so other scenes make no judge calls
@@ -108,7 +111,8 @@ public class AgentSystem : MonoBehaviour
         // Spoken lines are already in the chat history the judge gets, so only physical actions are listed
         if (anim.data.name != "talk")
             finishedSinceAdvance.Add($"{anim.data.agent} {anim.data.name}({string.Join(", ", anim.data.parameters ?? new string[0])})");
-        if (!checkPending)
+        // After the end there is nothing left to judge
+        if (!checkPending && !ScenarioFinished)
             StartCoroutine(CheckScenarioWhenSettled());
     }
 
@@ -141,6 +145,12 @@ public class AgentSystem : MonoBehaviour
         ScenarioCheckResponse r = res.Response;
         Debug.Log($"Scenario check: advanced={r.advanced}, now checkpoint {r.checkpoint} ({r.name}). {r.reason}");
         CurrentCheckpoint = r.checkpoint;
+        if (r.finished && !ScenarioFinished)
+        {
+            ScenarioFinished = true;
+            Debug.Log("Scenario finished");
+            ScenarioEnded?.Invoke();
+        }
         // The list is evidence for one state, so the next state starts with an empty list
         if (r.advanced) finishedSinceAdvance.Clear();
     }

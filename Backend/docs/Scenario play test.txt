@@ -27,8 +27,12 @@ Before you start:
    - "scenario_check" turns with met and reason, and "checkpoint" set to the state that was judged
    - a "checkpoints" list with from, to, name and reason for each advance
 
-6. Last checkpoint
-   Play through to Surgeon in the room. Later checks say "Last checkpoint, there is no next state" and make no model call (no new scenario_check turn in the log).
+6. End of the scenario (#213)
+   At Worsening shock (the last checkpoint since #212 was skipped), ask the Nurse to call the trauma surgeon.
+   The Console shows "Scenario finished" and the Finished form appears with the two 1 to 5 questions.
+   Fill it in and press Confirm. It says "Saved".
+   The session log has a "finished" entry with the reason and a "feedback" entry with the scores.
+   After the end, no idle nudge comes and no new scenario_check turn is written.
 
 7. Failure stays visible
    Stop the backend while an NPC is acting. When the actions end, the chat shows "System: Scenario check failed: ..." and the Console shows the error.
@@ -47,7 +51,7 @@ Idle nudge (#211). IdleNudge sits on the AgentSystem object in TraumaRoom. Idle 
     Give an order that makes an NPC walk for a while. The 30 seconds only start counting after every action has finished.
 
 12. Lines follow the checkpoint
-    After the case moves to Shock signs, the nudge is about a second IV and the lab. At Loss of consciousness the Anesthesiologist asks about intubation. At Surgeon in the room no nudge comes.
+    After the case moves to Shock signs, the nudge is about a second IV and the lab. At Loss of consciousness the Anesthesiologist asks about intubation. After the scenario has finished no nudge comes.
 
 13. The nudge does not advance the case
     At Worsening shock, let the Nurse's nudge ("Should we call the trauma surgeon?") play. The scenario check that follows says advanced=False, because the physician has not asked yet.

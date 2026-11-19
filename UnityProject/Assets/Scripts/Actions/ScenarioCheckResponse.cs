@@ -5,6 +5,8 @@ using System;
 public class ScenarioCheckResponse
 {
     public bool advanced;
+    // True once the last checkpoint's condition is met
+    public bool finished;
     public int checkpoint;
     public string name;
     public string reason;

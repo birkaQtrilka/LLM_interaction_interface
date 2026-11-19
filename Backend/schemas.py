@@ -51,6 +51,8 @@ class ScenarioCheckRequestBody(BaseModel):
 
 class ScenarioCheckResponse(BaseModel):
     advanced: bool
+    # True once the last checkpoint's condition is met. The case stays on that checkpoint
+    finished: bool = False
     # The state the case is in after this check
     checkpoint: int
     name: str

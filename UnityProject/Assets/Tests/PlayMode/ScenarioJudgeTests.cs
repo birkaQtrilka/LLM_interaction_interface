@@ -41,6 +41,8 @@ public class ScenarioJudgeTests
         public string[] lines;
         public string[] actions;
         public bool advance;
+        // True when the scenario must have ended after this step
+        public bool finish;
     }
 
     [SetUp]
@@ -130,13 +132,14 @@ public class ScenarioJudgeTests
 
             ScenarioCheckResponse r = result.Response;
             if (step.advance) expected++;
-            string got = r.advanced ? "advanced" : "stayed";
+            string got = r.finished ? "finished" : r.advanced ? "advanced" : "stayed";
             report.AppendLine($"  {trial}.{s + 1}  {got}, now {r.checkpoint} {r.name}: {r.reason}");
 
             // A wrong step leaves the backend at another checkpoint, so the rest of this trial would test the wrong state
-            if (r.advanced != step.advance)
+            if (r.advanced != step.advance || r.finished != step.finish)
             {
-                failures.Add($"{where}: expected {(step.advance ? "advanced" : "stayed")}, got {got}. {r.reason}");
+                string want = step.finish ? "finished" : step.advance ? "advanced" : "stayed";
+                failures.Add($"{where}: expected {want}, got {got}. {r.reason}");
                 yield break;
             }
             if (r.checkpoint != expected)
