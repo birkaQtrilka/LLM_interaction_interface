@@ -57,12 +57,12 @@
       ]
     },
     {
-      "label": "asks for the surgeon, to Surgeon in the room",
+      "label": "asks for the surgeon, scenario ends",
       "steps": [
         { "lines": ["user to Nurse: Airway and breathing are fine. Let's check circulation.", "Nurse to user: I checked his pulse and blood pressure. His heart rate is high and his blood pressure is low."], "advance": true },
         { "lines": ["user to Nurse: Place a second IV line and draw blood for a full lab panel.", "Nurse to user: The second IV line is in and the blood for the full lab panel is drawn."], "advance": true },
         { "lines": ["user to Anesthesiologist: He is unconscious, intubate him.", "Anesthesiologist to user: Tom is intubated, the tube is secured and he is connected to the Ventilator."], "advance": true },
-        { "lines": ["user to Nurse: Call the trauma surgeon, we need him here now."], "advance": true }
+        { "lines": ["user to Nurse: Call the trauma surgeon, we need him here now."], "advance": false, "finish": true }
       ]
     },
     {
@@ -84,13 +84,13 @@
       ]
     },
     {
-      "label": "last checkpoint, stays at Surgeon in the room",
+      "label": "after the end, nothing more is judged",
       "steps": [
         { "lines": ["user to Nurse: Airway and breathing are fine. Let's check circulation.", "Nurse to user: I checked his pulse and blood pressure. His heart rate is high and his blood pressure is low."], "advance": true },
         { "lines": ["user to Nurse: Place a second IV line and draw blood for a full lab panel.", "Nurse to user: The second IV line is in and the blood for the full lab panel is drawn."], "advance": true },
         { "lines": ["user to Anesthesiologist: He is unconscious, intubate him.", "Anesthesiologist to user: Tom is intubated, the tube is secured and he is connected to the Ventilator."], "advance": true },
-        { "lines": ["user to Nurse: Call the trauma surgeon, we need him here now."], "advance": true },
-        { "lines": ["Surgeon to user: I want an X-ray of the left leg, then he goes to the OR."], "advance": false }
+        { "lines": ["user to Nurse: Call the trauma surgeon, we need him here now."], "advance": false, "finish": true },
+        { "lines": ["Nurse to user: The surgeon is on his way."], "advance": false, "finish": true }
       ]
     }
   ]

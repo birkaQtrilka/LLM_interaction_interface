@@ -55,6 +55,8 @@ public class IdleNudge : MonoBehaviour
 
     void Update()
     {
+        // Nothing is left to nudge about after the end
+        if (system.ScenarioFinished) return;
         // Waiting for NPCs to finish acting is not idling
         if (!system.IsSettled)
         {

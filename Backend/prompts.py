@@ -46,7 +46,7 @@ def get_judge_prompt(scenario: dict, checkpoint: dict) -> str:
   return f"""You judge the progress of a medical training simulation. You do not control any agent.
 The user is the {case['player_role']}. Patient: {case['patient']}
 
-The case is in the state "{checkpoint['name']}". It moves on to the next state when this has happened:
+The case is in the state "{checkpoint['name']}". This state is complete when this has happened:
 {checkpoint['advances_when']}
 
 You get the world context, which includes the last spoken lines, and the actions the agents finished since this state began.

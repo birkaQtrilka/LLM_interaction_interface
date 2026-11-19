@@ -30,6 +30,8 @@ with open(BASE_DIR / "gestures.json", "r", encoding="utf-8") as f:
 SCENARIO = load_scenario(BASE_DIR / "scenario")
 # id of the state the case is in. Only advance_checkpoint moves it. One value for the whole server
 CURRENT_CHECKPOINT = 1
+# Set when the last checkpoint's condition is met. Only finish_scenario sets it, a new session clears it
+SCENARIO_FINISHED = False
 
 app = FastAPI()
 LOGS_DIR = BASE_DIR / "logs"
@@ -129,6 +131,25 @@ def advance_checkpoint(session_id: str, to_id: int, reason: str, directory: str 
     write_session(path, data)
     # Set after the write, so a failed write does not leave the server in a state the log does not show
     CURRENT_CHECKPOINT = to_id
+
+def finish_scenario(session_id: str, reason: str, directory: str = "", description: str = "") -> None:
+    # Ends the case on the last checkpoint and writes the end to the session log. Called by /v1/scenario/check
+    global SCENARIO_FINISHED
+    path = session_path(session_id, directory)
+    if path.exists():
+        data = json.loads(path.read_text())
+    else:
+        data = new_session(path, description)
+    apply_description(data, description)
+    data["finished"] = {
+        "at": datetime.now().isoformat(timespec="seconds"),
+        "checkpoint": CURRENT_CHECKPOINT,
+        "name": SCENARIO["checkpoints"][CURRENT_CHECKPOINT - 1]["name"],
+        "reason": reason,
+    }
+    write_session(path, data)
+    # Set after the write, like advance_checkpoint, so the log and the state cannot disagree
+    SCENARIO_FINISHED = True
 
 def openai_json(messages: list[dict]) -> tuple[dict, dict]:
     api_key = os.environ.get("OPENAI_API_KEY")
@@ -285,9 +306,9 @@ def scenario_check(body: ScenarioCheckRequestBody) -> ScenarioCheckResponse:
     session_path(body.session_id, body.log_directory)
     current = CURRENT_CHECKPOINT
     name = SCENARIO["checkpoints"][current - 1]["name"]
-    # The last state has no next state to move to. Ending the scenario is #213
-    if current == len(SCENARIO["checkpoints"]):
-        return ScenarioCheckResponse(advanced=False, checkpoint=current, name=name, reason="Last checkpoint, there is no next state")
+    # Nothing is left to judge once the case has ended
+    if SCENARIO_FINISHED:
+        return ScenarioCheckResponse(advanced=False, finished=True, checkpoint=current, name=name, reason="The scenario has already finished")
 
     messages = build_judge_messages(SCENARIO, current, body.world, body.finished_actions)
     system = messages[0]["content"]
@@ -304,10 +325,15 @@ def scenario_check(body: ScenarioCheckRequestBody) -> ScenarioCheckResponse:
 
     # Logged before the advance, so the turn's "checkpoint" is the state that was judged
     append_turn(body.session_id, "scenario_check", system, user, {"met": met, "reason": reason}, llm_s, body.log_directory, body.description)
-    if met:
+    # On the last checkpoint the condition ends the case instead of moving to a next state
+    is_last = current == len(SCENARIO["checkpoints"])
+    if met and is_last:
+        finish_scenario(body.session_id, reason, body.log_directory, body.description)
+    elif met:
         advance_checkpoint(body.session_id, current + 1, reason, body.log_directory, body.description)
     return ScenarioCheckResponse(
-        advanced=met,
+        advanced=met and not is_last,
+        finished=SCENARIO_FINISHED,
         checkpoint=CURRENT_CHECKPOINT,
         name=SCENARIO["checkpoints"][CURRENT_CHECKPOINT - 1]["name"],
         reason=reason,
@@ -318,10 +344,11 @@ def scenario_check(body: ScenarioCheckRequestBody) -> ScenarioCheckResponse:
 
 @app.post("/v1/session/start")
 def session_start(body: SessionRequestBody) -> dict:
-    global CURRENT_CHECKPOINT
+    global CURRENT_CHECKPOINT, SCENARIO_FINISHED
     path = session_path(body.session_id, body.log_directory)
     # A new session is a new run of the case, so it starts at the first state again
     CURRENT_CHECKPOINT = 1
+    SCENARIO_FINISHED = False
     # A turn can arrive before this call. Do not wipe turns already written.
     if path.exists():
         data = json.loads(path.read_text())
