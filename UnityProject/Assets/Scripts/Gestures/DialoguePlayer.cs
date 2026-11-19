@@ -2,17 +2,13 @@ using System;
 using System.Collections;
 using System.Linq;
 using System.Reflection;
-using TMPro;
 using UnityEngine;
 
 /// <summary>
-/// Registers and Dispatches the gestures
+/// Types a spoken line into the chat letter by letter and fires its gestures when the typing reaches them
 /// </summary>
 public class DialoguePlayer : MonoBehaviour
 {
-    [SerializeField] TMP_Text label;
-    [SerializeField] TMP_Text title;
-    [SerializeField] float delayAfter = 1f;
     [SerializeField] float charsPerSecond = 30f;
     readonly GestureDispatcher dispatcher = new();
 
@@ -39,16 +35,20 @@ public class DialoguePlayer : MonoBehaviour
         }
     }
 
-    public IEnumerator Play(ParsedLine line, AgentSystem ctx, ActionData talkData, NPC agent)
+    // header is the "Speaker to receiver: " part, shown at once so the reader knows who talks
+    public IEnumerator Play(ParsedLine line, AgentSystem ctx, ActionData talkData, NPC agent, string header)
     {
-        gameObject.SetActive(true);
-        label.text = line.CleanText;
-        label.maxVisibleCharacters = 0;
+        ChatMessage message = null;
+        if (ctx.chatManager == null)
+            Debug.LogWarning("No ChatManager on AgentSystem, the line plays its gestures without being shown");
+        else
+            message = ctx.chatManager.AddChat(header);
 
-        int total = line.CleanText.Length;
+        string text = line.CleanText;
+        int total = text.Length;
         int next = 0;
+        int lastVisible = -1;
         float shown = 0f;
-        title.text = talkData.agent;
         while (shown < total)
         {
             shown += charsPerSecond * Time.deltaTime;
@@ -57,15 +57,24 @@ public class DialoguePlayer : MonoBehaviour
             while (next < line.Markers.Count && line.Markers[next].CharIndex <= visible)
                 dispatcher.Dispatch(line.Markers[next++], ctx, talkData, agent);
 
-            label.maxVisibleCharacters = visible;
+            // The text itself grows (not maxVisibleCharacters), so the bubble height follows the typed part
+            if (message != null && visible != lastVisible)
+            {
+                message.SetText(header + ChatMessage.Plain(text.Substring(0, visible)));
+                ctx.chatManager.ScrollToBottom();
+                lastVisible = visible;
+            }
             yield return null;
         }
 
         while (next < line.Markers.Count)       // markers at the very end
             dispatcher.Dispatch(line.Markers[next++], ctx, talkData, agent);
-        yield return new WaitForSeconds(delayAfter);
-        gameObject.SetActive(false);
-    }
 
-    public void Skip() { /* set shown to total, flush markers or drop them, your choice */ }
+        if (message != null)
+        {
+            // Covers an empty line, where the loop above never runs
+            message.SetText(header + ChatMessage.Plain(text));
+            ctx.chatManager.ScrollToBottom();
+        }
+    }
 }

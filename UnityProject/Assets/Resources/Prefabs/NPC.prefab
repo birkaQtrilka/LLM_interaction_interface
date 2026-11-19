@@ -43806,7 +43806,7 @@ GameObject:
   - component: {fileID: 4183127329488507184}
   - component: {fileID: 3420338835628470066}
   - component: {fileID: 3039827175972599006}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: NPC
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -43864,7 +43864,7 @@ CapsuleCollider:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 8
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
