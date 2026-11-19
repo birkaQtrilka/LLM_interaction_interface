@@ -35,3 +35,22 @@ Before you start:
 
 8. Other scenes stay quiet
    Play UserTest and give an order. No "Scenario check" line appears, and the backend gets no /v1/scenario/check call.
+
+Idle nudge (#211). IdleNudge sits on the AgentSystem object in TraumaRoom. Idle Seconds is 30, and it can be set lower for testing
+9. Nudge after silence
+   Start the scene and say nothing. About 30 seconds later the Nurse says one of the Arrival lines ("Shall I check his circulation?"). It shows in the chat as a normal NPC line.
+
+10. Only once per silence
+    Keep saying nothing. No second nudge comes. Send any message, then wait again: one new nudge comes.
+
+11. NPCs acting is not idling
+    Give an order that makes an NPC walk for a while. The 30 seconds only start counting after every action has finished.
+
+12. Lines follow the checkpoint
+    After the case moves to Shock signs, the nudge is about a second IV and the lab. At Loss of consciousness the Anesthesiologist asks about intubation. At Surgeon in the room no nudge comes.
+
+13. The nudge does not advance the case
+    At Worsening shock, let the Nurse's nudge ("Should we call the trauma surgeon?") play. The scenario check that follows says advanced=False, because the physician has not asked yet.
+
+14. Wrong speaker name stays visible
+    Until #203 renames the NPCs, a nudge fails with "System: Idle nudge failed: Couldn't find agent with name Nurse" in the chat and an error in the Console.

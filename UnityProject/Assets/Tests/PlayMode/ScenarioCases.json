@@ -75,6 +75,15 @@
       ]
     },
     {
+      "label": "nurse's idle nudge about the surgeon, stays at Worsening shock",
+      "steps": [
+        { "lines": ["user to Nurse: Airway and breathing are fine. Let's check circulation.", "Nurse to user: I checked his pulse and blood pressure. His heart rate is high and his blood pressure is low."], "advance": true },
+        { "lines": ["user to Nurse: Place a second IV line and draw blood for a full lab panel.", "Nurse to user: The second IV line is in and the blood for the full lab panel is drawn."], "advance": true },
+        { "lines": ["user to Anesthesiologist: He is unconscious, intubate him.", "Anesthesiologist to user: Tom is intubated, the tube is secured and he is connected to the Ventilator."], "advance": true },
+        { "lines": ["Nurse to user: His blood pressure keeps dropping and that thigh is swelling. Should we call the trauma surgeon?"], "advance": false }
+      ]
+    },
+    {
       "label": "last checkpoint, stays at Surgeon in the room",
       "steps": [
         { "lines": ["user to Nurse: Airway and breathing are fine. Let's check circulation.", "Nurse to user: I checked his pulse and blood pressure. His heart rate is high and his blood pressure is low."], "advance": true },
