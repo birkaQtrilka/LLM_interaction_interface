@@ -3137,6 +3137,7 @@ GameObject:
   m_Component:
   - component: {fileID: 967212467}
   - component: {fileID: 967212466}
+  - component: {fileID: 967212468}
   m_Layer: 0
   m_Name: AgentSystem
   m_TagString: Untagged
@@ -3163,6 +3164,41 @@ MonoBehaviour:
   <contextLibrary>k__BackingField: {fileID: 163989116}
   <chatManager>k__BackingField: {fileID: 1830398518}
   loadingAnimator: {fileID: 1944048924}
+--- !u!114 &967212468
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 967212465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1fbdfa11d9324870b3a0f9197d7d9028, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::IdleNudge
+  system: {fileID: 967212466}
+  idleSeconds: 30
+  nudges:
+  - checkpoint: 1
+    speaker: Nurse
+    lines:
+    - 'Doctor, airway and breathing look fine. Shall I check his circulation?'
+    - 'Doctor, do you want me to move on to his pulse and blood pressure?'
+  - checkpoint: 2
+    speaker: Nurse
+    lines:
+    - 'Doctor, he''s pale and sweaty. Should I place a second IV line and draw blood for the lab?'
+    - 'I''m worried about him, doctor. Do you want a second IV and a full lab panel?'
+  - checkpoint: 3
+    speaker: Anesthesiologist
+    lines:
+    - 'He''s not responding anymore. Do you want us to intubate him and put him on the ventilator?'
+    - 'Doctor, he''s lost consciousness. Shall we intubate?'
+  - checkpoint: 4
+    speaker: Nurse
+    lines:
+    - 'His blood pressure keeps dropping and that thigh is swelling. Should we call the trauma surgeon?'
+    - 'Doctor, this looks like bleeding in the leg. Do you want the trauma surgeon here?'
 --- !u!4 &967212467
 Transform:
   m_ObjectHideFlags: 0

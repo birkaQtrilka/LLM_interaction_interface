@@ -16,6 +16,10 @@ public class AgentSystem : MonoBehaviour
     public AnimationLibrary AnimationLibrary => animationLibrary;
     public bool IsBusy { get; private set; }
     public ActionsResponse LastActions { get; private set; }
+    // No turn running and no action queued or playing
+    public bool IsSettled => !IsBusy && animationLibrary != null && animationLibrary.animations.TrueForAll(a => a.isFinished);
+    // Checkpoint id from the last scenario check. A new session starts at 1 on the backend too
+    public int CurrentCheckpoint { get; private set; } = 1;
 
     // On only in scenes that play the scenario, so other scenes make no judge calls
     [SerializeField] bool checkScenario = false;
@@ -72,8 +76,7 @@ public class AgentSystem : MonoBehaviour
         float quiet = 0f;
         while (quiet < settleSeconds)
         {
-            bool settled = !IsBusy && animationLibrary.animations.TrueForAll(a => a.isFinished);
-            quiet = settled ? quiet + Time.deltaTime : 0f;
+            quiet = IsSettled ? quiet + Time.deltaTime : 0f;
             yield return null;
         }
         checkPending = false;
@@ -94,6 +97,7 @@ public class AgentSystem : MonoBehaviour
 
         ScenarioCheckResponse r = res.Response;
         Debug.Log($"Scenario check: advanced={r.advanced}, now checkpoint {r.checkpoint} ({r.name}). {r.reason}");
+        CurrentCheckpoint = r.checkpoint;
         // The list is evidence for one state, so the next state starts with an empty list
         if (r.advanced) finishedSinceAdvance.Clear();
     }
