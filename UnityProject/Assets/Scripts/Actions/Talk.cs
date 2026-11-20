@@ -19,28 +19,44 @@ public class Talk : IAgentAction
     public string TryBuild(ActionData action, AgentSystem context, NPC agent, out AnimAction result)
     {
         result = default;
-        if (action.parameters.Length != 3) return "talk requires 3 parameters: message, addressee, isNextTurn";
+        if (action.parameters == null || action.parameters.Length != 3)
+            return "talk requires 3 parameters: message, addressee, isNextTurn";
 
         string msg = action.parameters[0];
+        if (string.IsNullOrWhiteSpace(msg))
+            return "talk requires a non-empty message";
+
         // parameters: [message, addressee, isNextTurn]. Empty addressee is the player
-        string heardBy = action.parameters.Length > 1 && !string.IsNullOrEmpty(action.parameters[1])
+        string heardBy = !string.IsNullOrEmpty(action.parameters[1])
             ? action.parameters[1]
             : "user";
-        bool isNextTurn = action.parameters.Length > 2
+        bool isToUser = heardBy.Equals("user", System.StringComparison.OrdinalIgnoreCase);
+        if (isToUser) heardBy = "user";
+
+        bool isNextTurn = !string.IsNullOrEmpty(action.parameters[2])
             && action.parameters[2].Trim().Equals("true", System.StringComparison.OrdinalIgnoreCase);
 
         NPC other = null;
-        if (heardBy != "user")
+        if (!isToUser)
         {
             other = context.GetAgent(heardBy);
-            if (other == null) return $"Couldn't find agent with name {heardBy}";
+            if (other == null) return $"Couldn't find agent with name '{heardBy}'";
         }
+
         bool sendOn = isNextTurn && other != null;
         string speaker = action.agent;
+        string error = null;
+
         void start()
         {
+            if (!isToUser && other == null)
+            {
+                error = $"Cannot talk to '{heardBy}': agent no longer exists.";
+                return;
+            }
+
             string receiver = "you";
-            if (other == null)
+            if (isToUser)
             {
                 Transform player = context.contextLibrary.Player;
                 if (player != null) MovementActions.StartTurn(agent, player.position);
@@ -51,21 +67,30 @@ public class Talk : IAgentAction
                 receiver = other.name;
                 MovementActions.StartTurn(agent, other.transform.position);
             }
+
             ParsedLine line = LineParser.Parse(msg);
-            
-            if (context.chatManager != null) context.chatManager.AddChat($"{action.agent} to {receiver}: {line.CleanText}");
+
+            if (context.chatManager != null)
+                context.chatManager.AddChat($"{action.agent} to {receiver}: {line.CleanText}");
             // CleanText has the gesture tags removed, so they are not fed back to the model
             context.contextLibrary.AddMessageToHistory(speaker, heardBy, line.CleanText);
 
-            if (context.AnimationLibrary.DialoguePlayer == null)
+            if (context.AnimationLibrary == null || context.AnimationLibrary.DialoguePlayer == null)
                 Debug.LogWarning("DialoguePlayer is null");
-            else 
-                agent.StartCoroutine( context.AnimationLibrary.DialoguePlayer.Play(line, context, action, agent) );
-            if (sendOn) EnqueueHeard(context, msg, heardBy, speaker);
+            else
+                agent.StartCoroutine(context.AnimationLibrary.DialoguePlayer.Play(line, context, action, agent));
 
+            if (sendOn) EnqueueHeard(context, msg, heardBy, speaker);
         }
 
-        result = new AnimAction(action, start, null, null);
+        IEnumerator behavior()
+        {
+            if (error == null) yield break;
+            yield return null;
+            context.ReportActionError(error, agent, action);
+        }
+
+        result = new AnimAction(action, start, behavior(), null);
         return null;
     }
 
@@ -80,13 +105,19 @@ public class Talk : IAgentAction
     static IEnumerator DrainTalks(AgentSystem context)
     {
         drainingTalks = true;
-        while (pendingTalks.Count > 0)
+        try
         {
-            while (context.IsBusy)
-                yield return null;
-            HeardLine line = pendingTalks.Dequeue();
-            yield return context.RunHeardTurn(line.message, line.addressee, line.speaker);
+            while (pendingTalks.Count > 0)
+            {
+                while (context.IsBusy)
+                    yield return null;
+                HeardLine line = pendingTalks.Dequeue();
+                yield return context.RunHeardTurn(line.message, line.addressee, line.speaker);
+            }
         }
-        drainingTalks = false;
+        finally
+        {
+            drainingTalks = false;
+        }
     }
 }

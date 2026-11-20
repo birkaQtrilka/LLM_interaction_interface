@@ -69,7 +69,7 @@ public class AnimationLibrary : MonoBehaviour
         StartCoroutine(AnimationManagerCoroutine());
     }
 
-    public string PlayAnimation(AgentSystem context, ActionData action)
+    public string PlayAnimation(AgentSystem context, ActionData action, int planId = 0)
     {
         if (!registry.TryGetValue(action.name, out var handler))
             return $"Unknown action: {action.name}";
@@ -78,20 +78,32 @@ public class AnimationLibrary : MonoBehaviour
         if (agent == null) return $"Couldn't find agent with name {action.agent}";
 
         string error = handler.TryBuild(action, context, agent, out AnimAction result);
-        if (error != null) 
-        { 
+        if (error != null)
+        {
             Debug.LogError(error);
             return error;
         }
 
-        return ExecuteAction(result);
+        return ExecuteAction(result, planId);
     }
 
-    public string ExecuteAction(AnimAction exe)
+    public string ExecuteAction(AnimAction exe, int planId = 0)
     {
-        return PushAnimation(exe.data, exe.behavior, exe.start, exe.end) != null
+        return PushAnimation(exe.data, exe.behavior, exe.start, exe.end, planId) != null
             ? null
             : $"Action with id {exe.data.id} already exists";
+    }
+
+    public AnimationInstance PushAnimation(ActionData data, IEnumerator behavior, Action start = null, Action end = null, int planId = 0)
+    {
+        if (animations.Exists(a => a.data.id == data.id))
+        {
+            Debug.LogWarning($"Animation with id {data.id} already exists. LLM might have hallucinated.");
+            return null;
+        }
+        var anim = new AnimationInstance(data, behavior, start, end) { planId = planId };
+        animations.Add(anim);
+        return anim;
     }
 
     private IEnumerator AnimationManagerCoroutine()
@@ -131,7 +143,7 @@ public class AnimationLibrary : MonoBehaviour
                 }
 
                 anim.isPlaying = true;
-                StartCoroutine(ExecuteAnimation(anim));
+                anim.coroutine = StartCoroutine(ExecuteAnimation(anim));
             }
 
             yield return null;
@@ -158,18 +170,6 @@ public class AnimationLibrary : MonoBehaviour
         anim.isFinished = true;
     }
 
-    public AnimationInstance PushAnimation(ActionData data, IEnumerator behavior, Action start = null, Action end = null)
-    {
-        var anim = new AnimationInstance(data, behavior, start, end);
-        if (animations.Exists(a => a.data.id == data.id))
-        {
-            Debug.LogWarning($"Animation with id {data.id} already exists. LLM might have hallucinated.");
-            return null;
-        }
-        animations.Add(anim);
-        return anim;
-    }
-
     public string ShowAnimationActions()
     {
         var jsonObjects = animations
@@ -182,5 +182,40 @@ public class AnimationLibrary : MonoBehaviour
     public AnimationInstance GetAnimation(Predicate<AnimationInstance> predicate)
     {
         return animations.Find(predicate);
+    }
+
+    void Cancel(AnimationInstance a)
+    {
+        if (a.isFinished) return;
+
+        bool wasPlaying = a.isPlaying;
+        if (a.coroutine != null) StopCoroutine(a.coroutine); // also stops the nested behavior
+        a.isFinished = true; // the manager removes it on its next tick
+
+        if (wasPlaying) // end() only makes sense if start() ran
+        {
+            AnimationEnded?.Invoke(a);
+            a.end?.Invoke();
+        }
+    }
+
+    /// <summary>
+    /// Stops every unfinished animation that belongs to the given plan and reports what was stopped.
+    /// wasRunning = false means it was still queued (its start() never ran).
+    /// Don't call this from inside an action's start(): that runs inside the manager's loop.
+    /// </summary>
+    public List<(AnimationInstance anim, bool wasRunning)> CancelPlan(int planId)
+    {
+        var cancelled = new List<(AnimationInstance, bool)>();
+        if (planId <= 0) return cancelled;
+
+        foreach (var a in animations.ToArray()) // copy: Cancel fires events that could touch the list
+        {
+            if (a.planId != planId || a.isFinished) continue;
+            bool wasRunning = a.isPlaying; // read before Cancel, which doesn't reset it
+            Cancel(a);
+            cancelled.Add((a, wasRunning));
+        }
+        return cancelled;
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using UnityEngine;
 
 [Serializable]
 public class AnimationInstance
@@ -11,6 +12,8 @@ public class AnimationInstance
 
     public bool isPlaying;
     public bool isFinished;
+    [NonSerialized] public Coroutine coroutine;
+    public int planId; // 0 = not part of a plan (pushed by other code)
 
     public AnimationInstance(ActionData data, IEnumerator behavior, Action start, Action end)
     {

@@ -24,31 +24,100 @@ static class MovementActions
     static readonly Vector3[] cornerBuffer = new Vector3[128];
     static readonly List<(Transform spot, float length)> rankedSpots = new();
 
-    public static AnimAction Build(NPC agent, TransOrPos pos, ActionData action)
+    public static AnimAction Build(NPC agent, TransOrPos pos, ActionData action, AgentSystem context = null)
     {
         var lookHandler = new LookAtHandler(agent, pos);
         Coroutine walkRoutine = null;
+        string error = null;
+        bool requestedMove = false;
+
+        string targetLabel = pos.IsTransform && pos.transform != null
+            ? pos.transform.name
+            : (action?.parameters != null && action.parameters.Length > 0
+                ? string.Join(", ", action.parameters)
+                : pos.position.ToString());
+
+        void ReportError(string message)
+        {
+            if (context != null)
+                context.ReportActionError(message, agent, action);
+            else
+                Debug.LogWarning($"[{agent.name}] {message}");
+        }
 
         void start()
         {
+            if (pos.IsTransform && pos.transform == null)
+            {
+                error = $"Move target '{targetLabel}' no longer exists.";
+                return;
+            }
+
+            if (agent.Nav == null || !agent.Nav.enabled || !agent.Nav.isOnNavMesh)
+            {
+                error = $"Cannot move to '{targetLabel}': agent is not on a NavMesh.";
+                return;
+            }
+
             Vector3 destination = ResolveDestination(agent, pos);
 
             if (Vector3.Distance(agent.transform.position, destination) > agent.Nav.stoppingDistance + agent.StoppingDistOffset)
-                agent.Nav.SetDestination(destination);
+            {
+                if (!agent.Nav.SetDestination(destination))
+                {
+                    error = $"Cannot move to '{targetLabel}': failed to set navigation destination.";
+                    return;
+                }
+                requestedMove = true;
+            }
         }
 
         IEnumerator behavior()
         {
             yield return null;
+            if (error != null)
+            {
+                ReportError(error);
+                yield break;
+            }
+
+            if (pos.IsTransform && pos.transform == null)
+            {
+                ReportError($"Move target '{targetLabel}' no longer exists.");
+                yield break;
+            }
+
             while (agent.Nav.pathPending)
                 yield return null;
 
+            if (requestedMove)
+            {
+                if (!agent.Nav.enabled || !agent.Nav.isOnNavMesh)
+                {
+                    ReportError($"Cannot move to '{targetLabel}': agent is no longer on a NavMesh.");
+                    yield break;
+                }
+
+                if (!agent.Nav.hasPath || agent.Nav.pathStatus == NavMeshPathStatus.PathInvalid)
+                {
+                    ReportError($"Cannot move to '{targetLabel}': no valid path found.");
+                    yield break;
+                }
+
+                if (agent.Nav.pathStatus == NavMeshPathStatus.PathPartial)
+                {
+                    ReportError($"Cannot reach '{targetLabel}': path is blocked or unreachable.");
+                    yield break;
+                }
+            }
+
             Vector3 lookPos = pos.position;
-            if(pos.IsTransform)
+            if (pos.IsTransform)
             {
                 Transform grabSpot = pos.transform.FindDeep("GrabSpot");
-                if(grabSpot != null) lookPos = grabSpot.position;
+                if (grabSpot != null) lookPos = grabSpot.position;
             }
+
             if (!agent.Nav.hasPath || agent.Nav.remainingDistance <= agent.Nav.stoppingDistance + agent.StoppingDistOffset)
             {
                 yield return StartTurn(agent, lookPos);
@@ -65,6 +134,31 @@ static class MovementActions
                     agent.StopCoroutine(walkRoutine);
                     walkRoutine = null;
                 }
+
+                if (pos.IsTransform && pos.transform == null)
+                {
+                    ReportError($"Move target '{targetLabel}' was destroyed while moving.");
+                    yield break;
+                }
+
+                if (!agent.Nav.enabled || !agent.Nav.isOnNavMesh)
+                {
+                    ReportError($"Movement to '{targetLabel}' interrupted: agent left NavMesh.");
+                    yield break;
+                }
+
+                if (agent.Nav.hasPath && agent.Nav.pathStatus != NavMeshPathStatus.PathComplete)
+                {
+                    ReportError($"Could not reach '{targetLabel}': path became blocked or invalid.");
+                    yield break;
+                }
+
+                if (agent.Nav.hasPath && agent.Nav.remainingDistance > agent.Nav.stoppingDistance + agent.StoppingDistOffset + 0.5f)
+                {
+                    ReportError($"Could not reach '{targetLabel}': agent got stuck before arriving.");
+                    yield break;
+                }
+
                 yield return StartTurn(agent, lookPos);
             }
 
@@ -92,7 +186,6 @@ static class MovementActions
 
         return new AnimAction(action, start, behavior(), end);
     }
-
 
     /// Move spot of the item if it has a free one, otherwise the old standoff/ring behaviour.
     static Vector3 ResolveDestination(NPC agent, TransOrPos pos)

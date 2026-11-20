@@ -36,9 +36,9 @@ public class Use : IAgentAction
         IEnumerator behavior()
         {
             yield return new WaitUntil(() => error != null || session != null);
-            if (error != null) { Debug.LogError(error); yield break; }
+            if (error != null) { context.ReportActionError(error, agent, action); yield break; }
             while (!session.Done) yield return null; // bounded by the controller's own timeouts
-            if (session.Error != null) Debug.LogError(session.Error);
+            if (session.Error != null) context.ReportActionError(session.Error, agent, action);
         }
 
         void end() { if (controller != null) controller.Cancel(session); }

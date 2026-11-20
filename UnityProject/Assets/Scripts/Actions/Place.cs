@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,34 +11,55 @@ public class Place : IAgentAction
     public string TryBuild(ActionData action, AgentSystem context, NPC agent, out AnimAction result)
     {
         result = default;
-        if (action.parameters.Length != 1) return "place requires 1 string parameter: target object name";
+        if (action.parameters == null || action.parameters.Length != 1)
+            return "place requires 1 string parameter: target object name";
 
-        List<ContextItem> environment = context.contextLibrary.environment;
-        ContextItem obj = context.GetObject(action.parameters[0]);
-        if (obj == null) return $"Couldn't find object with name {action.parameters[0]}";
+        string targetName = action.parameters[0];
+        if (string.IsNullOrEmpty(targetName))
+            return "place requires a non-empty target object name";
 
-        Transform target = new GameObject("PlaceTarget").transform;
+        ContextItem obj = context.GetObject(targetName);
+        if (obj == null) return $"Couldn't find object with name '{targetName}'";
+
+        if (agent.Hand == null)
+            return $"Misconfigured: '{agent.name}' has no HandController.";
+
+        Transform target = null;
 
         IEnumerator place()
         {
-            GrabbableItem held = agent.Hand.Held;
-            if (held == null)
+            yield return null; // ensures anim.coroutine is assigned before CancelPlan can run
+
+            if (obj == null)
             {
-                Debug.LogWarning("Agent tried to place an item but wasn't holding anything!");
+                context.ReportActionError($"Cannot place on '{targetName}': target object no longer exists.", agent, action);
+                yield break;
+            }
+
+            GrabbableItem held = agent.Hand.Held;
+            if (agent.Hand.State != HandState.Holding || held == null)
+            {
+                context.ReportActionError($"Cannot place on '{targetName}': agent is not holding any item.", agent, action);
                 yield break;
             }
 
             ContextItem item = context.GetObject(held.name);
             if (item == null)
             {
-                Debug.LogWarning("Agent tried to place an item but it wasn't in the environment list!");
+                context.ReportActionError($"Cannot place '{held.name}' on '{targetName}': held item is not in the environment.", agent, action);
                 yield break;
             }
 
-            PlaceOnTop(item, obj, context, agent, out Vector3 placePos, out Quaternion placeRot);
+            if (!TryPlaceOnTop(item, obj, context, agent, out Vector3 placePos, out Quaternion placeRot, out string placeError))
+            {
+                context.ReportActionError(placeError, agent, action);
+                yield break;
+            }
+
+            target = new GameObject("PlaceTarget").transform;
 
             // Aim the hand so the item pivot ends up at placePos, not the grip point
-            Transform grip = held.GripTarget;
+            Transform grip = held.GripTarget != null ? held.GripTarget : held.transform;
             Vector3 gripLocal = held.transform.InverseTransformPoint(grip.position);
             target.SetPositionAndRotation(
                 placePos + placeRot * gripLocal,
@@ -45,16 +67,35 @@ public class Place : IAgentAction
 
             yield return MovementActions.EnsureFacing(agent, placePos);
 
-            yield return agent.Hand.ReleaseAt(target, tr =>
+            IEnumerator releaseRoutine = agent.Hand.ReleaseAt(target, tr =>
             {
                 tr.SetPositionAndRotation(placePos, placeRot);
-                item.RecalculateBounds();
+                if (item != null) item.RecalculateBounds();
             });
+
+            while (true)
+            {
+                bool hasNext;
+                try
+                {
+                    hasNext = releaseRoutine.MoveNext();
+                }
+                catch (Exception ex)
+                {
+                    context.ReportActionError(ex.Message, agent, action);
+                    yield break;
+                }
+
+                if (!hasNext) break;
+                yield return releaseRoutine.Current;
+            }
         }
 
         void end()
         {
             if (target != null) GameObject.Destroy(target.gameObject);
+            if (agent.Hand != null && agent.Hand.State == HandState.Releasing)
+                agent.Hand.ForceRelease();
         }
 
         result = new AnimAction(action, null, place(), end);
@@ -72,16 +113,35 @@ public class Place : IAgentAction
 
     public static void PlaceOnTop(ContextItem item, ContextItem targetObj, AgentSystem context, NPC agent, out Vector3 finalPos, out Quaternion finalRot)
     {
+        if (!TryPlaceOnTop(item, targetObj, context, agent, out finalPos, out finalRot, out string error))
+            Debug.LogError(error);
+    }
+
+    public static bool TryPlaceOnTop(ContextItem item, ContextItem targetObj, AgentSystem context, NPC agent, out Vector3 finalPos, out Quaternion finalRot, out string error)
+    {
         finalPos = default;
         finalRot = Quaternion.identity;
+        error = null;
+
+        if (item == null)
+        {
+            error = "Item to place no longer exists.";
+            return false;
+        }
+
+        if (targetObj == null)
+        {
+            error = "Target object to place on no longer exists.";
+            return false;
+        }
 
         targetObj.RecalculateBounds();
         targetObj.FindNeighbors();
 
         if (targetObj.boundingBox == new Bounds())
         {
-            Debug.LogError("Target object has no bounding box to place an item on");
-            return;
+            error = $"Target object '{targetObj.GetName()}' has no bounding box to place an item on.";
+            return false;
         }
 
         Quaternion savedItemRot = item.transform.rotation;
@@ -142,8 +202,8 @@ public class Place : IAgentAction
         for (int i = 0; i < maxAttempts; i++)
         {
             bool useReachBox = i < 35;
-            float randX = useReachBox ? Random.Range(sampleMinX, sampleMaxX) : Random.Range(minX, maxX);
-            float randZ = useReachBox ? Random.Range(sampleMinZ, sampleMaxZ) : Random.Range(minZ, maxZ);
+            float randX = useReachBox ? UnityEngine.Random.Range(sampleMinX, sampleMaxX) : UnityEngine.Random.Range(minX, maxX);
+            float randZ = useReachBox ? UnityEngine.Random.Range(sampleMinZ, sampleMaxZ) : UnityEngine.Random.Range(minZ, maxZ);
 
             if (!TrySampleTopSurface(targetColliders, targetObj.boundingBox, randX, randZ, out Vector3 surfacePoint, out Vector3 surfaceNormal))
                 continue;
@@ -215,6 +275,8 @@ public class Place : IAgentAction
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
         }
+
+        return true;
     }
 
     static bool IsOverlappingNeighbors(Vector3 candidatePos, float surfaceY, float itemRadius, float itemHeightOffset, ContextItem item, ContextItem targetObj, AgentSystem context)

@@ -45,20 +45,30 @@ public class HandController : MonoBehaviour
 
     public IEnumerator Grab(GrabbableItem item, Action onGrabbed = null)
     {
+        if (item == null || item.profile == null)
+            throw new ArgumentException("Item is null or has no GrabProfile.", nameof(item));
+
         if (State != HandState.Empty)
         {
-            Debug.LogWarning($"Hand is busy ({State}), cannot grab {item.name}");
-            yield break;
+            string holdingInfo = Held != null ? $" (currently holding {Held.name})" : "";
+            throw new InvalidOperationException($"Hand is busy ({State}{holdingInfo}), cannot grab {item.name}.");
         }
 
-        State = HandState.Grabbing;
+        if (anim == null || swapper == null)
+            throw new InvalidOperationException($"Misconfigured: {name} has no Animator.");
+
         GrabProfile p = item.profile;
+        if (p.useIK && ik == null)
+            throw new InvalidOperationException($"Misconfigured: {name} has no GrabIK assigned.");
+
+        State = HandState.Grabbing;
         swapper.Apply(p);
         anim.ResetTrigger("Grab");
         anim.SetTrigger("Grab");
 
         void contact()
         {
+            if (item == null) return;
             if (item.Holder != null) item.Holder.ForceRelease();
             Attach(item);
             onGrabbed?.Invoke();
@@ -67,6 +77,12 @@ public class HandController : MonoBehaviour
         if (p.useIK) yield return ik.ReachRoutine(() => new Pos(item.GripTarget), p, contact);
         else yield return new WaitForSeconds(1.5f);
 
+        if (item == null)
+        {
+            ForceRelease();
+            throw new InvalidOperationException("Target item no longer exists.");
+        }
+
         if (Held != item) contact();
         State = HandState.Holding;
     }
@@ -74,23 +90,28 @@ public class HandController : MonoBehaviour
     public IEnumerator ReleaseAt(Transform target, Action<Transform> onReleased = null)
     {
         if (State != HandState.Holding || Held == null)
-        {
-            Debug.LogWarning("ReleaseAt called while not holding anything");
-            yield break;
-        }
+            throw new InvalidOperationException($"Hand is not holding anything (state: {State}).");
+
+        if (anim == null)
+            throw new InvalidOperationException($"Misconfigured: {name} has no Animator.");
+
+        GrabProfile p = Held.profile;
+        if (target != null && p != null && p.useIK && ik == null)
+            throw new InvalidOperationException($"Misconfigured: {name} has no GrabIK assigned.");
 
         State = HandState.Releasing;
-        GrabProfile p = Held.profile;
 
         void contact()
         {
+            if (Held == null) return;
             Transform tr = Detach();
             anim.ResetTrigger("Release");
             anim.SetTrigger("Release");
             onReleased?.Invoke(tr);
         }
 
-        if (target != null && p.useIK) yield return ik.ReachRoutine(() => new Pos(target), p, contact);
+        if (target != null && p != null && p.useIK)
+            yield return ik.ReachRoutine(() => new Pos(target), p, contact);
         if (Held != null) contact();
 
         float until = Time.time + 2f;
