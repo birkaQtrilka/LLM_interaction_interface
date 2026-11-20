@@ -1,23 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-
-public struct ItemDataQuery
-{
-    public bool inclPosition;
-    public bool inclRotation;
-    public bool inclBounds;
-    public bool inclNeighbors;
-    public bool inclDescription;
-    public ItemDataQuery(bool includePosition, bool includeRotation, bool includeBounds, bool includeNeighbors, bool includeDescription)
-    {
-        this.inclPosition = includePosition;
-        this.inclRotation = includeRotation;
-        this.inclBounds = includeBounds;
-        this.inclNeighbors = includeNeighbors;
-        this.inclDescription = includeDescription;
-    }
-}
+using UnityEngine.AI;
+using static PathReachHandler;
 
 public class ContextLibrary : MonoBehaviour
 {
@@ -28,6 +13,10 @@ public class ContextLibrary : MonoBehaviour
                                                     
     public List<NPC> agents = new();
     [field: SerializeField] public Transform Player { get; private set; }
+    public uint maxMessageHistory = 10;
+    private readonly LinkedList<string> messageHistory = new();
+    [Header("Debug Visuals")]
+    public bool showGizmos = true;
 
     private void OnValidate()
     {
@@ -56,13 +45,6 @@ public class ContextLibrary : MonoBehaviour
 
         
     }
-
-    public uint maxMessageHistory = 10;
-    private readonly LinkedList<string> messageHistory = new();
-
-
-    [Header("Debug Visuals")]
-    public bool showGizmos = true;
 
     private void OnDrawGizmos()
     {
@@ -132,7 +114,8 @@ public class ContextLibrary : MonoBehaviour
                         query.objectFlags.rotation,
                         query.objectFlags.bounds,
                         query.objectFlags.neighbours,
-                        query.objectFlags.description
+                        query.objectFlags.description,
+                        query.objectFlags.reachable
                         )
                     );
                 context += $"\n  {objData}";
@@ -187,7 +170,20 @@ public class ContextLibrary : MonoBehaviour
             dataParts.Add($"usableDirectly: true");
 
         dataParts.Add($"grabbable: {item.grabbable}");
+        if (q.inclReachable)
+        {
+            if (!q.inclBounds) item.RecalculateBounds();
 
+            var blocked = new List<string>();
+            foreach (var agent in agents)
+            {
+                var nav = agent.GetComponent<NavMeshAgent>();
+                var r = GetReach(nav, item);
+                if (r != Reach.Reachable) blocked.Add($"{agent.name}({r.ToString().ToLower()})");
+                if (r != Reach.Reachable) Debug.Log($"{item.GetName()} is not reachable for {agent.name}");
+            }
+            dataParts.Add(blocked.Count == 0 ? "reachable: true" : $"notReachableBy: [{string.Join(", ", blocked)}]");
+        }
         if (q.inclBounds)
         {
             item.RecalculateBounds();
@@ -232,7 +228,8 @@ public class ContextLibrary : MonoBehaviour
                 includeRotation: false, 
                 includeBounds: false, 
                 includeNeighbors: false,
-                includeDescription: false
+                includeDescription: false,
+                includeReachable: true
             ));
         }
         return $"{result}[{string.Join(',', spotJsons)}]";
@@ -257,7 +254,8 @@ public class ContextLibrary : MonoBehaviour
                     includeRotation: true,
                     includeBounds: true,
                     includeNeighbors: false,
-                    includeDescription: true
+                    includeDescription: true,
+                    includeReachable: true
                 )
             );
             Transform rightHandItem = agent.GetItem();

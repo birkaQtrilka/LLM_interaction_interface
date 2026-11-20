@@ -13,7 +13,6 @@ public class ContextItem
 
     [HideInInspector] public Bounds boundingBox;
 
-
     public string GetName() => transform.name;
 
     public void RecalculateBounds()

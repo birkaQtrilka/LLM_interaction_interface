@@ -51,6 +51,7 @@ class ObjectFlags(BaseModel):
     description: bool = False
     bounds: bool = False
     neighbours: bool = False
+    reachable: bool = False
 
 class ContextQuery(BaseModel):
     getSpots: bool = False

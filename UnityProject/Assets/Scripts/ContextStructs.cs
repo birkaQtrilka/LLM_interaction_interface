@@ -28,7 +28,8 @@ public struct ContextQuery
                 rotation: true,
                 description: true,
                 bounds: true,
-                neighbours: true
+                neighbours: true,
+                reachable: true
             ),
             prompt_tokens = 0,
             completion_tokens = 0,
@@ -59,13 +60,14 @@ public struct ObjectFlags
     public bool description;
     public bool bounds;
     public bool neighbours;
-
-    public ObjectFlags(bool position, bool rotation, bool description, bool bounds, bool neighbours)
+    public bool reachable;
+    public ObjectFlags(bool position, bool rotation, bool description, bool bounds, bool neighbours, bool reachable)
     {
         this.position = position;
         this.rotation = rotation;
         this.description = description;
         this.bounds = bounds;
         this.neighbours = neighbours;
+        this.reachable = reachable;
     }
 }

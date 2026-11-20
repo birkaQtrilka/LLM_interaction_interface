@@ -215,6 +215,7 @@ def context(body: ContextRequestBody) -> ContextQuery:
             description=bool(objects.get("description")),
             bounds=bool(objects.get("bounds")),
             neighbours=bool(objects.get("neighbours")),
+            reachable=bool(objects.get("reachable")),
         ),
         userFlags=UserFlags(
             position=bool(user.get("position")),

@@ -853,6 +853,7 @@ GameObject:
   - component: {fileID: 330585548}
   - component: {fileID: 330585550}
   - component: {fileID: 330585549}
+  - component: {fileID: 330585551}
   m_Layer: 0
   m_Name: Player
   m_TagString: MainCamera
@@ -1033,6 +1034,70 @@ MonoBehaviour:
       m_Calls: []
   drawRay: 1
   <HitPointObject>k__BackingField: {fileID: 1456499501}
+--- !u!114 &330585551
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330585543}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7d2e4f18a6c4e0d9f3a5c7b1e8d2f40, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::LookCast
+  radius: 0.35
+  distance: 4
+  socialRadius: 3.5
+  keepLastDegrees: 25
+  tellTheModel: 1
+--- !u!1 &333260993
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 333260994}
+  - component: {fileID: 333260995}
+  m_Layer: 0
+  m_Name: ReachableTest
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &333260994
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 333260993}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 737304171}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &333260995
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 333260993}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f00b125173f55ec4f9b0f587a218433d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::ReachableTest
+  itemNames:
+  - phone (1)
+  contextLibrary: {fileID: 163989116}
 --- !u!1 &342554027
 GameObject:
   m_ObjectHideFlags: 0
@@ -1885,6 +1950,7 @@ Transform:
   - {fileID: 854060013}
   - {fileID: 342554028}
   - {fileID: 175758259}
+  - {fileID: 333260994}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &737304172
@@ -2109,7 +2175,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &854060013
 Transform:
   m_ObjectHideFlags: 0
@@ -2874,7 +2940,7 @@ Transform:
   m_GameObject: {fileID: 1074326909}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.59, y: -0.453, z: -6.82}
+  m_LocalPosition: {x: -4.39, y: -0.453, z: -18.7}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
