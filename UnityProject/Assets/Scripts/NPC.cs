@@ -25,6 +25,10 @@ public class NPC : MonoBehaviour
     [field: SerializeField] public float AngleForLerpRotation { get; private set; } = 7f;
     [field: SerializeField] public float FaceDistance { get; private set; } = 2f;     // Distance to item where we start facing the item
     [field: SerializeField] public float DampTime { get; private set; } = 0.15f;
+    [field: SerializeField, Tooltip("While walking the NPC faces a point this far ahead along its path, so it turns before a corner instead of at it")]
+    public float LookAheadDistance { get; private set; } = 1f;
+    [field: SerializeField, Tooltip("Extra space around a standing NPC that walking NPCs keep clear of")]
+    public float ObstaclePadding { get; private set; } = 0.25f;
     [Header("Reservation Tweaks")]
     [field: SerializeField, Tooltip("Extra gap when approaching an object")]
     public float ApproachGap { get; private set; } = 0.3f;
@@ -62,13 +66,17 @@ public class NPC : MonoBehaviour
         // Built from the agent settings so the obstacle always matches the agent size
         obstacle = Nav.gameObject.AddComponent<NavMeshObstacle>();
         obstacle.shape = NavMeshObstacleShape.Capsule;
-        obstacle.radius = Nav.radius;
+        // Padding moves the path corner away from the body, so passing NPCs keep some space
+        obstacle.radius = Nav.radius + ObstaclePadding;
         obstacle.height = Nav.height;
         // The agent pivot sits baseOffset above the ground, the obstacle center is relative to that pivot
         obstacle.center = Vector3.up * (Nav.height / 2f - Nav.baseOffset);
         obstacle.carving = true;
         // Carve right away instead of waiting for the obstacle to count as stationary
         obstacle.carveOnlyStationary = false;
+
+        // Rotation is done by the movement scripts: look-ahead while walking, turn animations when standing
+        Nav.updateRotation = false;
 
         BecomeObstacle();
     }

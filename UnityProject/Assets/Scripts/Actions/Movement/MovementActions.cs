@@ -152,6 +152,24 @@ static class MovementActions
         return false;
     }
 
+    /// Point `distance` metres ahead of the agent along its current path, or the path end if the path is shorter
+    static Vector3 PointAlongPath(NavMeshAgent nav, float distance)
+    {
+        // nav.path returns a copy, there is no non-allocating getter for the agent's own path
+        int count = nav.path.GetCornersNonAlloc(cornerBuffer);
+        if (count == 0) return nav.transform.position;
+
+        // Corner 0 is the agent's own position on the NavMesh
+        for (int i = 1; i < count; i++)
+        {
+            float segment = Vector3.Distance(cornerBuffer[i - 1], cornerBuffer[i]);
+            if (segment >= distance)
+                return Vector3.MoveTowards(cornerBuffer[i - 1], cornerBuffer[i], distance);
+            distance -= segment;
+        }
+        return cornerBuffer[count - 1];
+    }
+
     static float PathLength(NavMeshPath path)
     {
         int count = path.GetCornersNonAlloc(cornerBuffer);
@@ -298,10 +316,21 @@ static class MovementActions
 
         while (nav.remainingDistance > nav.stoppingDistance + agent.StoppingDistOffset)
         {
+            // Face a point ahead on the path, so the body starts turning before a corner and the turn becomes a curve
+            Vector3 aheadDir = PointAlongPath(nav, agent.LookAheadDistance) - agent.transform.position;
+            aheadDir.y = 0f;
+
+            // The animation blends toward the same direction the body is rotating to, so they do not fight
             Vector3 targetDir = nav.remainingDistance < agent.FaceDistance
                 ? pos - agent.transform.position
-                : nav.velocity;   // actual velocity includes avoidance steering, desiredVelocity does not
+                : aheadDir;
             targetDir.y = 0f;
+
+            if (aheadDir.sqrMagnitude > 0.001f)
+            {
+                Quaternion aheadRot = Quaternion.LookRotation(aheadDir, Vector3.up);
+                agent.transform.rotation = Quaternion.RotateTowards(agent.transform.rotation, aheadRot, agent.TurnSpeed * Time.deltaTime);
+            }
 
             float h = 0f;
             float v = 0f;
