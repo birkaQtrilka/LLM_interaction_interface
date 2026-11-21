@@ -24,6 +24,8 @@ public class AgentSystem : MonoBehaviour
     public AnimationLibrary AnimationLibrary => animationLibrary;
     public bool IsBusy { get; private set; }
     public ActionsResponse LastActions { get; private set; }
+    ILLMBackend injectedBackend;
+    ILLMBackend Backend => injectedBackend ?? (llm != null ? llm : null);
 
     // Errors waiting to be sent to the backend
     readonly List<string> pendingErrors = new();
@@ -39,9 +41,19 @@ public class AgentSystem : MonoBehaviour
     string lastSpeaker;
     int planCounter;
 
-    public void Init(LLMBackend llm, AnimationLibrary anim, ContextLibrary ctx)
+
+    public void SetBackend(ILLMBackend backend) => injectedBackend = backend;
+
+    // Lets tests shorten the batching delay without reflection
+    public void Configure(int maxFeedbackRounds, float errorBatchDelay)
     {
-        this.llm = llm;
+        this.maxFeedbackRounds = maxFeedbackRounds;
+        this.errorBatchDelay = errorBatchDelay;
+    }
+
+    public void Init(ILLMBackend llm, AnimationLibrary anim, ContextLibrary ctx)
+    {
+        this.injectedBackend = llm;
         this.animationLibrary = anim;
         this.contextLibrary = ctx;
     }
@@ -87,7 +99,7 @@ public class AgentSystem : MonoBehaviour
 
         // Stop the rest of the plan; the failed action itself is already described above
         var cancelled = animationLibrary.CancelPlan(planId)
-            .Where(c => action == null || c.anim.data.id != action.id)
+            .Where(c => action == null || !ReferenceEquals(c.anim.data, action))
             .Select(c => $"{c.anim.data.name} (id {c.anim.data.id}, {(c.wasRunning ? "was running" : "had not started")})")
             .ToList();
         if (cancelled.Count > 0)
@@ -222,8 +234,10 @@ public class AgentSystem : MonoBehaviour
 
         IEnumerator Body()
         {
+            var backend = Backend;
+            if (backend == null) { res.SetError("No LLM backend configured"); Debug.LogError(res.Error); yield break; }
             Debug.Log($"Sending to backend Round 1: {userPrompt}");
-            yield return StartCoroutine(llm.GetContext(userPrompt, res));
+            yield return StartCoroutine(backend.GetContext(userPrompt, res));
 
             if (res.Status == ContextStatus.Success)
             {
@@ -247,9 +261,11 @@ public class AgentSystem : MonoBehaviour
 
         IEnumerator Body()
         {
+            var backend = Backend;
+            if (backend == null) { res.SetError("No LLM backend configured"); Debug.LogError(res.Error); yield break; }
             string world = contextLibrary.GetContext(context, animationLibrary.animations);
             Debug.Log($"Sending to backend Round 2:\n{world}\n{userPrompt}");
-            yield return StartCoroutine(llm.GetActions(userPrompt, world, res, addressee, speaker));
+            yield return StartCoroutine(backend.GetActions(userPrompt, world, res, addressee, speaker));
 
             if (res.Status == ContextStatus.Success)
             {
@@ -307,15 +323,8 @@ public class AgentSystem : MonoBehaviour
         chatManager.AddChat(message);
     }
 
-    public NPC GetAgent(string name)
-    {
-        return contextLibrary.agents.Find(a => a.name == name);
-    }
-
-    public ContextItem GetObject(string name)
-    {
-        return contextLibrary.environment.Find(a => a.GetName() == name);
-    }
+    public NPC GetAgent(string name) => contextLibrary.agents.Find(a => a != null && a.name == name);
+    public ContextItem GetObject(string name) => contextLibrary.environment.Find(a => a.transform != null && a.GetName() == name);
 
     public Transform GetSpot(string name)
     {

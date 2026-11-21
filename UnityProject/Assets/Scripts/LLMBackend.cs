@@ -5,7 +5,7 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 
-public class LLMBackend : MonoBehaviour
+public class LLMBackend : MonoBehaviour, ILLMBackend
 {
     [Serializable]
     class ContextRequestBody
@@ -108,15 +108,11 @@ public class LLMBackend : MonoBehaviour
         if (string.IsNullOrEmpty(sessionId)) return;
         try
         {
-            using (HttpClient client = new HttpClient())
-            {
-                client.Timeout = TimeSpan.FromSeconds(2);
-                string json = JsonUtility.ToJson(SessionBody());
-                using (StringContent content = new StringContent(json, Encoding.UTF8, "application/json"))
-                {
-                    client.PostAsync(baseUrl.TrimEnd('/') + "/v1/session/end", content).GetAwaiter().GetResult();
-                }
-            }
+            using HttpClient client = new();
+            client.Timeout = TimeSpan.FromSeconds(2);
+            string json = JsonUtility.ToJson(SessionBody());
+            using StringContent content = new(json, Encoding.UTF8, "application/json");
+            client.PostAsync(baseUrl.TrimEnd('/') + "/v1/session/end", content).GetAwaiter().GetResult();
         }
         catch (Exception)
         {
@@ -142,14 +138,12 @@ public class LLMBackend : MonoBehaviour
                     accurate_note = accurateNote ?? "",
                 };
                 string json = JsonUtility.ToJson(body);
-                using (StringContent content = new StringContent(json, Encoding.UTF8, "application/json"))
+                using StringContent content = new(json, Encoding.UTF8, "application/json");
+                HttpResponseMessage response = client.PostAsync(baseUrl.TrimEnd('/') + "/v1/session/feedback", content).GetAwaiter().GetResult();
+                if (!response.IsSuccessStatusCode)
                 {
-                    HttpResponseMessage response = client.PostAsync(baseUrl.TrimEnd('/') + "/v1/session/feedback", content).GetAwaiter().GetResult();
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        string detail = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-                        return $"Backend error: {(int)response.StatusCode} {detail}";
-                    }
+                    string detail = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    return $"Backend error: {(int)response.StatusCode} {detail}";
                 }
             }
         }
@@ -164,27 +158,23 @@ public class LLMBackend : MonoBehaviour
     {
         try
         {
-            using (HttpClient client = new HttpClient())
+            using HttpClient client = new();
+            client.Timeout = TimeSpan.FromSeconds(2);
+            var body = new ErrorRequestBody
             {
-                client.Timeout = TimeSpan.FromSeconds(2);
-                var body = new ErrorRequestBody
-                {
-                    session_id = sessionId ?? "",
-                    log_directory = logDirectory ?? "",
-                    description = sessionDescription ?? "",
-                    message = message ?? "",
-                    stack = stack ?? "",
-                };
-                string json = JsonUtility.ToJson(body);
-                using (StringContent content = new StringContent(json, Encoding.UTF8, "application/json"))
-                {
-                    HttpResponseMessage response = client.PostAsync(baseUrl.TrimEnd('/') + "/v1/session/error", content).GetAwaiter().GetResult();
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        string detail = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-                        return $"Backend error: {(int)response.StatusCode} {detail}";
-                    }
-                }
+                session_id = sessionId ?? "",
+                log_directory = logDirectory ?? "",
+                description = sessionDescription ?? "",
+                message = message ?? "",
+                stack = stack ?? "",
+            };
+            string json = JsonUtility.ToJson(body);
+            using StringContent content = new(json, Encoding.UTF8, "application/json");
+            HttpResponseMessage response = client.PostAsync(baseUrl.TrimEnd('/') + "/v1/session/error", content).GetAwaiter().GetResult();
+            if (!response.IsSuccessStatusCode)
+            {
+                string detail = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                return $"Backend error: {(int)response.StatusCode} {detail}";
             }
         }
         catch (Exception ex)
@@ -236,17 +226,11 @@ public class LLMBackend : MonoBehaviour
         string json = JsonUtility.ToJson(new ActionsRequestBody { message = message, world = world, session_id = sessionId ?? "", log_directory = logDirectory ?? "", description = sessionDescription ?? "", addressee = addressee ?? "", speaker = speaker ?? "" });
         yield return StartCoroutine(PostJson("/v1/turn", json, text =>
         {
-            ActionsResponse response = JsonUtility.FromJson<ActionsResponse>(text);
-            if (response == null)
-            {
-                res.SetError("Received empty or invalid response from backend");
-                return;
-            }
+            ActionsResponse response = null;
+            try { response = JsonUtility.FromJson<ActionsResponse>(text); } catch (Exception) { }
+            if (response == null) { res.SetError("Received empty or invalid response from backend"); return; }
             res.SetResult(response);
-        }, err =>
-        {
-            res.SetError(err);
-        }));
+        }, err => res.SetError(err)));
     }
 
     public void GetActions(string message, string world, Action<ActionsResponse> onSuccess, Action<string> onError = null)
@@ -254,7 +238,8 @@ public class LLMBackend : MonoBehaviour
         string json = JsonUtility.ToJson(new ActionsRequestBody { message = message, world = world, session_id = sessionId ?? "", log_directory = logDirectory ?? "", description = sessionDescription ?? "", addressee = "", speaker = "" });
         StartCoroutine(PostJson("/v1/turn", json, text =>
         {
-            ActionsResponse response = JsonUtility.FromJson<ActionsResponse>(text);
+            ActionsResponse response = null;
+            try { response = JsonUtility.FromJson<ActionsResponse>(text); } catch (Exception) { }
             if (response == null)
             {
                 onError?.Invoke("Received empty or invalid response from backend");

@@ -89,6 +89,10 @@ public class ContextLibrary : MonoBehaviour
 
     public string GetContext(ContextQuery query, List<AnimationInstance> animations)
     {
+        environment.RemoveAll(i => i == null || i.transform == null);
+        spots.RemoveAll(i => i == null || i.transform == null);
+        agents.RemoveAll(a => a == null);
+
         string context = "";
         context = GetNpcContext(context);
 
