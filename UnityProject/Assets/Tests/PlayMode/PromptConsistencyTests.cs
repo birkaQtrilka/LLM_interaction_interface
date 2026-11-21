@@ -94,7 +94,7 @@ public class PromptConsistencyTests
     IEnumerator Run(string mode)
     {
         Assert.IsNotNull(system, "AgentSystem was not found in the test scene.");
-        LLMBackend backend = UnityEngine.Object.FindAnyObjectByType<LLMBackend>();
+        ILLMBackend backend = UnityEngine.Object.FindAnyObjectByType<LLMBackend>();
         Assert.IsNotNull(backend, "LLMBackend was not found in the test scene.");
 
         Assert.IsNotEmpty(system.contextLibrary.agents, "The test scene has no NPC.");
@@ -125,7 +125,7 @@ public class PromptConsistencyTests
         }
     }
 
-    IEnumerator RunExpect(LLMBackend backend, string world, string agentName, PromptFamily family, StringBuilder report, List<string> failures)
+    IEnumerator RunExpect(ILLMBackend backend, string world, string agentName, PromptFamily family, StringBuilder report, List<string> failures)
     {
         string title = string.IsNullOrEmpty(family.label) ? "expect" : family.label;
         report.AppendLine(title);
@@ -166,7 +166,7 @@ public class PromptConsistencyTests
         report.AppendLine();
     }
 
-    IEnumerator RunVariance(LLMBackend backend, string world, PromptFamily family, StringBuilder report, List<string> failures)
+    IEnumerator RunVariance(ILLMBackend backend, string world, PromptFamily family, StringBuilder report, List<string> failures)
     {
         string title = string.IsNullOrEmpty(family.label) ? "variance" : family.label;
         report.AppendLine(title);

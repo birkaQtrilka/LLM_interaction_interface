@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEngine;
@@ -7,71 +9,56 @@ using UnityEngine.TestTools;
 
 public class Animation_Library_Tests
 {
-    private GameObject go;
+    private GameObject root;
     private AnimationLibrary library;
 
-    [SetUp]
-    public void SetUp()
+    [UnitySetUp]
+    public IEnumerator SetUp()
     {
-        go = new GameObject("AnimationLibraryTestObject");
-        library = go.AddComponent<AnimationLibrary>();
+        TestLog.Clear();
+        root = new GameObject("AnimationLibraryTestObject");
+        library = root.AddComponent<AnimationLibrary>();
+        yield return null; // Start() launches the manager coroutine
     }
 
     [TearDown]
     public void TearDown()
     {
-        if (go != null)
+        if (root != null)
         {
-            UnityEngine.Object.Destroy(go);
+            UnityEngine.Object.DestroyImmediate(root);
         }
     }
 
-    private static ActionData MakeAction(int id, int[] runAfter = null, float delayBefore = 0f)
+    private static IEnumerator Wait(int frames)
     {
-        return new ActionData
-        {
-            id = id,
-            name = "test",
-            parameters = Array.Empty<string>(),
-            runAfter = runAfter ?? Array.Empty<int>(),
-            delayBefore = delayBefore
-        };
-    }
-
-    private static IEnumerator WaitUntilOrTimeout(Func<bool> condition, float timeoutSeconds = 2f)
-    {
-        float deadline = Time.realtimeSinceStartup + timeoutSeconds;
-        while (!condition() && Time.realtimeSinceStartup < deadline)
+        for (int i = 0; i < frames; i++)
         {
             yield return null;
         }
     }
 
     [UnityTest]
-    public IEnumerator PushAnimation_CallsStartBehaviorAndEnd()
+    public IEnumerator PushAnimation_CallsStartBehaviorAndEnd_AndRemovesWhenFinished()
     {
-        bool startCalled = false;
-        bool behaviorRan = false;
-        bool endCalled = false;
+        var events = new List<string>();
 
         IEnumerator Behavior()
         {
-            behaviorRan = true;
+            events.Add("behavior");
             yield return null;
         }
 
         var anim = library.PushAnimation(
-            MakeAction(1),
+            T.Action(1, "x"),
             Behavior(),
-            () => startCalled = true,
-            () => endCalled = true);
+            () => events.Add("start"),
+            () => events.Add("end"));
 
-        yield return WaitUntilOrTimeout(() => anim.isFinished);
+        yield return T.Until(() => library.animations.Count == 0, "animation finished and removed");
 
-        Assert.IsTrue(anim.isFinished, "Animation should have finished within the timeout");
-        Assert.IsTrue(startCalled, "start callback should have run");
-        Assert.IsTrue(behaviorRan, "behavior coroutine should have run");
-        Assert.IsTrue(endCalled, "end callback should have run");
+        Assert.IsTrue(anim.isFinished, "Animation should have finished");
+        CollectionAssert.AreEqual(new[] { "start", "behavior", "end" }, events);
     }
 
     [UnityTest]
@@ -81,12 +68,12 @@ public class Animation_Library_Tests
         bool endCalled = false;
 
         var anim = library.PushAnimation(
-            MakeAction(2),
+            T.Action(2, "no_behavior"),
             null,
             () => startCalled = true,
             () => endCalled = true);
 
-        yield return WaitUntilOrTimeout(() => anim.isFinished);
+        yield return T.Until(() => anim.isFinished, "no-behavior animation finished");
 
         Assert.IsTrue(anim.isFinished);
         Assert.IsTrue(startCalled, "start callback should run even without a behavior");
@@ -94,10 +81,39 @@ public class Animation_Library_Tests
     }
 
     [UnityTest]
+    public IEnumerator PushAnimation_ReturnsAnimationWithGivenData()
+    {
+        var action = T.Action(60, "data");
+        var anim = library.PushAnimation(action, null);
+
+        Assert.AreSame(action, anim.data, "returned Animation should reference the ActionData it was pushed with");
+        Assert.IsTrue(library.animations.Contains(anim), "pushed animation should be tracked by the library");
+
+        yield return T.Until(() => anim.isFinished, "animation finished");
+    }
+
+    [Test]
+    public void PushAnimation_DuplicateId_ReturnsNull()
+    {
+        LogAssert.Expect(LogType.Warning, new Regex("already exists"));
+        Assert.IsNotNull(library.PushAnimation(T.Action(1, "x"), Wait(1)));
+        Assert.IsNull(library.PushAnimation(T.Action(1, "y"), Wait(1)));
+        Assert.AreEqual(1, library.animations.Count, "Only one animation with a given id should be tracked at a time.");
+    }
+
+    [Test]
+    public void ExecuteAction_DuplicateId_ReturnsErrorString()
+    {
+        LogAssert.Expect(LogType.Warning, new Regex("already exists"));
+        library.PushAnimation(T.Action(5, "x"), Wait(1));
+        string error = library.ExecuteAction(new AnimAction(T.Action(5, "y"), null, Wait(1), null));
+        StringAssert.Contains("5", error);
+    }
+
+    [UnityTest]
     public IEnumerator RunAfter_DelaysDependentAnimationUntilPrerequisiteFinishes()
     {
         bool allowAToFinish = false;
-        bool bStarted = false;
 
         IEnumerator BehaviorA()
         {
@@ -107,25 +123,28 @@ public class Animation_Library_Tests
             }
         }
 
-        var animA = library.PushAnimation(MakeAction(10), BehaviorA());
-        var animB = library.PushAnimation(
-            MakeAction(20, runAfter: new int[] { 10 }),
-            null,
-            () => bStarted = true);
+        var animA = library.PushAnimation(
+            T.Action(10, "a"),
+            BehaviorA(),
+            () => TestLog.Events.Add("start1"),
+            () => TestLog.Events.Add("end1"));
+
+        library.PushAnimation(
+            T.Action(20, "b", runAfter: new[] { 10 }),
+            Wait(1),
+            () => TestLog.Events.Add("start2"),
+            null);
 
         // Give the scheduler a few frames to try (and correctly fail) to start B.
-        yield return null;
-        yield return null;
-        yield return null;
+        yield return T.Frames(3);
 
         Assert.IsTrue(animA.isPlaying, "prerequisite animation should be running");
-        Assert.IsFalse(bStarted, "dependent animation should not start before its runAfter target finishes");
+        Assert.IsFalse(TestLog.Events.Contains("start2"), "dependent animation should not start before its runAfter target finishes");
 
         allowAToFinish = true;
 
-        yield return WaitUntilOrTimeout(() => bStarted);
-
-        Assert.IsTrue(bStarted, "dependent animation should start once its runAfter target has finished");
+        yield return T.Until(() => TestLog.Events.Contains("start2"), "dependent started");
+        Assert.Less(TestLog.Events.IndexOf("end1"), TestLog.Events.IndexOf("start2"));
     }
 
     [UnityTest]
@@ -143,24 +162,23 @@ public class Animation_Library_Tests
             }
         }
 
-        var animA = library.PushAnimation(MakeAction(11), Hold(() => allowAToFinish));
-        var animB = library.PushAnimation(MakeAction(12), Hold(() => allowBToFinish));
+        var animA = library.PushAnimation(T.Action(11, "a"), Hold(() => allowAToFinish));
+        library.PushAnimation(T.Action(12, "b"), Hold(() => allowBToFinish));
         library.PushAnimation(
-            MakeAction(13, runAfter: new int[] { 11, 12 }),
+            T.Action(13, "c", runAfter: new[] { 11, 12 }),
             null,
             () => cStarted = true);
 
-        yield return null;
-        yield return null;
+        yield return T.Frames(2);
         Assert.IsFalse(cStarted, "should wait while both prerequisites are still active");
 
         allowAToFinish = true;
-        yield return WaitUntilOrTimeout(() => animA.isFinished);
+        yield return T.Until(() => animA.isFinished, "prerequisite A finished");
         yield return null;
         Assert.IsFalse(cStarted, "should still wait while one prerequisite remains active");
 
         allowBToFinish = true;
-        yield return WaitUntilOrTimeout(() => cStarted);
+        yield return T.Until(() => cStarted, "dependent C started");
         Assert.IsTrue(cStarted, "should start once every listed prerequisite has finished");
     }
 
@@ -182,10 +200,10 @@ public class Animation_Library_Tests
             while (!releaseB) yield return null;
         }
 
-        var animA = library.PushAnimation(MakeAction(30), BehaviorA());
-        var animB = library.PushAnimation(MakeAction(31), BehaviorB());
+        var animA = library.PushAnimation(T.Action(30, "a"), BehaviorA());
+        var animB = library.PushAnimation(T.Action(31, "b"), BehaviorB());
 
-        yield return WaitUntilOrTimeout(() => aRunning && bRunning);
+        yield return T.Until(() => aRunning && bRunning, "both animations running");
 
         Assert.IsTrue(aRunning, "first animation should have started");
         Assert.IsTrue(bRunning, "second animation should have started concurrently");
@@ -195,62 +213,70 @@ public class Animation_Library_Tests
         releaseA = true;
         releaseB = true;
 
-        yield return WaitUntilOrTimeout(() => animA.isFinished && animB.isFinished);
+        yield return T.Until(() => animA.isFinished && animB.isFinished, "both animations finished");
 
         Assert.IsTrue(animA.isFinished);
         Assert.IsTrue(animB.isFinished);
     }
 
     [UnityTest]
-    public IEnumerator PushAnimation_RejectsDuplicateId()
+    public IEnumerator DelayBefore_PostponesStart()
     {
-        library.PushAnimation(MakeAction(99), null, () => { }, () => { });
-
-        LogAssert.Expect(LogType.Warning, new Regex("Animation with id 99 already exists.*"));
-        library.PushAnimation(MakeAction(99), null, () => { }, () => { });
+        float pushed = Time.time, started = -1f;
+        var anim = library.PushAnimation(T.Action(40, "a", delay: 0.3f), Wait(1), () => started = Time.time, null);
 
         yield return null;
+        Assert.Less(started, 0f, "animation should not start on the very first frame when delayBefore > 0");
 
-        int countWithId = library.animations.FindAll(a => a.data.id == 99).Count;
-        Assert.AreEqual(1, countWithId, "Only one animation with a given id should be tracked at a time. ");
-    }
-
-    [UnityTest]
-    public IEnumerator DelayBefore_PostponesAnimationStart()
-    {
-        bool started = false;
-        var anim = library.PushAnimation(MakeAction(40, delayBefore: 0.3f), null, () => started = true);
-
-        yield return null;
-        Assert.IsFalse(started, "animation should not start on the very first frame when delayBefore > 0");
-
-        yield return WaitUntilOrTimeout(() => started);
-
-        Assert.IsTrue(started, "animation should start once delayBefore has elapsed");
+        yield return T.Until(() => anim.isFinished, "delayed animation finished");
+        Assert.GreaterOrEqual(started - pushed, 0.25f);
         Assert.IsTrue(anim.isFinished);
     }
 
     [UnityTest]
-    public IEnumerator FinishedAnimations_AreRemovedFromList()
+    public IEnumerator CancelPlan_StopsOnlyThatPlan_AndReportsRunningState()
     {
-        var anim = library.PushAnimation(MakeAction(50), null);
+        var ended = new List<int>();
+        library.PushAnimation(T.Action(1, "running"), Wait(100), null, () => ended.Add(1), planId: 1);
+        library.PushAnimation(T.Action(2, "queued", runAfter: new[] { 1 }), Wait(100), null, () => ended.Add(2), planId: 1);
+        library.PushAnimation(T.Action(3, "other"), Wait(100), null, () => ended.Add(3), planId: 2);
+        yield return T.Frames(3);
 
-        yield return WaitUntilOrTimeout(() => anim.isFinished);
-        yield return null; // one more frame for the manager loop to prune it
+        var cancelled = library.CancelPlan(1);
 
-        bool stillTracked = library.animations.Exists(a => a.data.id == 50);
-        Assert.IsFalse(stillTracked, "finished animations should be removed from the animations list");
+        Assert.AreEqual(2, cancelled.Count);
+        Assert.IsTrue(cancelled.Single(c => c.anim.data.id == 1).wasRunning);
+        Assert.IsFalse(cancelled.Single(c => c.anim.data.id == 2).wasRunning);
+        CollectionAssert.AreEqual(new[] { 1 }, ended, "end() only runs for animations whose start() ran");
+        Assert.IsFalse(library.GetAnimation(a => a.data.id == 3).isFinished);
+
+        yield return T.Frames(2);
+        Assert.IsNull(library.GetAnimation(a => a.data.id == 1), "cancelled animations are cleaned up");
+    }
+
+    [Test]
+    public void CancelPlan_ZeroOrUnknownPlan_DoesNothing()
+    {
+        library.PushAnimation(T.Action(1, "a"), Wait(10), planId: 1);
+        Assert.IsEmpty(library.CancelPlan(0));
+        Assert.IsEmpty(library.CancelPlan(99));
+        Assert.IsFalse(library.animations[0].isFinished);
     }
 
     [UnityTest]
-    public IEnumerator PushAnimation_ReturnsAnimationWithGivenData()
+    public IEnumerator CancelPlan_CalledTwice_ReportsNothingTheSecondTime()
     {
-        var action = MakeAction(60);
-        var anim = library.PushAnimation(action, null);
+        library.PushAnimation(T.Action(1, "a"), Wait(50), planId: 1);
+        yield return T.Frames(2);
+        Assert.AreEqual(1, library.CancelPlan(1).Count);
+        Assert.AreEqual(0, library.CancelPlan(1).Count);
+    }
 
-        Assert.AreSame(action, anim.data, "returned Animation should reference the ActionData it was pushed with");
-        Assert.IsTrue(library.animations.Contains(anim), "pushed animation should be tracked by the library");
-
-        yield return WaitUntilOrTimeout(() => anim.isFinished);
+    [Test]
+    public void PlayAnimation_UnknownAction_ReturnsError()
+    {
+        var sys = root.AddComponent<AgentSystem>();
+        string err = library.PlayAnimation(sys, T.Action(1, "does_not_exist"));
+        StringAssert.Contains("Unknown action", err);
     }
 }
