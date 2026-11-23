@@ -11726,32 +11726,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Scripts::LookAtIK
   aimConstraint: {fileID: 8532754819157914126}
-  lookCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  turnDuration: 0.2
-  floater: {fileID: 0}
+  targetSmoothTime: 0.1
 --- !u!114 &212027983533435923
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15132,10 +15107,10 @@ MonoBehaviour:
   m_Data:
     m_ConstrainedObject: {fileID: 2301524281856037167}
     m_SourceObjects:
-      m_Length: 1
+      m_Length: 0
       m_Item0:
         transform: {fileID: 0}
-        weight: 1
+        weight: 0
       m_Item1:
         transform: {fileID: 0}
         weight: 0
@@ -30721,10 +30696,10 @@ MonoBehaviour:
   m_Data:
     m_ConstrainedObject: {fileID: 3884437543034509990}
     m_SourceObjects:
-      m_Length: 1
+      m_Length: 0
       m_Item0:
         transform: {fileID: 0}
-        weight: 1
+        weight: 0
       m_Item1:
         transform: {fileID: 0}
         weight: 0
@@ -32819,6 +32794,34 @@ MonoBehaviour:
     MaxSightDistance: 6
     CheckInterval: 0.1
     ItemTolerance: 1
+  <LookCurve>k__BackingField:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  <TurnDuration>k__BackingField: 0.2
+  <WalkLinger>k__BackingField: 0.9
+  <GrabLinger>k__BackingField: 0.5
+  <LookSpot>k__BackingField: {fileID: 3884437543034509990}
   <pointProfile>k__BackingField: {fileID: 11400000, guid: 28f53cd2e48ce7c44bc5a4410e71ff49, type: 2}
   <WalkSpeedMult>k__BackingField: 3
   <TurnSpeed>k__BackingField: 300
