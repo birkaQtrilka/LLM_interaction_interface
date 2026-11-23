@@ -13,6 +13,16 @@ public class NPC : MonoBehaviour
     [field: SerializeField] public GrabReceiver GrabReceiver { get; private set; }
     [field: SerializeField] public Animator Anim { get; private set; }
     [field: SerializeField] public LookSettings LookSettings { get; private set; } = new LookSettings { MaxSightDistance = 6f, CheckInterval = 0.1f, ItemTolerance = 0.5f };
+    [field: SerializeField] public AnimationCurve LookCurve { get; private set; }
+    [field: SerializeField] public float TurnDuration { get; private set; } = 0.2f;
+    [Tooltip("How long does it still look at the item after arriving at it")]
+    [field: SerializeField] public float WalkLinger { get; private set; } = .9f;
+    [Tooltip("How long does it still look at the item after grabbing it")]
+    [field: SerializeField] public float GrabLinger { get; private set; } = .5f;
+    [Tooltip("Where the eyes are so other NPCs can look at this NPC's face")]
+    [field: SerializeField] public Transform LookSpot { get; private set; }
+
+
     [Header("Point Settings")]
     [field: SerializeField] public GrabProfile pointProfile { get; private set; }
 
@@ -52,7 +62,8 @@ public class NPC : MonoBehaviour
     public event Action<Collision> OnCollide;
     public bool RightHandTaken => Hand != null && Hand.Held != null;
     [field: SerializeField] public EmotionalStateHandler EmotionalStateHandler { get; private set; }
-
+    LookController look;
+    public LookController Look => look ??= new LookController(this);
     public void GrabItem(Transform item)
     {
         if (!RightHandTaken)

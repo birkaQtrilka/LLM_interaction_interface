@@ -5,14 +5,12 @@ using UnityEngine.Animations.Rigging;
 public class LookAtIK : MonoBehaviour
 {
     [SerializeField] private Rig aimConstraint;
-    [SerializeField] private AnimationCurve lookCurve;
-    [SerializeField] private float turnDuration = 0.2f;
+    [SerializeField] private float targetSmoothTime = 0.1f;
+    private Vector3 floaterVelocity;
+    private Coroutine weightRoutine;
+    private float weightGoal = -1f;
+    Transform floater;
 
-    // Optional: assign a pre-existing target in the prefab/inspector.
-    // If left empty, one will be created dynamically at runtime.
-    [SerializeField] private Transform floater;
-
-    private Coroutine activeLookCoroutine;
 
     private void Awake()
     {
@@ -75,54 +73,47 @@ public class LookAtIK : MonoBehaviour
         }
     }
 
-    public void StartLookAt(Vector3 pos)
+    /// Call every frame. Snaps while the look isn't engaged, smooths otherwise.
+    public void SetTarget(Vector3 pos)
     {
-        if (activeLookCoroutine != null) StopCoroutine(activeLookCoroutine);
-        activeLookCoroutine = StartCoroutine(LookAtRoutine(pos));
+        EnsureFloaterExists();
+        bool snap = aimConstraint == null || aimConstraint.weight < 0.05f;
+        if (snap) { floater.position = pos; floaterVelocity = Vector3.zero; }
+        else floater.position = Vector3.SmoothDamp(floater.position, pos, ref floaterVelocity, targetSmoothTime);
     }
 
-    public void StartStopLooking()
+    public void Engage(float duration, AnimationCurve curve) => BlendTo(1f, duration, curve);
+    public void Disengage(float duration, AnimationCurve curve) => BlendTo(0f, duration, curve);
+
+    private void LateUpdate()
     {
-        if (activeLookCoroutine != null) StopCoroutine(activeLookCoroutine);
-        activeLookCoroutine = StartCoroutine(StopLookingRoutine());
+        if (aimConstraint != null && weightRoutine == null && weightGoal >= 0f)
+            aimConstraint.weight = weightGoal;
     }
 
-    public IEnumerator LookAtRoutine(Vector3 pos)
+    private void BlendTo(float goal, float duration, AnimationCurve curve)
     {
-        if (floater == null) EnsureFloaterExists();
-        floater.position = pos;
+        bool atGoal = aimConstraint == null || Mathf.Approximately(aimConstraint.weight, goal);
+        if (Mathf.Approximately(weightGoal, goal) && atGoal) return;
 
-        float elapsed = 0f;
-        while (elapsed < turnDuration)
+        weightGoal = goal;
+        if (weightRoutine != null) StopCoroutine(weightRoutine);
+        weightRoutine = StartCoroutine(BlendRoutine(goal, Mathf.Max(0.01f, duration), curve));
+    }
+
+    private IEnumerator BlendRoutine(float goal, float duration, AnimationCurve curve)
+    {
+        if (aimConstraint == null) yield break;
+        float start = aimConstraint.weight, elapsed = 0f;
+        while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
-            float t = lookCurve.Evaluate(Mathf.Clamp01(elapsed / turnDuration));
-
-            if (aimConstraint != null)
-                aimConstraint.weight = t;
-
+            float k = Mathf.Clamp01(elapsed / duration);
+            float t = curve != null ? curve.Evaluate(k) : k;
+            aimConstraint.weight = Mathf.Lerp(start, goal, t);
             yield return null;
         }
-
-        if (aimConstraint != null) aimConstraint.weight = 1f;
-    }
-
-    public IEnumerator StopLookingRoutine()
-    {
-        float elapsed = 0f;
-        float startWeight = aimConstraint != null ? aimConstraint.weight : 1f;
-
-        while (elapsed < turnDuration)
-        {
-            elapsed += Time.deltaTime;
-            float t = lookCurve.Evaluate(Mathf.Clamp01(elapsed / turnDuration));
-
-            if (aimConstraint != null)
-                aimConstraint.weight = Mathf.Lerp(startWeight, 0f, t);
-
-            yield return null;
-        }
-
-        if (aimConstraint != null) aimConstraint.weight = 0f;
+        aimConstraint.weight = goal;
+        weightRoutine = null;
     }
 }

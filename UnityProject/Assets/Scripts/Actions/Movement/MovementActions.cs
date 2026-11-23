@@ -26,7 +26,23 @@ static class MovementActions
 
     public static AnimAction Build(NPC agent, TransOrPos pos, ActionData action, AgentSystem context = null)
     {
-        var lookHandler = new LookAtHandler(agent, pos);
+        // --- Look setup -------------------------------------------------------
+        // Same target point Grab uses (GrabSpot if the object has one), cached so FindDeep isn't run every frame.
+        Transform lookTransform = pos.IsTransform ? pos.transform : null;
+        Transform lookSpot = null;
+        Vector3 lastLookPos = pos.position;
+
+        Vector3 GetLookPos()
+        {
+            // If the target was destroyed, keep returning its last known position
+            if (lookTransform != null)
+                lastLookPos = lookSpot != null ? lookSpot.position : pos.position;
+            return lastLookPos;
+        }
+
+        LookHandle look = null;
+        // ----------------------------------------------------------------------
+
         Coroutine walkRoutine = null;
         string error = null;
         bool requestedMove = false;
@@ -51,6 +67,14 @@ static class MovementActions
             {
                 error = $"Move target '{targetLabel}' no longer exists.";
                 return;
+            }
+
+            if (lookTransform != null)
+            {
+                if(lookTransform.TryGetComponent(out NPC other) && other.LookSpot != null)
+                    lookSpot = other.LookSpot;
+                else
+                    lookSpot = lookTransform.FindDeep("GrabSpot");
             }
 
             if (agent.Nav == null || !agent.Nav.enabled || !agent.Nav.isOnNavMesh)
@@ -111,12 +135,10 @@ static class MovementActions
                 }
             }
 
-            Vector3 lookPos = pos.position;
-            if (pos.IsTransform)
-            {
-                Transform grabSpot = pos.transform.FindDeep("GrabSpot");
-                if (grabSpot != null) lookPos = grabSpot.position;
-            }
+            Vector3 lookPos = GetLookPos();
+
+            if (lookTransform != null)
+                look = agent.Look.Request(GetLookPos, requireSight: false);
 
             if (!agent.Nav.hasPath || agent.Nav.remainingDistance <= agent.Nav.stoppingDistance + agent.StoppingDistOffset)
             {
@@ -126,7 +148,6 @@ static class MovementActions
             {
                 yield return WaitForTurn(agent);
                 walkRoutine = agent.StartCoroutine(WalkAndFace(agent, lookPos));
-                lookHandler.StartWatching();
 
                 yield return agent.StartCoroutine(Utils.MonitorMovement(agent.Nav));
                 if (walkRoutine != null)
@@ -159,7 +180,7 @@ static class MovementActions
                     yield break;
                 }
 
-                yield return StartTurn(agent, lookPos);
+                yield return StartTurn(agent, GetLookPos());
             }
 
             yield return agent.StartCoroutine(BlendToIdle(agent));
@@ -168,7 +189,9 @@ static class MovementActions
         void end()
         {
             MovementReservation.Release(agent);
-            lookHandler.StopWatching();
+
+            agent.Look.Release(look, agent.WalkLinger);
+            look = null;
 
             if (walkRoutine != null)
             {
@@ -186,7 +209,6 @@ static class MovementActions
 
         return new AnimAction(action, start, behavior(), end);
     }
-
     /// Move spot of the item if it has a free one, otherwise the old standoff/ring behaviour.
     static Vector3 ResolveDestination(NPC agent, TransOrPos pos)
     {

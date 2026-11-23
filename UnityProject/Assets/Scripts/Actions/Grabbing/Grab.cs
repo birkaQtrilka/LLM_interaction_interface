@@ -23,6 +23,7 @@ public class Grab : IAgentAction
         if (item == null || item.profile == null) return $"'{objectName}' is not grabbable";
 
         if (agent.Hand == null) return $"Misconfigured: '{agent.name}' has no HandController.";
+        LookHandle lookHandle = null;
         // C# does not allow yield return inside a try block with a catch clause,
         // behavior() manually steps grabRoutine.MoveNext() inside try/catch and yields grabRoutine.Current outside it. 
         IEnumerator behavior()
@@ -34,6 +35,7 @@ public class Grab : IAgentAction
                 context.ReportActionError($"Cannot grab '{objectName}': object no longer exists.", agent, action);
                 yield break;
             }
+            lookHandle = agent.Look.Request(() => item.GripTarget != null ? item.GripTarget.position : item.transform.position);
 
             IEnumerator grabRoutine = agent.Hand.Grab(item);
             while (true)
@@ -56,6 +58,8 @@ public class Grab : IAgentAction
 
         void end()
         {
+            agent.Look.Release(lookHandle, agent.GrabLinger);
+            lookHandle = null;
             if (agent.Hand != null && agent.Hand.State == HandState.Grabbing)
                 agent.Hand.ForceRelease();
         }
