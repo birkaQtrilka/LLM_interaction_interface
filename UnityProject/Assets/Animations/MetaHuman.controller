@@ -210,6 +210,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Scripts::TurnByAngle
   angleParameter: TurnAngle
+  speedParameter: TurnSpeed
   rotateStart: 0
   rotateEnd: 1
   easing:
@@ -236,6 +237,9 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  slowStartAngle: 90
+  slowFullAngle: 180
+  minSpeed: 0.511
 --- !u!1101 &-2164870023339439788
 AnimatorStateTransition:
   m_ObjectHideFlags: 1
@@ -457,6 +461,12 @@ AnimatorController:
     m_DefaultInt: 0
     m_DefaultBool: 0
     m_Controller: {fileID: 9100000}
+  - m_Name: TurnSpeed
+    m_Type: 1
+    m_DefaultFloat: 1
+    m_DefaultInt: 0
+    m_DefaultBool: 0
+    m_Controller: {fileID: 9100000}
   m_AnimatorLayers:
   - serializedVersion: 5
     m_Name: Base Layer
@@ -525,13 +535,13 @@ AnimatorState:
   m_IKOnFeet: 0
   m_WriteDefaultValues: 1
   m_Mirror: 0
-  m_SpeedParameterActive: 0
+  m_SpeedParameterActive: 1
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
   m_Motion: {fileID: 8425227608758467358}
   m_Tag: 
-  m_SpeedParameter: 
+  m_SpeedParameter: TurnSpeed
   m_MirrorParameter: 
   m_CycleOffsetParameter: 
   m_TimeParameter: TurnTime
@@ -988,7 +998,7 @@ AnimatorStateTransition:
   m_Mute: 0
   m_IsExit: 0
   serializedVersion: 3
-  m_TransitionDuration: 0.25
+  m_TransitionDuration: 0.5853081
   m_TransitionOffset: 0
   m_ExitTime: 0.875
   m_HasExitTime: 0
