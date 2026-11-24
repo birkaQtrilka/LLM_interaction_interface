@@ -14715,6 +14715,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2556892718337193536, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_Data.m_MaxLimit
+      value: 180
+      objectReference: {fileID: 0}
+    - target: {fileID: 2556892718337193536, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_Data.m_MinLimit
+      value: -180
+      objectReference: {fileID: 0}
+    - target: {fileID: 2556892718337193536, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_Data.m_WorldUpType
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2556892718337193536, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_Data.m_ConstrainedAxes.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2556892718337193536, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_Data.m_ConstrainedAxes.y
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2814251552981399850, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1.73
@@ -14755,16 +14775,33 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: -0.106
       objectReference: {fileID: 0}
+    - target: {fileID: 3378959602846724361, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4183127329488507184, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: debugTarget
       value: 
       objectReference: {fileID: 52645841}
+    - target: {fileID: 6911411674770464373, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: maxTurnSpeed
+      value: 160
+      objectReference: {fileID: 0}
+    - target: {fileID: 6911411674770464373, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: bodyTransform
+      value: 
+      objectReference: {fileID: 1881582817}
+    - target: {fileID: 6911411674770464373, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      propertyPath: targetSmoothTime
+      value: 0.2
+      objectReference: {fileID: 0}
     - target: {fileID: 7143666008480823539, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       propertyPath: m_Name
       value: NPC1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 3378959602846724361, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}

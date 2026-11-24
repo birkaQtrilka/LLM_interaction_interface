@@ -14,3 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Scripts::EmotionalStateSO
   <Arousal>k__BackingField: -1
   <Valence>k__BackingField: -0.139
+  <Ticks>k__BackingField:
+    <Frequency>k__BackingField: {x: 4, y: 10}
+    <Clips>k__BackingField:
+    - {fileID: 8993902097722301239, guid: ddfbee9b1e69dd846a6e3d0299967e58, type: 3}
+    - {fileID: 8993902097722301239, guid: 272ca40641718db4faf05a3381fbc956, type: 3}
