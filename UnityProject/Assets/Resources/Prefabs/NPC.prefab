@@ -13062,6 +13062,7 @@ GameObject:
   - component: {fileID: 7618907976410539552}
   - component: {fileID: 1423542241601838547}
   - component: {fileID: 7957685183120748611}
+  - component: {fileID: 1013636961279454591}
   m_Layer: 0
   m_Name: AnneFleur_Body
   m_TagString: Untagged
@@ -13650,6 +13651,28 @@ MonoBehaviour:
   _possibleEmotions:
   - {fileID: 11400000, guid: 9f53af1d34275e0438a79bea78281152, type: 2}
   - {fileID: 11400000, guid: 0e5e8b5fe5a76b44288507e21ad8e310, type: 2}
+--- !u!114 &1013636961279454591
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2551724450184021691}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94df296393968084085dfeb0898beef8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::EmotionalTickPlayer
+  _tickSlotClip: {fileID: 7400000, guid: 8cd234366aba8a04099706977c305bf1, type: 2}
+  _layerName: EmotionTick
+  _tickState: Tick
+  _emptyState: Empty
+  _fadeDuration: 0.15
+  _cancelFadeDuration: 0.1
+  _verticalParameter: Vertical
+  _horizontalParameter: Horizontal
+  _turnTrigger: DoTurn
+  _movementThreshold: 0.01
 --- !u!1 &2573399223887666433
 GameObject:
   m_ObjectHideFlags: 0

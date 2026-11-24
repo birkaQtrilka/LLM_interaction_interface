@@ -11,7 +11,6 @@ static class MovementActions
     static readonly int MotionSpeedHash = Animator.StringToHash("MotionSpeed");
     static readonly int TurnAngleHash = Animator.StringToHash("TurnAngle");
     static readonly int DoTurnHash = Animator.StringToHash("DoTurn");
-    static readonly int MoveHash = Animator.StringToHash("Move");
     static readonly int TurnInPlaceHash = Animator.StringToHash("TurnInPlace");
     
     // movement queue
