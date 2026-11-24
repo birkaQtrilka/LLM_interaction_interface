@@ -367,11 +367,6 @@ static class MovementActions
 
         yield return Utils.MonitorAnimatorState(agent.Anim, TurnInPlaceHash);
 
-        AnimatorStateInfo state = agent.Anim.GetCurrentAnimatorStateInfo(0);
-        agent.Anim.Play(state.fullPathHash, 0, 0f);
-        agent.Anim.Update(0f);
-        agent.Anim.CrossFade(MoveHash, 0.35f, 0);
-        agent.transform.rotation = targetRot;
         nav.isStopped = false;
     }
 
