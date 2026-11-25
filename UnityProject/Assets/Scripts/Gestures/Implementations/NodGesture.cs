@@ -10,8 +10,10 @@ public class NodGesture : IGestureHandler
 
     public IEnumerator Execute(AgentSystem ctx, ActionData talkData, IReadOnlyDictionary<string, string> args, NPC agent)
     {
-        agent.Anim.Play(Name, layer: 2);
-        Debug.Log("Executing nod gesture");
-        return Utils.MonitorAnimatorState(agent.Anim, Name, layer: 2);
+
+        string name = args["isPositive"] == "true" ? "nod" : "shake";
+        agent.Anim.Play(name, (int)NPC_AnimLayer.Gestures);
+
+        return Utils.MonitorAnimatorState(agent.Anim, name, (int)NPC_AnimLayer.Gestures);
     }
 }

@@ -11,12 +11,17 @@
   },
   {
     "name": "lookAt",
-    "args": "target=name",
-    "doc": "the speaking agent looks at the target without pointing. Use it when the line turns attention to someone or something, for example when mentioning another agent by name. target is the exact name of an agent or object from the context, or Player for the human."
+    "args": "target=name, time=seconds",
+    "doc": "the speaking agent looks at the target without pointing. Use it when the line turns attention to someone or something, for example when mentioning another agent by name. target is the exact name of an agent or object from the context, or Player for the human. Time means how long will you look at target in seconds (e.g. 1.3)"
   },
   {
-    "name": "handMovements",
+    "name": "talkingHands",
     "args": "",
-    "doc": "the speaking agent plays a looping talking animation with its hands. Use it once, at the start of a long explanation of two or more sentences. Do not use it on short lines."
+    "doc": "the speaking agent plays a talking animation with its hands. Use it once, at the start of a long explanation of two or more sentences. Do not use it on short lines."
+  },
+  {
+    "name": "headTilt",
+    "args": "",
+    "doc": "the speaking agent plays a head tilt animation. Use it to express confusion or in a context when the agent is asking for more information."
   }
 ]

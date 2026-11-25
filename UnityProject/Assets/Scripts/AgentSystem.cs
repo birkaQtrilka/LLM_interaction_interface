@@ -336,5 +336,14 @@ public class AgentSystem : MonoBehaviour
         return animationLibrary.animations.Find(a => a.data.id == id);
     }
 
-
+    public Transform GetAny(string name)
+    {
+        var agent = GetAgent(name);
+        if (agent != null) return agent.transform;
+        var obj = GetObject(name);
+        if (obj != null) return obj.transform;
+        var spot = GetSpot(name);
+        if (spot != null) return spot;
+        return null;
+    }
 }
