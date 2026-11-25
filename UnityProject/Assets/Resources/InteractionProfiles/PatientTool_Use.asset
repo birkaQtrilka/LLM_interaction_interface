@@ -22,3 +22,4 @@ MonoBehaviour:
   _acceptedCategories: []
   _heldItemTrigger: Use
   _heldItemTiming: 0
+  _consumesHeldItem: 1

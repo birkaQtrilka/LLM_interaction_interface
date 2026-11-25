@@ -25,6 +25,8 @@ public class UseInteractionProfile : ScriptableObject
     [Tooltip("Required trigger on the held item's explicitly assigned Response Animator.")]
     [SerializeField] private string _heldItemTrigger = "Use";
     [SerializeField] private UseTiming _heldItemTiming = UseTiming.Start;
+    [Tooltip("If enabled, a successful use leaves the held item on the target: it leaves the hand and is hidden (e.g. leads attached to the patient)")]
+    [SerializeField] private bool _consumesHeldItem;
 
     public UseMotion Motion => _motion;
     public AnimationClip NpcClip => _npcClip;
@@ -36,6 +38,7 @@ public class UseInteractionProfile : ScriptableObject
     public UseTargetCategory[] AcceptedCategories => _acceptedCategories;
     public string HeldItemTrigger => _heldItemTrigger;
     public UseTiming HeldItemTiming => _heldItemTiming;
+    public bool ConsumesHeldItem => _consumesHeldItem;
 
     public string ValidateMotion()
     {

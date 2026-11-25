@@ -3227,6 +3227,249 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &920030021
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 920020021}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a54fccf5db110945939d6670b0bc28c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::GrabbableItem
+  profile: {fileID: 11400000, guid: 28f53cd2e48ce7c44bc5a4410e71ff49, type: 2}
+  gripTarget: {fileID: 0}
+  liveTweakGrabPoint: 0
+--- !u!114 &920030022
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 920020021}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51a7f7bab2ff58f48823770cbf1795dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::UseInteractable
+  _standaloneProfile: {fileID: 0}
+  _heldProfile: {fileID: 11400000, guid: 7d5bff8c26a4461bab366aa5dbececba, type: 2}
+  _categories: []
+  _responseAnimator: {fileID: 920030023}
+  _responseTrigger: Use
+  _responseTiming: 1
+  _interactionPoint: {fileID: 0}
+--- !u!95 &920030023
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 920020021}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 596cfd0c5cbf41f4817f28dd77209a49, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &920030031
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 920020031}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a54fccf5db110945939d6670b0bc28c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::GrabbableItem
+  profile: {fileID: 11400000, guid: 28f53cd2e48ce7c44bc5a4410e71ff49, type: 2}
+  gripTarget: {fileID: 0}
+  liveTweakGrabPoint: 0
+--- !u!114 &920030032
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 920020031}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51a7f7bab2ff58f48823770cbf1795dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::UseInteractable
+  _standaloneProfile: {fileID: 0}
+  _heldProfile: {fileID: 11400000, guid: 7d5bff8c26a4461bab366aa5dbececba, type: 2}
+  _categories: []
+  _responseAnimator: {fileID: 920030033}
+  _responseTrigger: Use
+  _responseTiming: 1
+  _interactionPoint: {fileID: 0}
+--- !u!95 &920030033
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 920020031}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 596cfd0c5cbf41f4817f28dd77209a49, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &920030041
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 920020041}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a54fccf5db110945939d6670b0bc28c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::GrabbableItem
+  profile: {fileID: 11400000, guid: 28f53cd2e48ce7c44bc5a4410e71ff49, type: 2}
+  gripTarget: {fileID: 0}
+  liveTweakGrabPoint: 0
+--- !u!114 &920030042
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 920020041}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51a7f7bab2ff58f48823770cbf1795dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::UseInteractable
+  _standaloneProfile: {fileID: 0}
+  _heldProfile: {fileID: 11400000, guid: 7d5bff8c26a4461bab366aa5dbececba, type: 2}
+  _categories: []
+  _responseAnimator: {fileID: 920030043}
+  _responseTrigger: Use
+  _responseTiming: 1
+  _interactionPoint: {fileID: 0}
+--- !u!95 &920030043
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 920020041}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 596cfd0c5cbf41f4817f28dd77209a49, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &920030081
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 920020081}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a54fccf5db110945939d6670b0bc28c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::GrabbableItem
+  profile: {fileID: 11400000, guid: 28f53cd2e48ce7c44bc5a4410e71ff49, type: 2}
+  gripTarget: {fileID: 0}
+  liveTweakGrabPoint: 0
+--- !u!114 &920030082
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 920020081}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51a7f7bab2ff58f48823770cbf1795dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::UseInteractable
+  _standaloneProfile: {fileID: 0}
+  _heldProfile: {fileID: 11400000, guid: 7d5bff8c26a4461bab366aa5dbececba, type: 2}
+  _categories: []
+  _responseAnimator: {fileID: 920030083}
+  _responseTrigger: Use
+  _responseTiming: 1
+  _interactionPoint: {fileID: 0}
+--- !u!95 &920030083
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 920020081}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 596cfd0c5cbf41f4817f28dd77209a49, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &920030092
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 920020091}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51a7f7bab2ff58f48823770cbf1795dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::UseInteractable
+  _standaloneProfile: {fileID: 11400000, guid: 153576965d014568a5ae66f6c5193cef, type: 2}
+  _heldProfile: {fileID: 0}
+  _categories: []
+  _responseAnimator: {fileID: 0}
+  _responseTrigger: Use
+  _responseTiming: 1
+  _interactionPoint: {fileID: 0}
 --- !u!1 &920100001
 GameObject:
   m_ObjectHideFlags: 0
@@ -4047,6 +4290,7 @@ PrefabInstance:
     - {fileID: 1791667219092404932, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
     - {fileID: 3854178532271015279, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
     - {fileID: 7957685183120748611, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+    - {fileID: 6820787046503737912, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
     m_RemovedGameObjects:
     - {fileID: 2369997003512265597, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
     - {fileID: 8537415174415234157, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
@@ -4057,6 +4301,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7143666008480823539, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1345970999}
+    - targetCorrespondingSourceObject: {fileID: 7143666008480823539, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1345971003}
   m_SourcePrefab: {fileID: 100100000, guid: 8785b5f5aec11ea4db94b08d32b79582, type: 3}
 --- !u!1 &1345970997 stripped
 GameObject:
@@ -4080,6 +4327,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 061cbe18bd27e4e40adab218c87b1cb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Scripts::EnvironmentItemTag
+--- !u!65 &1345971003
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1345970997}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.43172455, y: 1.7964935, z: 0.2874875}
+  m_Center: {x: -0.047107697, y: -0.103199005, z: -0.10553193}
 --- !u!1001 &1439192342
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4834,249 +5102,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 25589050237174295, guid: 6f84070aa6b2c5542a9cbdd7a3d08e24, type: 3}
   m_PrefabInstance: {fileID: 1230546447}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &920030021
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 920020021}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6a54fccf5db110945939d6670b0bc28c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Scripts::GrabbableItem
-  profile: {fileID: 11400000, guid: 28f53cd2e48ce7c44bc5a4410e71ff49, type: 2}
-  gripTarget: {fileID: 0}
-  liveTweakGrabPoint: 0
---- !u!114 &920030022
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 920020021}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 51a7f7bab2ff58f48823770cbf1795dd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Scripts::UseInteractable
-  _standaloneProfile: {fileID: 0}
-  _heldProfile: {fileID: 11400000, guid: 7d5bff8c26a4461bab366aa5dbececba, type: 2}
-  _categories: []
-  _responseAnimator: {fileID: 920030023}
-  _responseTrigger: Use
-  _responseTiming: 1
-  _interactionPoint: {fileID: 0}
---- !u!95 &920030023
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 920020021}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 596cfd0c5cbf41f4817f28dd77209a49, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
---- !u!114 &920030031
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 920020031}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6a54fccf5db110945939d6670b0bc28c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Scripts::GrabbableItem
-  profile: {fileID: 11400000, guid: 28f53cd2e48ce7c44bc5a4410e71ff49, type: 2}
-  gripTarget: {fileID: 0}
-  liveTweakGrabPoint: 0
---- !u!114 &920030032
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 920020031}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 51a7f7bab2ff58f48823770cbf1795dd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Scripts::UseInteractable
-  _standaloneProfile: {fileID: 0}
-  _heldProfile: {fileID: 11400000, guid: 7d5bff8c26a4461bab366aa5dbececba, type: 2}
-  _categories: []
-  _responseAnimator: {fileID: 920030033}
-  _responseTrigger: Use
-  _responseTiming: 1
-  _interactionPoint: {fileID: 0}
---- !u!95 &920030033
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 920020031}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 596cfd0c5cbf41f4817f28dd77209a49, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
---- !u!114 &920030041
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 920020041}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6a54fccf5db110945939d6670b0bc28c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Scripts::GrabbableItem
-  profile: {fileID: 11400000, guid: 28f53cd2e48ce7c44bc5a4410e71ff49, type: 2}
-  gripTarget: {fileID: 0}
-  liveTweakGrabPoint: 0
---- !u!114 &920030042
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 920020041}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 51a7f7bab2ff58f48823770cbf1795dd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Scripts::UseInteractable
-  _standaloneProfile: {fileID: 0}
-  _heldProfile: {fileID: 11400000, guid: 7d5bff8c26a4461bab366aa5dbececba, type: 2}
-  _categories: []
-  _responseAnimator: {fileID: 920030043}
-  _responseTrigger: Use
-  _responseTiming: 1
-  _interactionPoint: {fileID: 0}
---- !u!95 &920030043
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 920020041}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 596cfd0c5cbf41f4817f28dd77209a49, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
---- !u!114 &920030081
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 920020081}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6a54fccf5db110945939d6670b0bc28c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Scripts::GrabbableItem
-  profile: {fileID: 11400000, guid: 28f53cd2e48ce7c44bc5a4410e71ff49, type: 2}
-  gripTarget: {fileID: 0}
-  liveTweakGrabPoint: 0
---- !u!114 &920030082
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 920020081}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 51a7f7bab2ff58f48823770cbf1795dd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Scripts::UseInteractable
-  _standaloneProfile: {fileID: 0}
-  _heldProfile: {fileID: 11400000, guid: 7d5bff8c26a4461bab366aa5dbececba, type: 2}
-  _categories: []
-  _responseAnimator: {fileID: 920030083}
-  _responseTrigger: Use
-  _responseTiming: 1
-  _interactionPoint: {fileID: 0}
---- !u!95 &920030083
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 920020081}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 596cfd0c5cbf41f4817f28dd77209a49, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
---- !u!114 &920030092
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 920020091}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 51a7f7bab2ff58f48823770cbf1795dd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Scripts::UseInteractable
-  _standaloneProfile: {fileID: 11400000, guid: 153576965d014568a5ae66f6c5193cef, type: 2}
-  _heldProfile: {fileID: 0}
-  _categories: []
-  _responseAnimator: {fileID: 0}
-  _responseTrigger: Use
-  _responseTiming: 1
-  _interactionPoint: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

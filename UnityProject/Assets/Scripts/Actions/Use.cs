@@ -14,6 +14,7 @@ public class Use : IAgentAction
         string error = null;
         UseSession session = null;
         NPCUseController controller = null;
+        ResolvedUseInteraction resolved = default;
 
         void start()
         {
@@ -24,7 +25,7 @@ public class Use : IAgentAction
             Transform held = agent.GetItem(); // real held object, not a name lookup
             ContextItem legacy = held != null ? context.GetObject(held.name) : null;
 
-            error = UseInteractionResolver.Resolve(target, held, legacy, out var resolved);
+            error = UseInteractionResolver.Resolve(target, held, legacy, out resolved);
             if (error != null) return;
 
             controller = agent.GetComponent<NPCUseController>();
@@ -38,7 +39,14 @@ public class Use : IAgentAction
             yield return new WaitUntil(() => error != null || session != null);
             if (error != null) { context.ReportActionError(error, agent, action); yield break; }
             while (!session.Done) yield return null; // bounded by the controller's own timeouts
-            if (session.Error != null) context.ReportActionError(session.Error, agent, action);
+            if (session.Error != null) { context.ReportActionError(session.Error, agent, action); yield break; }
+
+            // A used-up item stays on the target: free the hand and hide it, so it also drops out of the context
+            if (resolved.UsesHeldItem && resolved.Profile.ConsumesHeldItem && resolved.Target != resolved.HeldObject)
+            {
+                agent.ReleaseItem();
+                resolved.HeldObject.gameObject.SetActive(false);
+            }
         }
 
         void end() { if (controller != null) controller.Cancel(session); }

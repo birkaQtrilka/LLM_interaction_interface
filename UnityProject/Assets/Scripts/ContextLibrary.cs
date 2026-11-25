@@ -111,6 +111,8 @@ public class ContextLibrary : MonoBehaviour
             context += "\nThese are the environment objects: ";
             foreach (var obj in environment)
             {
+                // Hidden items, such as tools used up on the patient, are left out
+                if (!obj.transform.gameObject.activeInHierarchy) continue;
                 string objData = GetItemData(
                     obj,
                     new ItemDataQuery(

@@ -407,7 +407,8 @@ public class AgentSystem : MonoBehaviour
     }
 
     public NPC GetAgent(string name) => contextLibrary.agents.Find(a => a != null && a.name == name);
-    public ContextItem GetObject(string name) => contextLibrary.environment.Find(a => a.transform != null && a.GetName() == name);
+    // Hidden items, such as tools used up on the patient, no longer exist for the NPCs
+    public ContextItem GetObject(string name) => contextLibrary.environment.Find(a => a.transform != null && a.GetName() == name && a.transform.gameObject.activeInHierarchy);
 
     public Transform GetSpot(string name)
     {

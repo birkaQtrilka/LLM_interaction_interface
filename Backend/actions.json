@@ -32,6 +32,6 @@
   {
     "name": "use",
     "args": "targetName: string",
-    "doc": "the agent named in the action's 'agent' field operates an object. targetName must be an exact name from the context. If that agent's itemInRightHand is empty, the agent uses targetName itself, for example opening a Door, and targetName must have usable: true. If that agent holds an item, the agent uses the held item on targetName, and the held item must have usable: true with targetName in its usableOn. To use an item on itself, it lists its own name in usableOn. If these conditions do not hold, use talk only and do not moveTo the object. Always do moveTo for this agent to get close to targetName first."
+    "doc": "the agent named in the action's 'agent' field operates an object. targetName must be an exact name from the context. If that agent holds an item that lists targetName in its usableOn, the agent uses the held item on targetName, for example a tool on the patient. To use an item on itself, it lists its own name in usableOn. Otherwise the agent operates targetName itself, for example opening a Door, and targetName must have usableDirectly: true. This works with an empty hand or while holding an unrelated item. If neither condition holds, use talk only and do not moveTo the object. Always do moveTo for this agent to get close to targetName first."
   }
 ]
