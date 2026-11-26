@@ -15,6 +15,9 @@ public class AnimationLibrary : MonoBehaviour
     readonly Dictionary<string, IAgentAction> registry = new();
     public event Action<AnimationInstance> AnimationStarted;
     public event Action<AnimationInstance> AnimationEnded;
+    // to make tests faster, we cache the list of action types so we don't have to reflectively scan assemblies every time we create a new AnimationLibrary
+    static List<Type> cachedActionTypes;
+
     private void Awake()
     {
         BuildRegistry();
@@ -22,10 +25,12 @@ public class AnimationLibrary : MonoBehaviour
 
     void BuildRegistry()
     {
-        var actionTypes = UnityEngine.Assemblies.CurrentAssemblies.GetLoadedAssemblies().SelectMany(SafeGetTypes)
-            .Where(t => typeof(IAgentAction).IsAssignableFrom(t) && !t.IsAbstract && !t.IsInterface);
+        cachedActionTypes ??= UnityEngine.Assemblies.CurrentAssemblies.GetLoadedAssemblies()
+            .SelectMany(SafeGetTypes)
+            .Where(t => typeof(IAgentAction).IsAssignableFrom(t) && !t.IsAbstract && !t.IsInterface)
+            .ToList();
 
-        foreach (var type in actionTypes)
+        foreach (var type in cachedActionTypes)
         {
             IAgentAction instance;
             try

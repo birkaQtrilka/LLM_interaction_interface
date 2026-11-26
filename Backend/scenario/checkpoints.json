@@ -64,19 +64,6 @@
       },
       "team": {},
       "advances_when": "The physician asks for the trauma surgeon"
-    },
-    {
-      "id": 5,
-      "name": "Surgeon in the room",
-      "patient": "Unconscious and intubated, in hypovolemic shock from bleeding in the left thigh.",
-      "vitals": { "hr": 115, "bp": "70/40", "spo2": null, "rr": null, "ecg": "Increasing number of extrasystoles" },
-      "tom": "Unconscious and intubated. Does not respond.",
-      "findings": {
-        "left thigh": "Red and very swollen, from internal bleeding in the left thigh",
-        "abdomen": "Soft"
-      },
-      "team": { "Surgeon": "Wants to operate as quickly as possible, and wants an X-ray of the left leg before Tom goes to the OR" },
-      "advances_when": "Tom leaves the room for the OR"
     }
   ]
 }

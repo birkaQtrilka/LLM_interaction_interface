@@ -101,8 +101,7 @@ public class Give : IAgentAction
         IEnumerator animationChain =
             Utils.MonitorAnimatorState(agent.Anim, "Give_Raise", 1)
             .OnCrEnd(onRaise())
-            .OnCrEnd(Utils.MonitorFlag(interchanged))
-            .OnCrEnd(Utils.MonitorAnimatorState(agent.Anim, "Give_lower", 1));
+            .OnCrEnd(Utils.MonitorFlag(interchanged));
 
         IEnumerator behavior()
         {

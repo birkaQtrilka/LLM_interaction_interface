@@ -5,12 +5,12 @@
     "doc": "the speaking agent nods its head. Use isPositive=true when agreeing, confirming, or greeting. Use isPositive=false when refusing, disagreeing, or saying something cannot be done."
   },
   {
-    "name": "pointAt",
+    "name": "point",
     "args": "target=name",
     "doc": "the speaking agent points at the target while saying the word before the tag. Use it when the line refers to an agent, an environment object, or the human player. target is the exact name of an agent or object from the context, or Player for the human."
   },
   {
-    "name": "lookAt",
+    "name": "look",
     "args": "target=name",
     "doc": "the speaking agent looks at the target without pointing. Use it when the line turns attention to someone or something, for example when mentioning another agent by name. target is the exact name of an agent or object from the context, or Player for the human."
   },

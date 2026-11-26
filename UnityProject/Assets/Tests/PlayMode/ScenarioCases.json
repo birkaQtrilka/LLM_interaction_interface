@@ -1,0 +1,97 @@
+{
+  "cases": [
+    {
+      "label": "circulation assessed, to Shock signs",
+      "steps": [
+        { "lines": ["user to Nurse: Airway and breathing are fine. Let's check circulation.", "Nurse to user: I checked his pulse and blood pressure. His heart rate is high and his blood pressure is low."], "advance": true }
+      ]
+    },
+    {
+      "label": "still on the airway, stays at Arrival",
+      "steps": [
+        { "lines": ["user to Anesthesiologist: How is his airway?", "Anesthesiologist to user: The airway is clear, there is nothing in his mouth."], "actions": ["Nurse moveTo(BedSide)"], "advance": false }
+      ]
+    },
+    {
+      "label": "second IV and lab done, to Loss of consciousness",
+      "steps": [
+        { "lines": ["user to Nurse: Airway and breathing are fine. Let's check circulation.", "Nurse to user: I checked his pulse and blood pressure. His heart rate is high and his blood pressure is low."], "advance": true },
+        { "lines": ["user to Nurse: Place a second IV line and draw blood for a full lab panel.", "Nurse to user: The second IV line is in and the blood for the full lab panel is drawn."], "advance": true }
+      ]
+    },
+    {
+      "label": "IV only ordered, stays at Shock signs",
+      "steps": [
+        { "lines": ["user to Nurse: Airway and breathing are fine. Let's check circulation.", "Nurse to user: I checked his pulse and blood pressure. His heart rate is high and his blood pressure is low."], "advance": true },
+        { "lines": ["user to Nurse: Place a second IV line and draw blood for a full lab panel."], "advance": false }
+      ]
+    },
+    {
+      "label": "IV only promised, stays at Shock signs",
+      "steps": [
+        { "lines": ["user to Nurse: Airway and breathing are fine. Let's check circulation.", "Nurse to user: I checked his pulse and blood pressure. His heart rate is high and his blood pressure is low."], "advance": true },
+        { "lines": ["user to Nurse: Place a second IV line and draw blood for a full lab panel.", "Nurse to user: Okay, I will place the second line and draw the blood."], "advance": false }
+      ]
+    },
+    {
+      "label": "IV in but no lab, stays at Shock signs",
+      "steps": [
+        { "lines": ["user to Nurse: Airway and breathing are fine. Let's check circulation.", "Nurse to user: I checked his pulse and blood pressure. His heart rate is high and his blood pressure is low."], "advance": true },
+        { "lines": ["user to Nurse: Place a second IV line and draw blood for a full lab panel.", "Nurse to user: The second IV line is in."], "advance": false }
+      ]
+    },
+    {
+      "label": "intubated and on the Ventilator, to Worsening shock",
+      "steps": [
+        { "lines": ["user to Nurse: Airway and breathing are fine. Let's check circulation.", "Nurse to user: I checked his pulse and blood pressure. His heart rate is high and his blood pressure is low."], "advance": true },
+        { "lines": ["user to Nurse: Place a second IV line and draw blood for a full lab panel.", "Nurse to user: The second IV line is in and the blood for the full lab panel is drawn."], "advance": true },
+        { "lines": ["user to Anesthesiologist: He is unconscious, intubate him.", "Anesthesiologist to user: Tom is intubated, the tube is secured and he is connected to the Ventilator."], "advance": true }
+      ]
+    },
+    {
+      "label": "tube in but not secured, stays at Loss of consciousness",
+      "steps": [
+        { "lines": ["user to Nurse: Airway and breathing are fine. Let's check circulation.", "Nurse to user: I checked his pulse and blood pressure. His heart rate is high and his blood pressure is low."], "advance": true },
+        { "lines": ["user to Nurse: Place a second IV line and draw blood for a full lab panel.", "Nurse to user: The second IV line is in and the blood for the full lab panel is drawn."], "advance": true },
+        { "lines": ["user to Anesthesiologist: He is unconscious, intubate him.", "AnesthesiaAssistant to user: The tube is in."], "advance": false }
+      ]
+    },
+    {
+      "label": "asks for the surgeon, scenario ends",
+      "steps": [
+        { "lines": ["user to Nurse: Airway and breathing are fine. Let's check circulation.", "Nurse to user: I checked his pulse and blood pressure. His heart rate is high and his blood pressure is low."], "advance": true },
+        { "lines": ["user to Nurse: Place a second IV line and draw blood for a full lab panel.", "Nurse to user: The second IV line is in and the blood for the full lab panel is drawn."], "advance": true },
+        { "lines": ["user to Anesthesiologist: He is unconscious, intubate him.", "Anesthesiologist to user: Tom is intubated, the tube is secured and he is connected to the Ventilator."], "advance": true },
+        { "lines": ["user to Nurse: Call the trauma surgeon, we need him here now."], "advance": false, "finish": true }
+      ]
+    },
+    {
+      "label": "bleeding found but no surgeon asked, stays at Worsening shock",
+      "steps": [
+        { "lines": ["user to Nurse: Airway and breathing are fine. Let's check circulation.", "Nurse to user: I checked his pulse and blood pressure. His heart rate is high and his blood pressure is low."], "advance": true },
+        { "lines": ["user to Nurse: Place a second IV line and draw blood for a full lab panel.", "Nurse to user: The second IV line is in and the blood for the full lab panel is drawn."], "advance": true },
+        { "lines": ["user to Anesthesiologist: He is unconscious, intubate him.", "Anesthesiologist to user: Tom is intubated, the tube is secured and he is connected to the Ventilator."], "advance": true },
+        { "lines": ["user to Nurse: Check his left leg.", "Nurse to user: His left thigh is red and very swollen."], "advance": false }
+      ]
+    },
+    {
+      "label": "nurse's idle nudge about the surgeon, stays at Worsening shock",
+      "steps": [
+        { "lines": ["user to Nurse: Airway and breathing are fine. Let's check circulation.", "Nurse to user: I checked his pulse and blood pressure. His heart rate is high and his blood pressure is low."], "advance": true },
+        { "lines": ["user to Nurse: Place a second IV line and draw blood for a full lab panel.", "Nurse to user: The second IV line is in and the blood for the full lab panel is drawn."], "advance": true },
+        { "lines": ["user to Anesthesiologist: He is unconscious, intubate him.", "Anesthesiologist to user: Tom is intubated, the tube is secured and he is connected to the Ventilator."], "advance": true },
+        { "lines": ["Nurse to user: His blood pressure keeps dropping and that thigh is swelling. Should we call the trauma surgeon?"], "advance": false }
+      ]
+    },
+    {
+      "label": "after the end, nothing more is judged",
+      "steps": [
+        { "lines": ["user to Nurse: Airway and breathing are fine. Let's check circulation.", "Nurse to user: I checked his pulse and blood pressure. His heart rate is high and his blood pressure is low."], "advance": true },
+        { "lines": ["user to Nurse: Place a second IV line and draw blood for a full lab panel.", "Nurse to user: The second IV line is in and the blood for the full lab panel is drawn."], "advance": true },
+        { "lines": ["user to Anesthesiologist: He is unconscious, intubate him.", "Anesthesiologist to user: Tom is intubated, the tube is secured and he is connected to the Ventilator."], "advance": true },
+        { "lines": ["user to Nurse: Call the trauma surgeon, we need him here now."], "advance": false, "finish": true },
+        { "lines": ["Nurse to user: The surgeon is on his way."], "advance": false, "finish": true }
+      ]
+    }
+  ]
+}

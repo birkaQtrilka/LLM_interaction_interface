@@ -1,0 +1,60 @@
+Manual play test for the scenario checkpoints (#210)
+Needs #203 done: the NPCs in TraumaRoom are named Anesthesiologist, AnesthesiaAssistant, Nurse and Surgeon.
+
+Before you start:
+- Start the backend (see How to run this.txt). The terminal prints each prompt
+- Open TraumaRoom. On AgentSystem, Check Scenario is ticked
+- Do not run the PlayMode tests at the same time: the backend keeps one checkpoint for the whole server
+
+1. No check while NPCs are busy
+   Ask an NPC to walk somewhere. While it walks, the Console shows no "Scenario check" line.
+   The line appears about half a second after the last action ends.
+
+2. One check after a handoff
+   Ask the Anesthesiologist to tell the Nurse something (a talk with isNextTurn true).
+   The Nurse's own turn runs first. Then exactly one "Scenario check" line appears, not one per turn.
+
+3. No advance on an order
+   At Arrival, say "Nurse, check the circulation" and wait for the check.
+   If the Nurse only says she will do it, the check says advanced=False.
+
+4. Advance on a finished act
+   Get the Nurse to report pulse and blood pressure. The check says advanced=True, now checkpoint 2 (Shock signs).
+   The next NPC answer follows the new state (sweaty, heart rate 110, blood pressure 90/65).
+
+5. Session log
+   Open Backend/logs/<session id>.json. It has:
+   - "scenario_check" turns with met and reason, and "checkpoint" set to the state that was judged
+   - a "checkpoints" list with from, to, name and reason for each advance
+
+6. End of the scenario (#213)
+   At Worsening shock (the last checkpoint since #212 was skipped), ask the Nurse to call the trauma surgeon.
+   The Console shows "Scenario finished" and the Finished form appears with the two 1 to 5 questions.
+   Fill it in and press Confirm. It says "Saved".
+   The session log has a "finished" entry with the reason and a "feedback" entry with the scores.
+   After the end, no idle nudge comes and no new scenario_check turn is written.
+
+7. Failure stays visible
+   Stop the backend while an NPC is acting. When the actions end, the chat shows "System: Scenario check failed: ..." and the Console shows the error.
+
+8. Other scenes stay quiet
+   Play UserTest and give an order. No "Scenario check" line appears, and the backend gets no /v1/scenario/check call.
+
+Idle nudge (#211). IdleNudge sits on the AgentSystem object in TraumaRoom. Idle Seconds is 30, and it can be set lower for testing
+9. Nudge after silence
+   Start the scene and say nothing. About 30 seconds later the Nurse says one of the Arrival lines ("Shall I check his circulation?"). It shows in the chat as a normal NPC line.
+
+10. Only once per silence
+    Keep saying nothing. No second nudge comes. Send any message, then wait again: one new nudge comes.
+
+11. NPCs acting is not idling
+    Give an order that makes an NPC walk for a while. The 30 seconds only start counting after every action has finished.
+
+12. Lines follow the checkpoint
+    After the case moves to Shock signs, the nudge is about a second IV and the lab. At Loss of consciousness the Anesthesiologist asks about intubation. After the scenario has finished no nudge comes.
+
+13. The nudge does not advance the case
+    At Worsening shock, let the Nurse's nudge ("Should we call the trauma surgeon?") play. The scenario check that follows says advanced=False, because the physician has not asked yet.
+
+14. Wrong speaker name stays visible
+    Until #203 renames the NPCs, a nudge fails with "System: Idle nudge failed: Couldn't find agent with name Nurse" in the chat and an error in the Console.

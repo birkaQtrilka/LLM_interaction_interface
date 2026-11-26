@@ -24,6 +24,8 @@ public class AgentSystem : MonoBehaviour
     public AnimationLibrary AnimationLibrary => animationLibrary;
     public bool IsBusy { get; private set; }
     public ActionsResponse LastActions { get; private set; }
+    ILLMBackend injectedBackend;
+    ILLMBackend Backend => injectedBackend ?? (llm != null ? llm : null);
 
     // Errors waiting to be sent to the backend
     readonly List<string> pendingErrors = new();
@@ -39,9 +41,35 @@ public class AgentSystem : MonoBehaviour
     string lastSpeaker;
     int planCounter;
 
-    public void Init(LLMBackend llm, AnimationLibrary anim, ContextLibrary ctx)
+    // No turn running and no action queued or playing
+    public bool IsSettled => !IsBusy && animationLibrary != null && animationLibrary.animations.TrueForAll(a => a.isFinished);
+    // Checkpoint id from the last scenario check. A new session starts at 1 on the backend too
+    public int CurrentCheckpoint { get; private set; } = 1;
+    public bool ScenarioFinished { get; private set; }
+    // Raised once, when a scenario check reports the end
+    public event Action ScenarioEnded;
+
+
+    // On only in scenes that play the scenario, so other scenes make no judge calls
+    [SerializeField] bool checkScenario = false;
+    // How long nothing may run before the scenario check is sent. Between Round 1 and Round 2 of a turn IsBusy is briefly false
+    [SerializeField] float settleSeconds = 0.5f;
+    // Evidence for the judge: actions finished since the current checkpoint began
+    readonly List<string> finishedSinceAdvance = new();
+    bool checkPending;
+
+    public void SetBackend(ILLMBackend backend) => injectedBackend = backend;
+
+    // Lets tests shorten the batching delay without reflection
+    public void Configure(int maxFeedbackRounds, float errorBatchDelay)
     {
-        this.llm = llm;
+        this.maxFeedbackRounds = maxFeedbackRounds;
+        this.errorBatchDelay = errorBatchDelay;
+    }
+
+    public void Init(ILLMBackend llm, AnimationLibrary anim, ContextLibrary ctx)
+    {
+        this.injectedBackend = llm;
         this.animationLibrary = anim;
         this.contextLibrary = ctx;
     }
@@ -58,6 +86,73 @@ public class AgentSystem : MonoBehaviour
         if (pendingErrors.Count == 0 || !hasLastTurn) return;
         if (turnInProgress || IsBusy || Time.time < errorFlushAt) return;
         StartCoroutine(RunFeedbackTurn());
+    }
+
+    // Start, not Awake, because tests set animationLibrary through Init after Awake
+    private void Start()
+    {
+        if (!checkScenario) return;
+        // Test scenes play actions without a backend, so there is nothing to check against
+        if (animationLibrary == null || llm == null)
+        {
+            Debug.LogWarning("AgentSystem has no AnimationLibrary or LLMBackend, so scenario checkpoints are never checked");
+            return;
+        }
+        animationLibrary.AnimationEnded += OnAnimationEnded;
+    }
+
+    private void OnDestroy()
+    {
+        if (animationLibrary != null) animationLibrary.AnimationEnded -= OnAnimationEnded;
+    }
+
+    void OnAnimationEnded(AnimationInstance anim)
+    {
+        // Spoken lines are already in the chat history the judge gets, so only physical actions are listed
+        if (anim.data.name != "talk")
+            finishedSinceAdvance.Add($"{anim.data.agent} {anim.data.name}({string.Join(", ", anim.data.parameters ?? new string[0])})");
+        // After the end there is nothing left to judge
+        if (!checkPending && !ScenarioFinished)
+            StartCoroutine(CheckScenarioWhenSettled());
+    }
+
+    // Waits until no action is queued or playing and no turn is running, so the judge never sees a half-played plan
+    IEnumerator CheckScenarioWhenSettled()
+    {
+        checkPending = true;
+        float quiet = 0f;
+        while (quiet < settleSeconds)
+        {
+            quiet = IsSettled ? quiet + Time.deltaTime : 0f;
+            yield return null;
+        }
+        checkPending = false;
+        // Busy during the call, so the player's next turn is built with the new checkpoint
+        yield return RunBusy(CheckScenario());
+    }
+
+    IEnumerator CheckScenario()
+    {
+        string world = contextLibrary.GetContext(ContextQuery.GetFullContext(), animationLibrary.animations);
+        CoroutineResult<ScenarioCheckResponse> res = new();
+        yield return StartCoroutine(llm.CheckScenario(world, finishedSinceAdvance.ToArray(), res));
+        if (res.Status != ContextStatus.Success)
+        {
+            AddChat("System: Scenario check failed: " + res.Error);
+            yield break;
+        }
+
+        ScenarioCheckResponse r = res.Response;
+        Debug.Log($"Scenario check: advanced={r.advanced}, now checkpoint {r.checkpoint} ({r.name}). {r.reason}");
+        CurrentCheckpoint = r.checkpoint;
+        if (r.finished && !ScenarioFinished)
+        {
+            ScenarioFinished = true;
+            Debug.Log("Scenario finished");
+            ScenarioEnded?.Invoke();
+        }
+        // The list is evidence for one state, so the next state starts with an empty list
+        if (r.advanced) finishedSinceAdvance.Clear();
     }
 
     private void OnUserMessage(string txt)
@@ -87,7 +182,7 @@ public class AgentSystem : MonoBehaviour
 
         // Stop the rest of the plan; the failed action itself is already described above
         var cancelled = animationLibrary.CancelPlan(planId)
-            .Where(c => action == null || c.anim.data.id != action.id)
+            .Where(c => action == null || !ReferenceEquals(c.anim.data, action))
             .Select(c => $"{c.anim.data.name} (id {c.anim.data.id}, {(c.wasRunning ? "was running" : "had not started")})")
             .ToList();
         if (cancelled.Count > 0)
@@ -222,8 +317,10 @@ public class AgentSystem : MonoBehaviour
 
         IEnumerator Body()
         {
+            var backend = Backend;
+            if (backend == null) { res.SetError("No LLM backend configured"); Debug.LogError(res.Error); yield break; }
             Debug.Log($"Sending to backend Round 1: {userPrompt}");
-            yield return StartCoroutine(llm.GetContext(userPrompt, res));
+            yield return StartCoroutine(backend.GetContext(userPrompt, res));
 
             if (res.Status == ContextStatus.Success)
             {
@@ -247,9 +344,11 @@ public class AgentSystem : MonoBehaviour
 
         IEnumerator Body()
         {
+            var backend = Backend;
+            if (backend == null) { res.SetError("No LLM backend configured"); Debug.LogError(res.Error); yield break; }
             string world = contextLibrary.GetContext(context, animationLibrary.animations);
             Debug.Log($"Sending to backend Round 2:\n{world}\n{userPrompt}");
-            yield return StartCoroutine(llm.GetActions(userPrompt, world, res, addressee, speaker));
+            yield return StartCoroutine(backend.GetActions(userPrompt, world, res, addressee, speaker));
 
             if (res.Status == ContextStatus.Success)
             {
@@ -307,15 +406,8 @@ public class AgentSystem : MonoBehaviour
         chatManager.AddChat(message);
     }
 
-    public NPC GetAgent(string name)
-    {
-        return contextLibrary.agents.Find(a => a.name == name);
-    }
-
-    public ContextItem GetObject(string name)
-    {
-        return contextLibrary.environment.Find(a => a.GetName() == name);
-    }
+    public NPC GetAgent(string name) => contextLibrary.agents.Find(a => a != null && a.name == name);
+    public ContextItem GetObject(string name) => contextLibrary.environment.Find(a => a.transform != null && a.GetName() == name);
 
     public Transform GetSpot(string name)
     {
